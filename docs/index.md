@@ -18,29 +18,35 @@ description: The first comprehensive benchmark for evaluating AI coding agents o
 
 ---
 
-## ✅ The Solution
+## 🏆 Leaderboard by Segment
 
-**SF-Bench** fills this gap with:
+| Segment | Description | GPT-4o | Claude 3.5 | Gemini 2.0 | Open Source |
+|---------|-------------|:------:|:----------:|:----------:|:-----------:|
+| **Apex** | Triggers, Classes, Tests | -% | -% | -% | -% |
+| **LWC** | Lightning Web Components | -% | -% | -% | -% |
+| **Flow** | Screen Components, Actions | -% | -% | -% | -% |
+| **Lightning Pages** | FlexiPages, Dynamic Forms | -% | -% | -% | -% |
+| **Experience Cloud** | Sites, Communities | -% | -% | -% | -% |
+| **Architecture** | Full-stack, System Design | -% | -% | -% | -% |
+| | | | | | |
+| **Overall** | All 12 Tasks | **-%** | **-%** | **-%** | **-%** |
 
-| Feature | Description |
-|---------|-------------|
-| 🔄 **Real Execution** | Tests run in actual Salesforce scratch orgs |
-| 📊 **15+ Task Types** | Apex, LWC, Flows, Lightning Pages, and more |
-| 🏗️ **Architecture-Level** | Evaluates planning and system design |
-| ✔️ **Outcome Validation** | Goes beyond just test passing |
-| 📈 **Public Leaderboard** | Compare AI models head-to-head |
+[**📊 Submit Your Results →**](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
 
 ---
 
-## 🏆 Leaderboard
+## ✅ Verified Repositories
 
-| Rank | Model | Pass Rate | Tasks Passed | Date |
-|:----:|-------|:---------:|:------------:|:----:|
-| 🥇 | *Submit your results* | -% | -/- | - |
-| 🥈 | - | - | - | - |
-| 🥉 | - | - | - | - |
+All tasks use **official Salesforce sample repositories** verified via GitHub API:
 
-[**📊 Submit Your Results →**](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
+| Repository | Stars | Categories |
+|------------|:-----:|------------|
+| [apex-recipes](https://github.com/trailheadapps/apex-recipes) | 1,059 ⭐ | Apex |
+| [lwc-recipes](https://github.com/trailheadapps/lwc-recipes) | 2,805 ⭐ | LWC |
+| [dreamhouse-lwc](https://github.com/trailheadapps/dreamhouse-lwc) | 469 ⭐ | Architecture |
+| [automation-components](https://github.com/trailheadapps/automation-components) | 384 ⭐ | Flow |
+| [ebikes-lwc](https://github.com/trailheadapps/ebikes-lwc) | 830 ⭐ | Experience Cloud |
+| [agent-script-recipes](https://github.com/trailheadapps/agent-script-recipes) | 53 ⭐ | Agentforce |
 
 ---
 
@@ -53,21 +59,21 @@ cd SF-bench
 pip install -e .
 
 # Run evaluation
-python scripts/evaluate.py --model <your-model> --solutions solutions/<your-model>/
+python scripts/evaluate.py --model <your-model> --tasks data/tasks/verified.json
 ```
 
 **Prerequisites:** Python 3.10+ • [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) • Node.js 18+ • Authenticated Dev Hub
 
 ---
 
-## 📊 Task Coverage
+## 📊 Task Difficulty
 
-| Category | Task Types | Validation |
-|----------|------------|------------|
-| **Development** | Apex, LWC, Triggers, Batch Jobs | Unit tests, Jest |
-| **Declarative** | Flows, Validation Rules, Formulas | Flow validation |
-| **Configuration** | Page Layouts, Lightning Pages, Communities | Deploy check |
-| **Architecture** | Data Model, Security, Integration | Multi-layer validation |
+| Difficulty | Tasks | Description |
+|------------|:-----:|-------------|
+| Easy | 2 | Basic configurations, simple fixes |
+| Medium | 5 | Multi-step implementations |
+| Hard | 4 | Complex components, patterns |
+| Expert | 1 | Full architecture design |
 
 ---
 
@@ -78,7 +84,6 @@ python scripts/evaluate.py --model <your-model> --solutions solutions/<your-mode
 | ⭐ Star the repo | [GitHub Repository](https://github.com/yasarshaikh/SF-bench) |
 | 📊 Submit results | [Submit Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
 | 🐛 Report bugs | [Issue Tracker](https://github.com/yasarshaikh/SF-bench/issues) |
-| 💬 Discussions | [GitHub Discussions](https://github.com/yasarshaikh/SF-bench/discussions) |
 | 📝 Contribute | [Contributing Guide](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
 
 ---
