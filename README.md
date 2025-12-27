@@ -1,216 +1,232 @@
-# SF-Bench
+<p align="center">
+  <img src="https://img.shields.io/badge/SF--Bench-Salesforce%20AI%20Benchmark-00A1E0?style=for-the-badge&logo=salesforce&logoColor=white" alt="SF-Bench"/>
+</p>
 
-**Benchmark for evaluating AI coding agents on Salesforce development tasks.**
+<h1 align="center">SF-Bench</h1>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+<p align="center">
+  <strong>The First Comprehensive Benchmark for Evaluating AI Coding Agents on Salesforce Development</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/yasarshaikh/SF-bench/stargazers"><img src="https://img.shields.io/github/stars/yasarshaikh/SF-bench?style=social" alt="GitHub stars"/></a>
+  <a href="https://github.com/yasarshaikh/SF-bench/network/members"><img src="https://img.shields.io/github/forks/yasarshaikh/SF-bench?style=social" alt="GitHub forks"/></a>
+  <a href="https://github.com/yasarshaikh/SF-bench/issues"><img src="https://img.shields.io/github/issues/yasarshaikh/SF-bench" alt="GitHub issues"/></a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"/></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"/></a>
+  <a href="https://developer.salesforce.com/tools/salesforcecli"><img src="https://img.shields.io/badge/Salesforce-CLI%20v2+-00A1E0.svg?logo=salesforce" alt="Salesforce CLI"/></a>
+  <a href="https://yasarshaikh.github.io/SF-bench/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Documentation"/></a>
+</p>
+
+<p align="center">
+  <a href="#-why-sf-bench">Why SF-Bench</a> •
+  <a href="#-leaderboard">Leaderboard</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-task-types">Tasks</a> •
+  <a href="#-contributing">Contributing</a> •
+  <a href="#-citation">Citation</a>
+</p>
 
 ---
 
-## Overview
+## 🎯 Why SF-Bench?
 
-SF-Bench is a comprehensive benchmark for evaluating how well AI models can solve real-world Salesforce development tasks. Unlike generic coding benchmarks, SF-Bench tests domain-specific capabilities:
+**The Salesforce ecosystem is a $50B+ market with millions of developers.** Yet there's no standardized way to evaluate how well AI coding assistants perform on Salesforce-specific tasks.
 
-- **Apex**: Classes, triggers, and unit tests
-- **LWC**: Lightning Web Components with Jest
-- **Flows**: Salesforce Flow automation
-- **Metadata**: Deployment and configuration
-- **Architecture**: Planning and execution
+Generic benchmarks like **HumanEval** and **SWE-bench** don't capture:
 
-## Quick Start
+| Challenge | Why It Matters |
+|-----------|----------------|
+| **Multi-modal development** | Apex, JavaScript (LWC), XML metadata, Flows |
+| **Org-dependent testing** | Scratch orgs, governor limits, test frameworks |
+| **Platform constraints** | Security model, sharing rules, field-level security |
+| **Declarative vs. Code** | Flows, Process Builder, validation rules |
+| **Enterprise patterns** | Triggers, batch jobs, integrations |
+
+**SF-Bench fills this gap** with real execution in actual Salesforce environments.
+
+---
+
+## 🏆 Leaderboard
+
+| Rank | Model | Pass Rate | Passed | Total | Date |
+|:----:|-------|:---------:|:------:|:-----:|:----:|
+| 🥇 | *Your model here* | -% | - | - | - |
+| 🥈 | - | - | - | - | - |
+| 🥉 | - | - | - | - | - |
+
+**[Submit your results →](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)**
+
+---
+
+## 🚀 Quick Start
 
 ### Installation
 
 ```bash
-git clone https://github.com/sfbench/sf-bench.git
-cd sf-bench
+git clone https://github.com/yasarshaikh/SF-bench.git
+cd SF-bench
 pip install -e .
 ```
 
 ### Prerequisites
 
-- Python 3.10+
-- [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) (`sf`)
-- Node.js 18+ (for LWC tasks)
-- Git
-- Authenticated Dev Hub (for Apex/Deploy tasks)
+- **Python 3.10+**
+- **[Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli)** (`sf` command)
+- **Node.js 18+** (for LWC tasks)
+- **Git**
+- **Authenticated Dev Hub** (for Apex/Deploy tasks)
 
 ### Run Evaluation
 
 ```bash
 # Evaluate your model
-python scripts/evaluate.py --model <your-model> --tasks data/tasks/dev.json
+python scripts/evaluate.py --model <model-name> --solutions solutions/<model-name>/
 
-# With solutions
-python scripts/evaluate.py --model gpt-4 --solutions solutions/gpt-4/
+# Example with GPT-4
+python scripts/evaluate.py --model gpt-4 --solutions solutions/gpt-4/ --tasks data/tasks/full.json
 ```
 
-### View Results
+### Generate Leaderboard
 
 ```bash
-# Generate leaderboard
 python scripts/leaderboard.py --results-dir results/
 ```
 
 ---
 
-## Evaluation Process
+## 📊 Task Types
 
-### A. How to Begin
+SF-Bench covers **15+ task types** across the Salesforce ecosystem:
 
-1. **Prepare your model**: Ensure your AI model can generate Salesforce code
-2. **Generate solutions**: For each task, generate a solution (as a git diff/patch)
-3. **Save solutions**: Save as `.patch` files in `solutions/<model>/`
-
-### B. The Process
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    EVALUATION PIPELINE                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  1. LOAD TASKS                                               │
-│     └── Read task definitions from data/tasks/*.json         │
-│                                                              │
-│  2. LOAD SOLUTIONS                                           │
-│     └── Load model solutions from solutions/<model>/         │
-│                                                              │
-│  3. FOR EACH TASK:                                           │
-│     ├── Clone repository                                     │
-│     ├── Checkout base commit                                 │
-│     ├── Create scratch org (if needed)                       │
-│     ├── Apply solution patch                                 │
-│     ├── Deploy metadata                                      │
-│     ├── Run validation (tests, deployment check)             │
-│     ├── Record result (PASS/FAIL/TIMEOUT/ERROR)              │
-│     └── Cleanup (delete org, remove workspace)               │
-│                                                              │
-│  4. GENERATE RESULTS                                         │
-│     ├── Individual task results → results/<model>/*.json     │
-│     ├── Evaluation summary → results/<model>/evaluation.json │
-│     └── Leaderboard → leaderboard.json                       │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### C. Results Structure
-
-#### Individual Task Result
-```json
-{
-  "task_id": "sf-apex-001",
-  "status": "PASS",
-  "duration": 45.23,
-  "timestamp": "2024-01-15T10:30:00",
-  "details": {
-    "tests_run": 5,
-    "passed": 5,
-    "failed": 0
-  }
-}
-```
-
-#### Evaluation Summary
-```json
-{
-  "model": "gpt-4",
-  "timestamp": "2024-01-15T10:30:00",
-  "total_tasks": 50,
-  "passed": 38,
-  "failed": 8,
-  "timeout": 2,
-  "error": 2,
-  "pass_rate": 76.0
-}
-```
-
-#### Leaderboard
-```json
-{
-  "entries": [
-    {"rank": 1, "model": "claude-3-opus", "pass_rate": 82.0},
-    {"rank": 2, "model": "gpt-4", "pass_rate": 76.0},
-    {"rank": 3, "model": "gemini-pro", "pass_rate": 68.0}
-  ]
-}
-```
-
----
-
-## Task Types
-
+### Development Tasks
 | Type | Description | Validation |
 |------|-------------|------------|
-| `APEX` | Apex classes, triggers | Apex tests |
+| `APEX` | Classes, triggers, batch jobs | Apex unit tests |
 | `LWC` | Lightning Web Components | Jest tests |
 | `FLOW` | Flow automation | Flow validation |
-| `DEPLOY` | Metadata deployment | Deployment check |
-| `ARCHITECTURE` | System design | Multi-check |
+| `DEPLOY` | Metadata deployment | Deploy check |
 
-See `data/tasks/` for task definitions.
+### Configuration Tasks
+| Type | Description | Validation |
+|------|-------------|------------|
+| `LIGHTNING_PAGE` | Lightning App Builder pages | Component validation |
+| `PAGE_LAYOUT` | Object page layouts | Layout validation |
+| `COMMUNITY` | Experience Cloud sites | Site validation |
+| `PERMISSION_SET` | Security configuration | Permission validation |
+
+### Architecture Tasks
+| Type | Description | Validation |
+|------|-------------|------------|
+| `ARCHITECTURE` | System design & planning | Multi-check validation |
+| `INTEGRATION` | API & external integrations | Integration tests |
+| `DATA_MODEL` | Schema design | Relationship validation |
+| `SECURITY` | Sharing & FLS | Security validation |
 
 ---
 
-## Leaderboard
+## 📈 Evaluation Pipeline
 
-| Rank | Model | Pass Rate | Tasks |
-|------|-------|-----------|-------|
-| - | *Your model here* | - | - |
-
-Submit your results to be added to the leaderboard!
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     SF-BENCH EVALUATION                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. LOAD TASKS          → Read from data/tasks/*.json            │
+│  2. LOAD SOLUTIONS      → Load patches from solutions/<model>/   │
+│  3. FOR EACH TASK:                                               │
+│     ├── Clone repository at specified commit                     │
+│     ├── Create scratch org (if needed)                           │
+│     ├── Apply AI-generated solution patch                        │
+│     ├── Deploy metadata                                          │
+│     ├── Run validation (tests, deployment)                       │
+│     ├── Record: PASS / FAIL / TIMEOUT / ERROR                    │
+│     └── Cleanup (delete org, workspace)                          │
+│  4. GENERATE RESULTS    → results/<model>/evaluation.json        │
+│  5. UPDATE LEADERBOARD  → Rank by pass rate                      │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 sf-bench/
-├── sfbench/              # Main package
-│   ├── engine.py         # Orchestrator
-│   ├── runners/          # Task runners
-│   └── utils/            # Utilities
+├── sfbench/                  # Core evaluation framework
+│   ├── engine.py             # Orchestration engine
+│   ├── runners/              # Task-specific runners
+│   │   ├── apex_runner.py
+│   │   ├── lwc_runner.py
+│   │   ├── flow_runner.py
+│   │   └── architecture_runner.py
+│   └── utils/                # Utilities
 ├── data/
-│   └── tasks/            # Task definitions
+│   └── tasks/                # Task definitions
+│       ├── dev.json          # Development set (3 tasks)
+│       └── full.json         # Full benchmark (10+ tasks)
 ├── scripts/
-│   ├── evaluate.py       # Run evaluation
-│   └── leaderboard.py    # Generate leaderboard
-├── docs/                 # Documentation
-├── examples/             # Example solutions
-├── README.md
-├── LICENSE
-├── CONTRIBUTING.md
-└── pyproject.toml
+│   ├── evaluate.py           # Run evaluations
+│   └── leaderboard.py        # Generate leaderboard
+├── docs/                     # Documentation site
+└── examples/                 # Example solutions
 ```
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
-We welcome contributions!
+We welcome contributions! Here's how you can help:
 
-- **Submit results**: Run your model and submit via PR
-- **Add tasks**: Contribute new Salesforce tasks
-- **Improve code**: Bug fixes and features
-- **Documentation**: Examples and guides
+### Submit Your Results
+Run SF-Bench on your model and [submit results](https://github.com/yasarshaikh/SF-bench/issues/new) to be added to the leaderboard.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+### Add New Tasks
+Contribute real-world Salesforce tasks. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Improve the Framework
+Bug fixes, new runners, documentation improvements are all welcome!
 
 ---
 
-## Citation
+## 📖 Citation
 
 If you use SF-Bench in your research, please cite:
 
 ```bibtex
 @software{sfbench2024,
-  title = {SF-Bench: Benchmark for Salesforce AI Coding Agents},
+  author = {Shaikh, Yasar},
+  title = {SF-Bench: Benchmark for Evaluating AI Coding Agents on Salesforce Development},
   year = {2024},
-  url = {https://github.com/sfbench/sf-bench}
+  publisher = {GitHub},
+  url = {https://github.com/yasarshaikh/SF-bench}
 }
 ```
 
 ---
 
-## License
+## 📜 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🔗 Links
+
+- **Documentation**: [yasarshaikh.github.io/SF-bench](https://yasarshaikh.github.io/SF-bench/)
+- **Issues**: [Report bugs or request features](https://github.com/yasarshaikh/SF-bench/issues)
+- **Discussions**: [Join the community](https://github.com/yasarshaikh/SF-bench/discussions)
+
+---
+
+<p align="center">
+  <strong>⭐ Star us on GitHub if you find SF-Bench useful!</strong>
+</p>
+
+<p align="center">
+  Made with ❤️ for the Salesforce & AI community
+</p>
