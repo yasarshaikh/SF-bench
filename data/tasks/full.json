@@ -1,0 +1,153 @@
+[
+  {
+    "instance_id": "sf-apex-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Fix the NullPointerException in AccountTrigger that occurs when Account.Owner is null.",
+    "validation": {
+      "command": "sf apex run test --tests AccountTriggerTest --json",
+      "expected_outcome": "Passed"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    }
+  },
+  {
+    "instance_id": "sf-flow-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/flow-recipes",
+    "base_commit": "main",
+    "problem_description": "Create a Flow that automatically assigns Cases to the Account Owner when a Case is created. The Flow should handle null Account references gracefully.",
+    "validation": {
+      "command": "sf data query --query \"SELECT Id, Status FROM Flow WHERE DeveloperName = 'CaseAssignmentFlow'\" --json",
+      "expected_outcome": "Active"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    }
+  },
+  {
+    "instance_id": "sf-lightning-page-001",
+    "task_type": "LIGHTNING_PAGE",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "Create a Lightning Dynamic Page for Account records that displays: 1) Account Information component, 2) Related Contacts list, 3) Recent Opportunities. The page should use Dynamic Forms with visibility rules based on Account Type.",
+    "validation": {
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    }
+  },
+  {
+    "instance_id": "sf-page-layout-001",
+    "task_type": "PAGE_LAYOUT",
+    "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
+    "base_commit": "main",
+    "problem_description": "Update the Property object Page Layout to: 1) Add Price and Status fields to the first section, 2) Reorder fields logically (Name, Address, Price, Status, Description), 3) Add Property Images related list.",
+    "validation": {
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    }
+  },
+  {
+    "instance_id": "sf-community-001",
+    "task_type": "COMMUNITY",
+    "repo_url": "https://github.com/trailheadapps/partner-community",
+    "base_commit": "main",
+    "problem_description": "Create a Partner Community with: 1) Home page with welcome message, 2) Products page displaying available products, 3) Support page with case submission form, 4) Navigation menu connecting all pages. Ensure the community is published and accessible.",
+    "validation": {
+      "command": "sf data query --query \"SELECT Id, Status FROM Network WHERE Name LIKE '%Partner%'\" --json",
+      "expected_outcome": "Published"
+    },
+    "timeouts": {
+      "setup": 900,
+      "run": 600
+    }
+  },
+  {
+    "instance_id": "sf-architecture-001",
+    "task_type": "ARCHITECTURE",
+    "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
+    "base_commit": "main",
+    "problem_description": "Design and implement a complete property management system: 1) Create data model (Property, Broker, Favorite objects with relationships), 2) Implement Apex services for property search and favorites, 3) Build LWC components for property listing and details, 4) Create Lightning App with navigation, 5) Add sharing rules for broker visibility. Provide architecture documentation and ensure all components integrate correctly.",
+    "validation": {
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 900
+    }
+  },
+  {
+    "instance_id": "sf-sales-cloud-001",
+    "task_type": "SALES_CLOUD",
+    "repo_url": "https://github.com/trailheadapps/sales-cloud-recipes",
+    "base_commit": "main",
+    "problem_description": "Implement Sales Cloud automation: 1) Create Opportunity Stage automation with validation rules, 2) Build Lead conversion process with custom fields mapping, 3) Create Sales Dashboard with key metrics, 4) Implement Territory Management rules.",
+    "validation": {
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 600
+    }
+  },
+  {
+    "instance_id": "sf-service-cloud-001",
+    "task_type": "SERVICE_CLOUD",
+    "repo_url": "https://github.com/trailheadapps/service-cloud-recipes",
+    "base_commit": "main",
+    "problem_description": "Build Service Cloud solution: 1) Create Case assignment rules based on Product and Priority, 2) Implement Case escalation automation, 3) Build Knowledge Base structure with articles, 4) Create Service Console layout with case components.",
+    "validation": {
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 600
+    }
+  },
+  {
+    "instance_id": "sf-integration-001",
+    "task_type": "INTEGRATION",
+    "repo_url": "https://github.com/trailheadapps/integration-recipes",
+    "base_commit": "main",
+    "problem_description": "Create REST API integration: 1) Build Apex REST service to expose Account data, 2) Create Named Credential for external API, 3) Implement callout class with error handling, 4) Add test coverage for integration scenarios.",
+    "validation": {
+      "command": "sf apex run test --tests IntegrationTest --json",
+      "expected_outcome": "Passed"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    }
+  },
+  {
+    "instance_id": "sf-security-001",
+    "task_type": "SECURITY",
+    "repo_url": "https://github.com/trailheadapps/security-recipes",
+    "base_commit": "main",
+    "problem_description": "Implement security model: 1) Create Profile with field-level security for sensitive fields, 2) Build Permission Set for extended access, 3) Create Sharing Rules for Account and Contact records, 4) Implement Apex sharing recalculation.",
+    "validation": {
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    }
+  }
+]
+

@@ -1,0 +1,34 @@
+# GitHub Pages Jekyll Configuration
+title: SF-Bench
+description: The First Comprehensive Benchmark for Evaluating AI Coding Agents on Salesforce Development Tasks
+url: https://yourusername.github.io
+baseurl: /sf-bench
+
+# Theme
+theme: jekyll-theme-minimal
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Getting Started
+    url: /getting-started
+  - title: Documentation
+    url: /documentation
+  - title: Examples
+    url: /examples
+  - title: Contributing
+    url: /contributing
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Exclude files
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+

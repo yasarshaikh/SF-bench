@@ -1,0 +1,47 @@
+[
+  {
+    "instance_id": "sf-apex-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Fix the NullPointer in AccountTrigger.",
+    "validation": {
+      "command": "sf apex run test --tests AccountTriggerTest",
+      "expected_outcome": "Passed"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    }
+  },
+  {
+    "instance_id": "sf-lwc-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "Fix the failing Jest test in the hello component.",
+    "validation": {
+      "command": "npm run test:unit",
+      "expected_outcome": "0"
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 180
+    }
+  },
+  {
+    "instance_id": "sf-deploy-001",
+    "task_type": "DEPLOY",
+    "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
+    "base_commit": "main",
+    "problem_description": "Validate metadata deployment for the Property object.",
+    "validation": {
+      "command": "sf project deploy start --dry-run",
+      "expected_outcome": "Passed"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    }
+  }
+]
