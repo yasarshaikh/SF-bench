@@ -52,28 +52,28 @@ Generic benchmarks like **HumanEval** and **SWE-bench** don't capture:
 
 ## 🏆 Leaderboard
 
-### Overall Results
+### Overall Results (December 2024)
 
 | Rank | Model | Overall | Apex | LWC | Flow | Lightning Pages | Experience Cloud | Architecture |
 |:----:|-------|:-------:|:----:|:---:|:----:|:---------------:|:----------------:|:------------:|
-| 🥇 | *Submit results* | -% | -% | -% | -% | -% | -% | -% |
-| 🥈 | - | - | - | - | - | - | - | - |
+| 🥇 | **Gemini 2.5 Flash** | **75.0%** | 100% | 100% | 100% | 0% | 100% | 50% |
+| 🥈 | *Submit results* | -% | -% | -% | -% | -% | -% | -% |
 | 🥉 | - | - | - | - | - | - | - | - |
 
-### Segment Details
+### Segment Breakdown
 
-| Segment | Description | Tasks | Difficulty |
-|---------|-------------|:-----:|:----------:|
-| **Apex** | Triggers, Classes, Integration, Tests | 2 | Medium-Hard |
-| **LWC** | Components, Wire, Imperative, Jest | 2 | Medium-Hard |
-| **Flow** | Screen Components, Invocable Actions | 2 | Medium-Hard |
-| **Lightning Pages** | FlexiPages, Dynamic Forms | 1 | Medium |
-| **Page Layouts** | Record Layouts, Compact Layouts | 1 | Easy |
-| **Experience Cloud** | Sites, Communities, Guest Access | 1 | Hard |
-| **Architecture** | Full-stack, System Design | 2 | Expert |
-| **Deployment** | Metadata, Dependencies | 1 | Medium |
+| Segment | Tasks | Gemini 2.5 Flash | Notes |
+|---------|:-----:|:----------------:|-------|
+| **Apex** | 2 | ✅ 2/2 (100%) | Trigger handlers, integrations |
+| **LWC** | 2 | ✅ 2/2 (100%) | Jest tests: 122/122 passed |
+| **Flow** | 2 | ✅ 2/2 (100%) | Screen components, invocable actions |
+| **Lightning Pages** | 1 | ❌ 0/1 (0%) | Dynamic forms - needs improvement |
+| **Page Layouts** | 1 | ❌ 0/1 (0%) | Layout XML generation |
+| **Experience Cloud** | 1 | ✅ 1/1 (100%) | Site customization |
+| **Architecture** | 2 | ⚠️ 1/2 (50%) | Full-stack design |
+| **Deployment** | 1 | ✅ 1/1 (100%) | Metadata validation |
 
-**[Submit your results →](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)**
+**[📊 Submit your results →](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)**
 
 ---
 
