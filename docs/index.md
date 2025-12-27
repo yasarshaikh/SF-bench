@@ -1,22 +1,7 @@
 ---
 layout: default
-title: Home
+title: SF-Bench
 description: The first comprehensive benchmark for evaluating AI coding agents on Salesforce development tasks
----
-
-<div align="center">
-  
-# 🔬 SF-Bench
-
-### **The First Comprehensive Benchmark for Evaluating AI Coding Agents on Salesforce Development**
-
-[![GitHub stars](https://img.shields.io/github/stars/yasarshaikh/SF-bench?style=for-the-badge)](https://github.com/yasarshaikh/SF-bench)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/yasarshaikh/SF-bench/blob/main/LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Salesforce](https://img.shields.io/badge/Salesforce-CLI%20v2+-00A1E0.svg?style=for-the-badge&logo=salesforce&logoColor=white)](https://developer.salesforce.com/)
-
-</div>
-
 ---
 
 ## 🎯 The Problem
@@ -37,11 +22,13 @@ description: The first comprehensive benchmark for evaluating AI coding agents o
 
 **SF-Bench** fills this gap with:
 
-- 🔄 **Real execution** in Salesforce scratch orgs
-- 📊 **15+ task types** covering all major clouds
-- 🏗️ **Architecture-level** evaluation
-- ✔️ **Outcome validation** beyond just test passing
-- 📈 **Public leaderboard** for model comparison
+| Feature | Description |
+|---------|-------------|
+| 🔄 **Real Execution** | Tests run in actual Salesforce scratch orgs |
+| 📊 **15+ Task Types** | Apex, LWC, Flows, Lightning Pages, and more |
+| 🏗️ **Architecture-Level** | Evaluates planning and system design |
+| ✔️ **Outcome Validation** | Goes beyond just test passing |
+| 📈 **Public Leaderboard** | Compare AI models head-to-head |
 
 ---
 
@@ -53,7 +40,7 @@ description: The first comprehensive benchmark for evaluating AI coding agents o
 | 🥈 | - | - | - | - |
 | 🥉 | - | - | - | - |
 
-**[Submit Your Results →](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)**
+[**📊 Submit Your Results →**](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
 
 ---
 
@@ -69,7 +56,7 @@ pip install -e .
 python scripts/evaluate.py --model <your-model> --solutions solutions/<your-model>/
 ```
 
-**Prerequisites:** Python 3.10+, [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli), Node.js 18+, Authenticated Dev Hub
+**Prerequisites:** Python 3.10+ • [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) • Node.js 18+ • Authenticated Dev Hub
 
 ---
 
@@ -78,23 +65,9 @@ python scripts/evaluate.py --model <your-model> --solutions solutions/<your-mode
 | Category | Task Types | Validation |
 |----------|------------|------------|
 | **Development** | Apex, LWC, Triggers, Batch Jobs | Unit tests, Jest |
-| **Declarative** | Flows, Validation Rules, Formulas | Flow/formula validation |
+| **Declarative** | Flows, Validation Rules, Formulas | Flow validation |
 | **Configuration** | Page Layouts, Lightning Pages, Communities | Deploy check |
 | **Architecture** | Data Model, Security, Integration | Multi-layer validation |
-
----
-
-## 📁 Project Structure
-
-```
-sf-bench/
-├── sfbench/                  # Core evaluation framework
-│   ├── engine.py             # Orchestration engine
-│   └── runners/              # Task-specific runners
-├── data/tasks/               # Task definitions
-├── scripts/                  # Evaluation & leaderboard scripts
-└── docs/                     # Documentation
-```
 
 ---
 
@@ -102,7 +75,7 @@ sf-bench/
 
 | Action | Link |
 |--------|------|
-| ⭐ Star the repo | [github.com/yasarshaikh/SF-bench](https://github.com/yasarshaikh/SF-bench) |
+| ⭐ Star the repo | [GitHub Repository](https://github.com/yasarshaikh/SF-bench) |
 | 📊 Submit results | [Submit Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
 | 🐛 Report bugs | [Issue Tracker](https://github.com/yasarshaikh/SF-bench/issues) |
 | 💬 Discussions | [GitHub Discussions](https://github.com/yasarshaikh/SF-bench/discussions) |
@@ -123,10 +96,6 @@ sf-bench/
 
 ---
 
-<div align="center">
-  
 **⭐ Star us on GitHub if you find SF-Bench useful!**
 
 Made with ❤️ for the Salesforce & AI community
-
-</div>
