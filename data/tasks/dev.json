@@ -1,47 +1,65 @@
 [
   {
-    "instance_id": "sf-apex-001",
+    "instance_id": "apex-trigger-handler-001",
     "task_type": "APEX",
     "repo_url": "https://github.com/trailheadapps/apex-recipes",
     "base_commit": "main",
-    "problem_description": "Fix the NullPointer in AccountTrigger.",
+    "problem_description": "The AccountTriggerHandler class in force-app/main/default/classes/Trigger Recipes/ has a potential NullPointerException when Account.Owner is null. Implement proper null-safety checks in the handler methods without breaking existing test coverage.",
     "validation": {
-      "command": "sf apex run test --tests AccountTriggerTest",
+      "command": "sf apex run test --class-names AccountTriggerHandlerTests --result-format json",
       "expected_outcome": "Passed"
     },
     "timeouts": {
       "setup": 600,
       "run": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "apex",
+      "verified_repo": true,
+      "repo_stars": 1059
     }
   },
   {
-    "instance_id": "sf-lwc-001",
+    "instance_id": "lwc-component-001",
     "task_type": "LWC",
     "repo_url": "https://github.com/trailheadapps/lwc-recipes",
     "base_commit": "main",
-    "problem_description": "Fix the failing Jest test in the hello component.",
+    "problem_description": "The apexImperativeMethod LWC component has an issue where error states are not properly displayed to the user when the Apex call fails. Update the component to display user-friendly error messages and add a loading state indicator.",
     "validation": {
-      "command": "npm run test:unit",
+      "command": "npm run test:unit -- --testPathPattern=apexImperativeMethod",
       "expected_outcome": "0"
     },
     "timeouts": {
       "setup": 300,
       "run": 180
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "lwc",
+      "verified_repo": true,
+      "repo_stars": 2805
     }
   },
   {
-    "instance_id": "sf-deploy-001",
+    "instance_id": "deploy-validation-001",
     "task_type": "DEPLOY",
     "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
     "base_commit": "main",
-    "problem_description": "Validate metadata deployment for the Property object.",
+    "problem_description": "Validate metadata deployment for the Property object. Ensure all custom objects, fields, and layouts can be deployed to a scratch org without errors.",
     "validation": {
-      "command": "sf project deploy start --dry-run",
-      "expected_outcome": "Passed"
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded"
     },
     "timeouts": {
       "setup": 600,
       "run": 300
+    },
+    "metadata": {
+      "difficulty": "easy",
+      "category": "deployment",
+      "verified_repo": true,
+      "repo_stars": 469
     }
   }
 ]

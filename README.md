@@ -52,11 +52,26 @@ Generic benchmarks like **HumanEval** and **SWE-bench** don't capture:
 
 ## 🏆 Leaderboard
 
-| Rank | Model | Pass Rate | Passed | Total | Date |
-|:----:|-------|:---------:|:------:|:-----:|:----:|
-| 🥇 | *Your model here* | -% | - | - | - |
-| 🥈 | - | - | - | - | - |
-| 🥉 | - | - | - | - | - |
+### Overall Results
+
+| Rank | Model | Overall | Apex | LWC | Flow | Lightning Pages | Experience Cloud | Architecture |
+|:----:|-------|:-------:|:----:|:---:|:----:|:---------------:|:----------------:|:------------:|
+| 🥇 | *Submit results* | -% | -% | -% | -% | -% | -% | -% |
+| 🥈 | - | - | - | - | - | - | - | - |
+| 🥉 | - | - | - | - | - | - | - | - |
+
+### Segment Details
+
+| Segment | Description | Tasks | Difficulty |
+|---------|-------------|:-----:|:----------:|
+| **Apex** | Triggers, Classes, Integration, Tests | 2 | Medium-Hard |
+| **LWC** | Components, Wire, Imperative, Jest | 2 | Medium-Hard |
+| **Flow** | Screen Components, Invocable Actions | 2 | Medium-Hard |
+| **Lightning Pages** | FlexiPages, Dynamic Forms | 1 | Medium |
+| **Page Layouts** | Record Layouts, Compact Layouts | 1 | Easy |
+| **Experience Cloud** | Sites, Communities, Guest Access | 1 | Hard |
+| **Architecture** | Full-stack, System Design | 2 | Expert |
+| **Deployment** | Metadata, Dependencies | 1 | Medium |
 
 **[Submit your results →](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)**
 
@@ -100,31 +115,33 @@ python scripts/leaderboard.py --results-dir results/
 
 ## 📊 Task Types
 
-SF-Bench covers **15+ task types** across the Salesforce ecosystem:
+SF-Bench covers **12 verified task types** across the Salesforce ecosystem:
 
-### Development Tasks
-| Type | Description | Validation |
-|------|-------------|------------|
-| `APEX` | Classes, triggers, batch jobs | Apex unit tests |
-| `LWC` | Lightning Web Components | Jest tests |
-| `FLOW` | Flow automation | Flow validation |
-| `DEPLOY` | Metadata deployment | Deploy check |
+| Type | Description | Validation | Verified Repo |
+|------|-------------|------------|:-------------:|
+| `APEX` | Triggers, Classes, Integration | Apex unit tests | ✅ apex-recipes |
+| `LWC` | Lightning Web Components | Jest tests | ✅ lwc-recipes |
+| `FLOW` | Screen Components, Invocable Actions | Deploy + Tests | ✅ automation-components |
+| `DEPLOY` | Metadata deployment | Deploy check | ✅ ebikes-lwc |
+| `LIGHTNING_PAGE` | FlexiPages, Dynamic Forms | Deploy check | ✅ dreamhouse-lwc |
+| `PAGE_LAYOUT` | Record Layouts | Deploy check | ✅ dreamhouse-lwc |
+| `COMMUNITY` | Experience Cloud sites | Deploy check | ✅ ebikes-lwc |
+| `ARCHITECTURE` | Full-stack, System Design | Multi-check | ✅ dreamhouse-lwc |
+| `AGENTFORCE` | Agent Scripts, Prompts | Deploy check | ✅ agent-script-recipes |
 
-### Configuration Tasks
-| Type | Description | Validation |
-|------|-------------|------------|
-| `LIGHTNING_PAGE` | Lightning App Builder pages | Component validation |
-| `PAGE_LAYOUT` | Object page layouts | Layout validation |
-| `COMMUNITY` | Experience Cloud sites | Site validation |
-| `PERMISSION_SET` | Security configuration | Permission validation |
+### Verified Repositories (API Confirmed)
 
-### Architecture Tasks
-| Type | Description | Validation |
-|------|-------------|------------|
-| `ARCHITECTURE` | System design & planning | Multi-check validation |
-| `INTEGRATION` | API & external integrations | Integration tests |
-| `DATA_MODEL` | Schema design | Relationship validation |
-| `SECURITY` | Sharing & FLS | Security validation |
+All tasks use **official Salesforce sample repositories** verified via GitHub API:
+
+| Repository | Stars | Description |
+|------------|:-----:|-------------|
+| [apex-recipes](https://github.com/trailheadapps/apex-recipes) | 1,059 ⭐ | Apex code examples for common use cases |
+| [lwc-recipes](https://github.com/trailheadapps/lwc-recipes) | 2,805 ⭐ | Lightning Web Components examples |
+| [dreamhouse-lwc](https://github.com/trailheadapps/dreamhouse-lwc) | 469 ⭐ | Real estate sample app |
+| [automation-components](https://github.com/trailheadapps/automation-components) | 384 ⭐ | Flow actions and screen components |
+| [ebikes-lwc](https://github.com/trailheadapps/ebikes-lwc) | 830 ⭐ | Experience Cloud sample app |
+| [agent-script-recipes](https://github.com/trailheadapps/agent-script-recipes) | 53 ⭐ | Agentforce script examples |
+| [coral-cloud](https://github.com/trailheadapps/coral-cloud) | 138 ⭐ | Data Cloud and AI Prompts |
 
 ---
 
@@ -168,7 +185,8 @@ sf-bench/
 ├── data/
 │   └── tasks/                # Task definitions
 │       ├── dev.json          # Development set (3 tasks)
-│       └── full.json         # Full benchmark (10+ tasks)
+│       ├── verified.json     # Full verified benchmark (12 tasks)
+│       └── full.json         # Full benchmark (12 tasks)
 ├── scripts/
 │   ├── evaluate.py           # Run evaluations
 │   └── leaderboard.py        # Generate leaderboard
