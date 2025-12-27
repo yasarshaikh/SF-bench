@@ -1,29 +1,25 @@
 # GitHub Pages Jekyll Configuration
 title: SF-Bench
 description: The First Comprehensive Benchmark for Evaluating AI Coding Agents on Salesforce Development Tasks
-url: https://yourusername.github.io
-baseurl: /sf-bench
+url: https://yasarshaikh.github.io
+baseurl: /SF-bench
 
-# Theme
-theme: jekyll-theme-minimal
+# Theme - Cayman is more professional
+theme: jekyll-theme-cayman
 
-# Navigation
-navigation:
-  - title: Home
-    url: /
-  - title: Getting Started
-    url: /getting-started
-  - title: Documentation
-    url: /documentation
-  - title: Examples
-    url: /examples
-  - title: Contributing
-    url: /contributing
+# SEO
+author: Yasar Shaikh
+twitter:
+  username: yasarshaikh
 
 # Plugins
 plugins:
   - jekyll-feed
   - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Google Analytics (add your tracking ID later)
+# google_analytics: UA-XXXXXXXX-X
 
 # Exclude files
 exclude:
@@ -31,4 +27,3 @@ exclude:
   - Gemfile.lock
   - node_modules
   - vendor
-
