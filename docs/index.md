@@ -18,18 +18,20 @@ description: The first comprehensive benchmark for evaluating AI coding agents o
 
 ---
 
-## 🏆 Leaderboard by Segment
+## 🏆 Leaderboard (December 2024)
 
-| Segment | Description | GPT-4o | Claude 3.5 | Gemini 2.0 | Open Source |
-|---------|-------------|:------:|:----------:|:----------:|:-----------:|
-| **Apex** | Triggers, Classes, Tests | -% | -% | -% | -% |
-| **LWC** | Lightning Web Components | -% | -% | -% | -% |
-| **Flow** | Screen Components, Actions | -% | -% | -% | -% |
-| **Lightning Pages** | FlexiPages, Dynamic Forms | -% | -% | -% | -% |
-| **Experience Cloud** | Sites, Communities | -% | -% | -% | -% |
-| **Architecture** | Full-stack, System Design | -% | -% | -% | -% |
-| | | | | | |
-| **Overall** | All 12 Tasks | **-%** | **-%** | **-%** | **-%** |
+| Segment | Gemini 2.5 Flash | GPT-4o | Claude 3.5 |
+|---------|:----------------:|:------:|:----------:|
+| **Apex** | ✅ 100% | -% | -% |
+| **LWC** | ✅ 100% | -% | -% |
+| **Flow** | ✅ 100% | -% | -% |
+| **Lightning Pages** | ❌ 0% | -% | -% |
+| **Experience Cloud** | ✅ 100% | -% | -% |
+| **Architecture** | ⚠️ 50% | -% | -% |
+| | | | |
+| **Overall (12 Tasks)** | **75.0%** | **-%** | **-%** |
+
+**🏅 First Benchmark Results: Gemini 2.5 Flash scores 75% on SF-Bench!**
 
 [**📊 Submit Your Results →**](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
 

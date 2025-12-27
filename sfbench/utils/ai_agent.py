@@ -23,13 +23,17 @@ class AIAgent:
         Initialize AI agent.
         
         Args:
-            provider: AI provider ("openai", "anthropic", "local", "huggingface")
+            provider: AI provider ("openai", "anthropic", "gemini", "local", "huggingface")
             model: Model name/identifier
             api_key: API key (if required)
         """
         self.provider = provider.lower()
         self.model = model
-        self.api_key = api_key or os.getenv(f"{provider.upper()}_API_KEY")
+        # For Gemini, check GOOGLE_API_KEY or GEMINI_API_KEY
+        if self.provider in ["gemini", "google"]:
+            self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        else:
+            self.api_key = api_key or os.getenv(f"{provider.upper()}_API_KEY")
         
     def generate_solution(
         self,
@@ -52,6 +56,8 @@ class AIAgent:
             return self._generate_openai(task_description, context, files)
         elif self.provider == "anthropic":
             return self._generate_anthropic(task_description, context, files)
+        elif self.provider == "gemini" or self.provider == "google":
+            return self._generate_gemini(task_description, context, files)
         elif self.provider == "local":
             return self._generate_local(task_description, context, files)
         elif self.provider == "huggingface":
@@ -117,6 +123,65 @@ class AIAgent:
             return self._generate_local(task_description, context, files)
         except Exception as e:
             raise AIAgentError(f"Anthropic generation failed: {str(e)}")
+    
+    def _generate_gemini(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
+        """Generate solution using Google Gemini API (AI Studio)."""
+        try:
+            import google.generativeai as genai
+            
+            if not self.api_key:
+                return self._generate_local(task_description, context, files)
+            
+            # Configure Gemini API
+            genai.configure(api_key=self.api_key)
+            
+            # Use the specified model (default to gemini-2.5-flash)
+            model_name = self.model if self.model else "gemini-2.5-flash"
+            # Remove "models/" prefix if present
+            if model_name.startswith("models/"):
+                model_name = model_name.replace("models/", "")
+            
+            # Get the model
+            model = genai.GenerativeModel(model_name)
+            
+            prompt = self._build_prompt(task_description, context, files)
+            
+            # Generate content
+            response = model.generate_content(
+                f"""You are an expert Salesforce developer. Generate solutions as unified diff patches.
+
+CRITICAL INSTRUCTIONS:
+1. Output ONLY the raw patch content, NO markdown code blocks (no ```diff or ```)
+2. Start directly with: diff --git a/path/to/file b/path/to/file
+3. Include COMPLETE file changes - do not truncate
+4. Use proper unified diff format with context lines
+
+{prompt}""",
+                generation_config={
+                    "temperature": 0.1,
+                    "max_output_tokens": 16384,  # Large enough for complete patches
+                }
+            )
+            
+            # Clean the response - strip markdown code blocks if present
+            result = response.text.strip()
+            
+            # Remove markdown code blocks
+            if result.startswith("```"):
+                lines = result.split("\n")
+                # Remove first line (```diff or similar)
+                lines = lines[1:]
+                # Remove last line if it's ```
+                if lines and lines[-1].strip() == "```":
+                    lines = lines[:-1]
+                result = "\n".join(lines)
+            
+            return result
+            
+        except ImportError:
+            raise AIAgentError("google-generativeai package not installed. Install with: pip install google-generativeai")
+        except Exception as e:
+            raise AIAgentError(f"Gemini generation failed: {str(e)}")
     
     def _generate_local(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
         """
@@ -200,8 +265,10 @@ class AIAgent:
             prompt_parts.append("\n")
         
         prompt_parts.append(
-            "\nGenerate a unified diff patch that solves this task. "
-            "The patch should be in standard git diff format and ready to apply with 'git apply'."
+            "\nGenerate a COMPLETE unified diff patch that solves this task. "
+            "The patch MUST be in standard git diff format and ready to apply with 'git apply'. "
+            "IMPORTANT: Include ALL file changes needed. Do not truncate the patch. "
+            "The patch must start with 'diff --git' and include complete file changes with proper context lines."
         )
         
         return "\n".join(prompt_parts)
