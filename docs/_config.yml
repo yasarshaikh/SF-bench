@@ -1,16 +1,45 @@
 # GitHub Pages Jekyll Configuration
-title: SF-Bench
-description: The First Comprehensive Benchmark for Evaluating AI Coding Agents on Salesforce Development Tasks
+title: SF-Bench | Salesforce AI Benchmark
+description: "The industry's first comprehensive benchmark for evaluating AI coding agents on Salesforce development. Test Apex, LWC, Flow, Lightning Pages, Experience Cloud, and more with real scratch org execution."
 url: https://yasarshaikh.github.io
 baseurl: /SF-bench
 
 # Theme - Cayman is more professional
 theme: jekyll-theme-cayman
 
-# SEO
+# SEO & Social
 author: Yasar Shaikh
+logo: /assets/logo.png
+social:
+  name: SF-Bench
+  links:
+    - https://github.com/yasarshaikh/SF-bench
+    - https://www.linkedin.com/in/yasarshaikh/
+
 twitter:
   username: yasarshaikh
+  card: summary_large_image
+
+# Keywords for discoverability
+keywords:
+  - salesforce benchmark
+  - ai coding agents
+  - salesforce ai
+  - apex testing
+  - lwc testing
+  - flow automation
+  - lightning web components
+  - salesforce development
+  - llm evaluation
+  - ai code generation
+  - salesforce developer tools
+  - agentforce
+  - einstein ai
+  - copilot salesforce
+  - ai benchmark 2024
+
+# Open Graph for social sharing
+og_image: /assets/og-image.png
 
 # Plugins
 plugins:
@@ -19,7 +48,7 @@ plugins:
   - jekyll-seo-tag
 
 # Google Analytics (add your tracking ID later)
-# google_analytics: UA-XXXXXXXX-X
+# google_analytics: G-XXXXXXXXXX
 
 # Exclude files
 exclude:
@@ -27,3 +56,7 @@ exclude:
   - Gemfile.lock
   - node_modules
   - vendor
+  - _internal
+  - results
+  - solutions
+  - workspace
