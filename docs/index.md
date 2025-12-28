@@ -20,18 +20,18 @@ description: The first comprehensive benchmark for evaluating AI coding agents o
 
 ## 🏆 Leaderboard (December 2024)
 
-| Segment | Gemini 2.5 Flash | GPT-4o | Claude 3.5 |
-|---------|:----------------:|:------:|:----------:|
-| **Apex** | ✅ 100% | -% | -% |
-| **LWC** | ✅ 100% | -% | -% |
-| **Flow** | ✅ 100% | -% | -% |
-| **Lightning Pages** | ❌ 0% | -% | -% |
-| **Experience Cloud** | ✅ 100% | -% | -% |
-| **Architecture** | ⚠️ 50% | -% | -% |
-| | | | |
-| **Overall (12 Tasks)** | **75.0%** | **-%** | **-%** |
+| Segment | Gemini 3 Flash | Gemini 2.5 Flash | GPT-4o | Claude 3.5 |
+|---------|:--------------:|:----------------:|:------:|:----------:|
+| **Apex** | ✅ 100% | ✅ 100% | -% | -% |
+| **LWC** | ✅ 100% | ✅ 100% | -% | -% |
+| **Flow** | ⚠️ 50% | ✅ 100% | -% | -% |
+| **Lightning Pages** | ❌ 0% | ❌ 0% | -% | -% |
+| **Experience Cloud** | ✅ 100% | ✅ 100% | -% | -% |
+| **Architecture** | ✅ 100% | ⚠️ 50% | -% | -% |
+| | | | | |
+| **Overall (12 Tasks)** | **75.0%** | **75.0%** | **-%** | **-%** |
 
-**🏅 First Benchmark Results: Gemini 2.5 Flash scores 75% on SF-Bench!**
+**🏅 Both Gemini Flash models score 75% on SF-Bench!**
 
 [**📊 Submit Your Results →**](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
 
