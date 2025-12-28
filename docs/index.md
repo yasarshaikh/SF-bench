@@ -36,14 +36,17 @@ SF-Bench **measures and reports**. We don't predict or claim expected outcomes.
 
 ## 🏆 Leaderboard
 
-*December 2024*
+*December 2025*
 
-| Rank | Model | Overall | LWC | Apex | Flow | Lightning |
-|:----:|-------|:-------:|:---:|:----:|:----:|:---------:|
-| 🥇 | Gemini 2.5 Flash | 16.7% | 100% | 0%* | 0%* | 0% |
-| 🥈 | *Your model* | [Submit](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
+| Rank | Model | Overall | Functional Score | LWC | Deploy | Apex | Flow | Lightning Pages | Experience Cloud | Architecture |
+|:----:|-------|:-------:|:----------------:|:---:|:------:|:----:|:----:|:---------------:|:----------------:|:------------:|
+| 🥇 | **Claude Sonnet 4.5** | **41.67%** | **6.0%** | 100% | 100% | 100% | 0%* | 0% | 0% | 0% |
+| 🥈 | **Gemini 2.5 Flash** | **25.0%** | - | 100% | 100% | 0%* | 0%* | 0% | 0% | 0% |
+| - | *More results pending* | -% | - | -% | -% | -% | -% | -% | -% | -% |
 
-*\* Apex/Flow require scratch org. LWC uses local Jest.*
+*\* Flow tasks failed due to scratch org creation issues (being fixed)*
+
+> **Note**: Functional Score (0-100) uses weighted validation. See [VALIDATION_METHODOLOGY.md](VALIDATION_METHODOLOGY.md) for details.
 
 **[Full Leaderboard →](LEADERBOARD.md)**
 
@@ -56,6 +59,7 @@ SF-Bench **measures and reports**. We don't predict or claim expected outcomes.
 | Provider | Models | Setup |
 |----------|--------|-------|
 | **OpenRouter** | 100+ models | `OPENROUTER_API_KEY` |
+| **RouteLLM** | Gemini 3, Grok, GPT-5 | `ROUTELLM_API_KEY` |
 | OpenAI | GPT-4, GPT-3.5 | `OPENAI_API_KEY` |
 | Anthropic | Claude 3.5, 3 | `ANTHROPIC_API_KEY` |
 | Google | Gemini 2.5, Pro | `GOOGLE_API_KEY` |

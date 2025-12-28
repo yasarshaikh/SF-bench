@@ -26,8 +26,8 @@ from sfbench.engine import BenchmarkEngine
 from sfbench import Task, TaskType
 from sfbench.utils.solution_loader import SolutionLoader
 from sfbench.utils.sfdx import verify_devhub, create_scratch_org, delete_scratch_org, get_scratch_org_username
-from sfbench.utils.ai_agent import AIAgent, create_openrouter_agent, create_gemini_agent
-from sfbench.validators.functional_validator import FunctionalValidator, FunctionalValidationResult
+from sfbench.utils.ai_agent import AIAgent, create_openrouter_agent, create_gemini_agent, create_routellm_agent
+from sfbench.validators.functional_validator import FunctionalValidator, FunctionalValidationResult, ValidationLevel
 
 
 def run_evaluation(
@@ -38,7 +38,8 @@ def run_evaluation(
     max_workers: int = 3,
     skip_devhub: bool = False,
     functional_validation: bool = False,
-    scratch_org_alias: Optional[str] = None
+    scratch_org_alias: Optional[str] = None,
+    provider: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Run a complete evaluation for a model.
@@ -52,6 +53,7 @@ def run_evaluation(
         skip_devhub: Skip Dev Hub verification
         functional_validation: Enable full functional validation (requires scratch org)
         scratch_org_alias: Alias for scratch org to use for functional testing
+        provider: Explicitly specified AI provider
         
     Returns:
         Evaluation results dictionary
@@ -82,7 +84,14 @@ def run_evaluation(
             try:
                 org_info = create_scratch_org(scratch_org_alias, duration_days=1)
                 scratch_org_created = True
-                print(f"✅ Scratch org created: {org_info.get('username', scratch_org_alias)}")
+                org_username = org_info.get('username')
+                print(f"✅ Scratch org created: {org_username}")
+                # Set as default org for CLI commands
+                from sfbench.utils.sfdx import run_sfdx
+                run_sfdx(f"sf config set target-org {scratch_org_alias}", timeout=30)
+                # Also set by username for compatibility
+                if org_username:
+                    run_sfdx(f"sf config set target-org {org_username}", timeout=30)
             except Exception as e:
                 print(f"❌ Failed to create scratch org: {e}")
                 print("   Continuing with existing orgs or local validation only...")
@@ -113,16 +122,43 @@ def run_evaluation(
         # Generate solutions using AI
         print(f"\n🤖 Generating solutions using {model_name}...")
         try:
-            # Determine provider from model name
-            if model_name.startswith("anthropic/") or model_name.startswith("openai/") or model_name.startswith("meta-llama/"):
-                # OpenRouter model
-                agent = create_openrouter_agent(model=model_name)
-            elif "gemini" in model_name.lower():
-                # Gemini model
-                agent = create_gemini_agent(model=model_name)
-            else:
-                # Default to OpenRouter
-                agent = create_openrouter_agent(model=model_name)
+            # Determine provider
+            agent = None
+            if provider:
+                # Use explicitly specified provider
+                if provider.lower() == "routellm":
+                    agent = create_routellm_agent(model=model_name)
+                elif provider.lower() == "openrouter":
+                    agent = create_openrouter_agent(model=model_name)
+                elif provider.lower() == "gemini" or provider.lower() == "google":
+                    agent = create_gemini_agent(model=model_name)
+                elif provider.lower() == "anthropic":
+                    from sfbench.utils.ai_agent import create_anthropic_agent
+                    agent = create_anthropic_agent(model=model_name)
+                elif provider.lower() == "openai":
+                    from sfbench.utils.ai_agent import create_openai_agent
+                    agent = create_openai_agent(model=model_name)
+                elif provider.lower() == "ollama":
+                    from sfbench.utils.ai_agent import create_ollama_agent
+                    agent = create_ollama_agent(model=model_name)
+                else:
+                    # Generic fallback using basic constructor
+                    agent = AIAgent(provider=provider, model=model_name)
+            
+            # Auto-detect if no provider specified
+            if not agent:
+                if "grok" in model_name.lower() or model_name.startswith("gpt-5") or model_name.startswith("claude-sonnet-4") or model_name.startswith("claude-opus-4"):
+                    # RouteLLM model (Grok, GPT-5, Claude Sonnet 4, etc.)
+                    agent = create_routellm_agent(model=model_name)
+                elif model_name.startswith("anthropic/") or model_name.startswith("openai/") or model_name.startswith("meta-llama/"):
+                    # OpenRouter model
+                    agent = create_openrouter_agent(model=model_name)
+                elif "gemini" in model_name.lower():
+                    # Gemini model
+                    agent = create_gemini_agent(model=model_name)
+                else:
+                    # Default to OpenRouter
+                    agent = create_openrouter_agent(model=model_name)
             
             print(f"   Using provider: {agent.provider}")
             
@@ -158,56 +194,76 @@ def run_evaluation(
     print(f"📂 Output directory: {output_dir}")
     print("-" * 60)
     
-    try:
-        results = engine.run_all_tasks(solutions if solutions else None)
-    finally:
-        # Cleanup: Delete scratch org if we created it
-        if scratch_org_created and scratch_org_alias:
-            print(f"\n🧹 Cleaning up scratch org: {scratch_org_alias}")
-            try:
-                delete_scratch_org(scratch_org_alias)
-                print("✅ Scratch org deleted")
-            except Exception as e:
-                print(f"⚠️  Warning: Could not delete scratch org: {e}")
+    # Run evaluation
+    results = engine.run_all_tasks(solutions if solutions else None)
     
-    # Run functional validation if enabled
+    # Run functional validation BEFORE cleanup (org must still exist!)
     functional_results = []
     if functional_validation and scratch_org_alias:
         print("\n🔬 Running functional validation...")
-        validator = FunctionalValidator(scratch_org_alias, workspace_dir)
-        
-        for result in results:
-            if result.status.value == "PASS":
-                # Get task config
-                task = next((t for t in engine.tasks if t.instance_id == result.task_id), None)
-                if task and hasattr(task, 'functional_validation'):
-                    repo_dir = workspace_dir / result.task_id
-                    
-                    if task.task_type == TaskType.APEX:
-                        func_result = validator.validate_apex(
-                            result.task_id, 
-                            task.__dict__, 
-                            repo_dir
-                        )
-                    elif task.task_type == TaskType.FLOW:
-                        func_result = validator.validate_flow(
-                            result.task_id,
-                            task.__dict__,
-                            repo_dir
-                        )
-                    elif task.task_type == TaskType.LWC:
-                        func_result = validator.validate_lwc(
-                            result.task_id,
-                            task.__dict__,
-                            repo_dir
-                        )
-                    else:
-                        func_result = FunctionalValidationResult(
-                            task_id=result.task_id,
-                            validation_level=None
-                        )
-                    
-                    functional_results.append(func_result.to_dict())
+        try:
+            validator = FunctionalValidator(scratch_org_alias, workspace_dir)
+            
+            for result in results:
+                if result.status.value == "PASS":
+                    # Get task config
+                    task = next((t for t in engine.tasks if t.instance_id == result.task_id), None)
+                    if task:
+                        repo_dir = workspace_dir / result.task_id
+                        
+                        try:
+                            if task.task_type == TaskType.APEX:
+                                func_result = validator.validate_apex(
+                                    result.task_id, 
+                                    task.__dict__, 
+                                    repo_dir
+                                )
+                            elif task.task_type == TaskType.FLOW:
+                                func_result = validator.validate_flow(
+                                    result.task_id,
+                                    task.__dict__,
+                                    repo_dir
+                                )
+                            elif task.task_type == TaskType.LWC:
+                                func_result = validator.validate_lwc(
+                                    result.task_id,
+                                    task.__dict__,
+                                    repo_dir
+                                )
+                            else:
+                                # For other task types, create minimal result
+                                func_result = FunctionalValidationResult(
+                                    task_id=result.task_id,
+                                    validation_level=ValidationLevel.DEPLOYMENT
+                                )
+                                func_result.deployment_passed = True
+                                func_result.calculate_score()
+                            
+                            functional_results.append(func_result.to_dict())
+                            print(f"   ✅ {result.task_id}: Score {func_result.score:.1f}%")
+                        except Exception as e:
+                            print(f"   ⚠️  {result.task_id}: Functional validation error: {e}")
+                            # Create error result
+                            error_result = FunctionalValidationResult(
+                                task_id=result.task_id,
+                                validation_level=ValidationLevel.DEPLOYMENT
+                            )
+                            error_result.overall_status = "error"
+                            error_result.score = 0.0
+                            functional_results.append(error_result.to_dict())
+        except Exception as e:
+            print(f"⚠️  Functional validation failed: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    # Cleanup: Delete scratch org AFTER functional validation
+    if scratch_org_created and scratch_org_alias:
+        print(f"\n🧹 Cleaning up scratch org: {scratch_org_alias}")
+        try:
+            delete_scratch_org(scratch_org_alias)
+            print("✅ Scratch org deleted")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not delete scratch org: {e}")
     
     # Generate evaluation summary with segment breakdown
     segment_results = calculate_segment_results(results)
@@ -300,14 +356,39 @@ def print_results(evaluation: Dict[str, Any]):
             status_icon = "✅" if data['pass_rate'] >= 80 else "⚠️" if data['pass_rate'] >= 50 else "❌"
             print(f"   {status_icon} {segment}: {data['pass_rate']}% ({data['passed']}/{data['total']})")
     
-    # Functional validation results
+    # Functional validation results with detailed scoring
     if evaluation.get('functional_validation'):
-        print(f"\n🔬 Functional Validation:")
-        print("-" * 40)
+        print(f"\n🔬 Functional Validation (Weighted Scoring 0-100):")
+        print("-" * 60)
+        total_score = 0.0
+        scored_count = 0
         for func_result in evaluation['functional_validation']:
-            score = func_result.get('score', 0)
-            status_icon = "✅" if score >= 80 else "⚠️" if score >= 50 else "❌"
-            print(f"   {status_icon} {func_result['task_id']}: {score}% functional score")
+            task_id = func_result.get('task_id', 'unknown')
+            score = func_result.get('score', 0.0) or 0.0
+            status = func_result.get('overall_status', 'unknown')
+            
+            # Calculate average
+            total_score += score
+            scored_count += 1
+            
+            # Display result
+            emoji = "✅" if status == "passed" else "❌" if status == "failed" else "⚠️"
+            print(f"  {emoji} {task_id:40s} Score: {score:.1f}% | Status: {status}")
+            
+            # Show breakdown if available
+            checks = []
+            if func_result.get('deployment_passed'): checks.append("Deploy(10%)")
+            if func_result.get('unit_tests_passed'): checks.append("Unit(20%)")
+            if func_result.get('functional_tests_passed'): checks.append("Functional(50%)")
+            if func_result.get('bulk_tests_passed'): checks.append("Bulk(10%)")
+            if func_result.get('no_manual_tweaks'): checks.append("NoTweaks(10%)")
+            if checks:
+                print(f"      └─ Passed: {', '.join(checks)}")
+        
+        if scored_count > 0:
+            avg_score = total_score / scored_count
+            print(f"\n📊 Average Functional Score: {avg_score:.1f}% (out of 100)")
+        print("-" * 60)
 
 
 def main():
@@ -333,6 +414,12 @@ Examples:
         type=str,
         required=True,
         help='Name of the model being evaluated (e.g., gpt-4, claude-3, gemini-2.5-flash)'
+    )
+    
+    parser.add_argument(
+        '--provider', '-p',
+        type=str,
+        help='Explicit AI provider (e.g., routellm, openrouter, gemini)'
     )
     
     parser.add_argument(
@@ -402,7 +489,8 @@ Examples:
         max_workers=args.max_workers,
         skip_devhub=args.skip_devhub,
         functional_validation=args.functional,
-        scratch_org_alias=args.scratch_org
+        scratch_org_alias=args.scratch_org,
+        provider=args.provider
     )
 
 

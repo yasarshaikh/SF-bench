@@ -28,16 +28,21 @@ class ApexRunner(BenchmarkRunner):
     def _use_shared_org(self) -> None:
         """Use the shared scratch org created by the evaluation pipeline."""
         try:
-            # Set the org as default
+            # Try to use alias directly first (CLI supports this)
+            # Set the org as default (use alias - CLI supports it)
             run_sfdx(
                 f"sf config set target-org {self.scratch_org_alias}",
                 timeout=30
             )
-            # Get username from alias
+            # Store alias as username fallback
+            self.org_username = self.scratch_org_alias
+            # Try to get username from alias (fallback)
             from sfbench.utils.sfdx import get_scratch_org_username
             self.org_username = get_scratch_org_username(self.scratch_org_alias)
+            # If lookup fails, use alias directly (CLI should handle it)
             if not self.org_username:
-                raise Exception(f"Could not find username for org alias: {self.scratch_org_alias}")
+                self.org_username = self.scratch_org_alias
+                print(f"⚠️  Using alias directly: {self.scratch_org_alias}")
         except Exception as e:
             raise OrgCreationError(f"Failed to use shared org: {str(e)}", 1, str(e))
     
@@ -64,8 +69,10 @@ class ApexRunner(BenchmarkRunner):
     def _push_metadata(self) -> None:
         try:
             cmd = "sf project deploy start"
-            if self.scratch_org_alias:
-                cmd += f" --target-org {self.scratch_org_alias}"
+            # Use username if available, otherwise use alias
+            org_target = self.org_username or self.scratch_org_alias
+            if org_target:
+                cmd += f" --target-org {org_target}"
             run_sfdx(
                 cmd,
                 cwd=self.repo_dir,
@@ -80,7 +87,9 @@ class ApexRunner(BenchmarkRunner):
             
             cmd = self.task.validation.command
             if self.scratch_org_alias and "--target-org" not in cmd:
-                cmd += f" --target-org {self.scratch_org_alias}"
+                # Use username if available, otherwise use alias
+                org_target = self.org_username or self.scratch_org_alias
+                cmd += f" --target-org {org_target}"
             
             exit_code, stdout, stderr = run_sfdx(
                 cmd,

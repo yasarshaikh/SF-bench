@@ -56,14 +56,17 @@ Generic benchmarks (HumanEval, SWE-bench) miss Salesforce-specific challenges:
 
 ## 🏆 Leaderboard
 
-*Results as of December 2024*
+*Results as of December 2025*
 
-| Rank | Model | Overall | LWC | Apex | Flow | Lightning | Architecture |
-|:----:|-------|:-------:|:---:|:----:|:----:|:---------:|:------------:|
-| 🥇 | Gemini 2.5 Flash | 16.7% | 100% | 0%* | 0%* | 0% | 0% |
-| 🥈 | *Your model* | [Submit →](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
+| Rank | Model | Overall | Functional Score | LWC | Deploy | Apex | Flow | Lightning Pages | Experience Cloud | Architecture |
+|:----:|-------|:-------:|:----------------:|:---:|:------:|:----:|:----:|:---------------:|:----------------:|:------------:|
+| 🥇 | **Claude Sonnet 4.5** | **41.67%** | **6.0%** | 100% | 100% | 100% | 0%* | 0% | 0% | 0% |
+| 🥈 | **Gemini 2.5 Flash** | **25.0%** | - | 100% | 100% | 0%* | 0%* | 0% | 0% | 0% |
+| - | *More results pending* | -% | - | -% | -% | -% | -% | -% | -% | -% |
 
-*\* Apex/Flow tasks require scratch org deployment. LWC uses local Jest tests.*
+*\* Flow tasks failed due to scratch org creation issues (being fixed)*
+
+> **Note**: Functional Score (0-100) uses weighted validation: Deploy(10%) + Unit Tests(20%) + Functional(50%) + Bulk(10%) + No Tweaks(10%)
 
 **[📊 View detailed results →](docs/LEADERBOARD.md)**
 
@@ -75,10 +78,11 @@ Generic benchmarks (HumanEval, SWE-bench) miss Salesforce-specific challenges:
 
 | Provider | Environment Variable | Example Model |
 |----------|---------------------|---------------|
+| **OpenRouter** | `OPENROUTER_API_KEY` | `anthropic/claude-3.5-sonnet` |
+| **RouteLLM** | `ROUTELLM_API_KEY` | `gemini-3-flash-preview`, `grok-4.1-fast` |
 | OpenAI | `OPENAI_API_KEY` | `gpt-4-turbo` |
 | Anthropic | `ANTHROPIC_API_KEY` | `claude-3-5-sonnet-20241022` |
 | Google Gemini | `GOOGLE_API_KEY` | `gemini-2.5-flash` |
-| **OpenRouter** | `OPENROUTER_API_KEY` | `anthropic/claude-3.5-sonnet` |
 | Ollama (local) | None needed | `codellama` |
 
 ### Quick Test
@@ -141,13 +145,15 @@ python scripts/evaluate.py --model codellama --provider ollama
 7. REPORT RESULT     → PASS / FAIL / ERROR
 ```
 
-### Validation Levels
+### Validation Levels (Weighted Scoring: 0-100 points)
 
 | Level | Weight | What We Check |
 |-------|:------:|---------------|
-| Deployment | 30% | Solution deploys without errors |
-| Unit Tests | 30% | All tests pass |
-| **Functional** | 40% | **Business outcome achieved** |
+| Deployment | 10% | Solution deploys without errors |
+| Unit Tests | 20% | All tests pass, coverage ≥80% |
+| **Functional** | **50%** | **Business outcome achieved** |
+| Bulk Operations | 10% | Handles 200+ records |
+| No Manual Tweaks | 10% | Works in one shot |
 
 ### Example: Flow Validation
 

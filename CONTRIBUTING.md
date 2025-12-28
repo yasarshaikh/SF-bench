@@ -6,7 +6,7 @@ Thank you for your interest in contributing to SF-Bench! This document provides 
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/sf-bench/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/yasarshaikh/SF-bench/issues)
 2. If not, create a new issue using the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md)
 3. Include:
    - Clear description of the bug
@@ -92,8 +92,8 @@ Tasks are the core of SF-Bench! We welcome contributions of real-world Salesforc
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/sf-bench.git
-   cd sf-bench
+   git clone https://github.com/yasarshaikh/SF-bench.git
+   cd SF-bench
    ```
 
 2. Create a virtual environment:

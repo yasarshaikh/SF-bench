@@ -1,0 +1,22 @@
+[
+  {
+    "instance_id": "lwc-component-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "Fix the todoList component to handle empty todo lists gracefully. When there are no todos, display a message 'No todos found' instead of showing an empty list.",
+    "validation": {
+      "command": "npm run test:unit -- --testPathPattern=todoList",
+      "expected_outcome": "All tests pass"
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 120
+    },
+    "metadata": {
+      "difficulty": "easy",
+      "category": "lwc",
+      "subcategory": "component-fix"
+    }
+  }
+]
