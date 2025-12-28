@@ -19,29 +19,29 @@ from sfbench.utils.validation import TaskValidator
 
 class RunnerFactory:
     @staticmethod
-    def create_runner(task: Task, workspace_dir: Path) -> BenchmarkRunner:
+    def create_runner(task: Task, workspace_dir: Path, scratch_org_alias: Optional[str] = None) -> BenchmarkRunner:
         if task.task_type == TaskType.APEX:
-            return ApexRunner(task, workspace_dir)
+            return ApexRunner(task, workspace_dir, scratch_org_alias)
         elif task.task_type == TaskType.LWC:
-            return LWCRunner(task, workspace_dir)
+            return LWCRunner(task, workspace_dir, scratch_org_alias)
         elif task.task_type == TaskType.DEPLOY:
-            return DeployRunner(task, workspace_dir)
+            return DeployRunner(task, workspace_dir, scratch_org_alias)
         elif task.task_type == TaskType.FLOW:
-            return FlowRunner(task, workspace_dir)
+            return FlowRunner(task, workspace_dir, scratch_org_alias)
         elif task.task_type == TaskType.LIGHTNING_PAGE:
-            return LightningPageRunner(task, workspace_dir)
+            return LightningPageRunner(task, workspace_dir, scratch_org_alias)
         elif task.task_type == TaskType.COMMUNITY:
-            return CommunityRunner(task, workspace_dir)
+            return CommunityRunner(task, workspace_dir, scratch_org_alias)
         elif task.task_type == TaskType.ARCHITECTURE:
-            return ArchitectureRunner(task, workspace_dir)
+            return ArchitectureRunner(task, workspace_dir, scratch_org_alias)
         elif task.task_type in (TaskType.PAGE_LAYOUT, TaskType.PROFILE, TaskType.PERMISSION_SET):
             # Use DeployRunner for metadata-based tasks
-            return DeployRunner(task, workspace_dir)
+            return DeployRunner(task, workspace_dir, scratch_org_alias)
         elif task.task_type in (TaskType.SALES_CLOUD, TaskType.SERVICE_CLOUD, TaskType.MARKETING_CLOUD,
                                 TaskType.COMMERCE_CLOUD, TaskType.PLATFORM_CLOUD, TaskType.INTEGRATION,
                                 TaskType.DATA_MODEL, TaskType.SECURITY):
             # Use ArchitectureRunner for cloud-specific and complex tasks
-            return ArchitectureRunner(task, workspace_dir)
+            return ArchitectureRunner(task, workspace_dir, scratch_org_alias)
         else:
             raise ValueError(f"Unknown task type: {task.task_type}")
 
@@ -52,12 +52,14 @@ class BenchmarkEngine:
         tasks_file: Path,
         workspace_dir: Path,
         results_dir: Path,
-        max_workers: int = 3
+        max_workers: int = 3,
+        scratch_org_alias: Optional[str] = None
     ):
         self.tasks_file = tasks_file
         self.workspace_dir = workspace_dir
         self.results_dir = results_dir
         self.max_workers = max_workers
+        self.scratch_org_alias = scratch_org_alias
         self.tasks: List[Task] = []
         self.results: List[TestResult] = []
         self._lock = threading.Lock()
@@ -91,7 +93,7 @@ class BenchmarkEngine:
         patch_diff: Optional[str] = None
     ) -> TestResult:
         try:
-            runner = RunnerFactory.create_runner(task, self.workspace_dir)
+            runner = RunnerFactory.create_runner(task, self.workspace_dir, self.scratch_org_alias)
             result = runner.run(patch_diff)
             
             with self._lock:

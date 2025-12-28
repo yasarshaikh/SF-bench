@@ -8,8 +8,8 @@ from sfbench.utils.sfdx import run_sfdx, parse_json_output, OrgCreationError, Ti
 
 
 class DeployRunner(BenchmarkRunner):
-    def __init__(self, task: Task, workspace_dir: Path):
-        super().__init__(task, workspace_dir)
+    def __init__(self, task: Task, workspace_dir: Path, scratch_org_alias=None):
+        super().__init__(task, workspace_dir, scratch_org_alias)
         self.org_username: str = None
     
     def setup(self) -> None:

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 import json
 import shutil
 
@@ -9,18 +10,39 @@ from sfbench.utils.sfdx import run_sfdx, parse_json_output, OrgCreationError, Ti
 
 
 class ApexRunner(BenchmarkRunner):
-    def __init__(self, task: Task, workspace_dir: Path):
-        super().__init__(task, workspace_dir)
+    def __init__(self, task: Task, workspace_dir: Path, scratch_org_alias: Optional[str] = None):
+        super().__init__(task, workspace_dir, scratch_org_alias)
         self.org_username: str = None
     
     def setup(self) -> None:
         self._clone_and_checkout()
         
-        self._create_scratch_org()
+        # Use shared scratch org if provided, otherwise create one
+        if self.scratch_org_alias:
+            self._use_shared_org()
+        else:
+            self._create_scratch_org()
         
         self._push_metadata()
     
+    def _use_shared_org(self) -> None:
+        """Use the shared scratch org created by the evaluation pipeline."""
+        try:
+            # Set the org as default
+            run_sfdx(
+                f"sf config set target-org {self.scratch_org_alias}",
+                timeout=30
+            )
+            # Get username from alias
+            from sfbench.utils.sfdx import get_scratch_org_username
+            self.org_username = get_scratch_org_username(self.scratch_org_alias)
+            if not self.org_username:
+                raise Exception(f"Could not find username for org alias: {self.scratch_org_alias}")
+        except Exception as e:
+            raise OrgCreationError(f"Failed to use shared org: {str(e)}", 1, str(e))
+    
     def _create_scratch_org(self) -> None:
+        """Create a new scratch org (fallback if no shared org provided)."""
         try:
             exit_code, stdout, stderr = run_sfdx(
                 "sf org create scratch --definition-file config/project-scratch-def.json --set-default --duration-days 1",
@@ -41,8 +63,11 @@ class ApexRunner(BenchmarkRunner):
     
     def _push_metadata(self) -> None:
         try:
+            cmd = "sf project deploy start"
+            if self.scratch_org_alias:
+                cmd += f" --target-org {self.scratch_org_alias}"
             run_sfdx(
-                "sf project deploy start",
+                cmd,
                 cwd=self.repo_dir,
                 timeout=self.task.timeouts.setup
             )
@@ -53,8 +78,12 @@ class ApexRunner(BenchmarkRunner):
         try:
             self._push_metadata()
             
+            cmd = self.task.validation.command
+            if self.scratch_org_alias and "--target-org" not in cmd:
+                cmd += f" --target-org {self.scratch_org_alias}"
+            
             exit_code, stdout, stderr = run_sfdx(
-                self.task.validation.command,
+                cmd,
                 cwd=self.repo_dir,
                 timeout=self.task.timeouts.run
             )

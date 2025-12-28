@@ -25,7 +25,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from sfbench.engine import BenchmarkEngine
 from sfbench import Task, TaskType
 from sfbench.utils.solution_loader import SolutionLoader
-from sfbench.utils.sfdx import verify_devhub
+from sfbench.utils.sfdx import verify_devhub, create_scratch_org, delete_scratch_org, get_scratch_org_username
+from sfbench.utils.ai_agent import AIAgent, create_openrouter_agent, create_gemini_agent
 from sfbench.validators.functional_validator import FunctionalValidator, FunctionalValidationResult
 
 
@@ -66,41 +67,108 @@ def run_evaluation(
     workspace_dir = Path("workspace")
     workspace_dir.mkdir(parents=True, exist_ok=True)
     
-    # Verify Dev Hub if needed
+    # Verify Dev Hub and create scratch org
+    scratch_org_created = False
     if not skip_devhub:
         print("🔐 Verifying Dev Hub authentication...")
         if not verify_devhub():
             print("⚠️  Warning: No Dev Hub found. Apex/Deploy tasks may fail.")
             print("   Run: sf org login web --set-default-dev-hub")
+        else:
+            # Create scratch org if not provided
+            if not scratch_org_alias:
+                scratch_org_alias = f"sfbench-{model_safe_name}-{timestamp}"
+                print(f"\n🏗️  Creating scratch org: {scratch_org_alias}")
+                try:
+                    org_info = create_scratch_org(scratch_org_alias, duration_days=1)
+                    scratch_org_created = True
+                    print(f"✅ Scratch org created: {org_info.get('username', scratch_org_alias)}")
+                except Exception as e:
+                    print(f"❌ Failed to create scratch org: {e}")
+                    print("   Continuing with existing orgs or local validation only...")
+                    scratch_org_alias = None
+            else:
+                print(f"📌 Using existing scratch org: {scratch_org_alias}")
     
-    # Load solutions
-    solutions = {}
-    if solutions_path:
-        solutions = SolutionLoader.load_solutions(solutions_path)
-        print(f"📁 Loaded {len(solutions)} solutions")
-    
-    # Initialize engine
+    # Initialize engine with scratch org
     engine = BenchmarkEngine(
         tasks_file=tasks_file,
         workspace_dir=workspace_dir,
         results_dir=output_dir,
-        max_workers=max_workers
+        max_workers=max_workers,
+        scratch_org_alias=scratch_org_alias
     )
     
-    # Load and run tasks
+    # Load tasks first
     print(f"📋 Loading tasks from: {tasks_file}")
     engine.load_tasks(validate=True)
     print(f"✅ Loaded {len(engine.tasks)} tasks")
+    
+    # Load or generate solutions
+    solutions = {}
+    if solutions_path:
+        solutions = SolutionLoader.load_solutions(solutions_path)
+        print(f"📁 Loaded {len(solutions)} solutions from {solutions_path}")
+    else:
+        # Generate solutions using AI
+        print(f"\n🤖 Generating solutions using {model_name}...")
+        try:
+            # Determine provider from model name
+            if model_name.startswith("anthropic/") or model_name.startswith("openai/") or model_name.startswith("meta-llama/"):
+                # OpenRouter model
+                agent = create_openrouter_agent(model=model_name)
+            elif "gemini" in model_name.lower():
+                # Gemini model
+                agent = create_gemini_agent(model=model_name)
+            else:
+                # Default to OpenRouter
+                agent = create_openrouter_agent(model=model_name)
+            
+            print(f"   Using provider: {agent.provider}")
+            
+            for task in engine.tasks:
+                print(f"   Generating solution for {task.instance_id}...")
+                try:
+                    solution = agent.generate_solution(
+                        task_description=task.problem_description,
+                        context={
+                            "repo_url": task.repo_url,
+                            "base_commit": task.base_commit,
+                            "task_type": task.task_type.value
+                        }
+                    )
+                    solutions[task.instance_id] = solution
+                    print(f"   ✅ Generated {len(solution)} chars")
+                except Exception as e:
+                    print(f"   ❌ Failed: {e}")
+                    solutions[task.instance_id] = None
+            
+            print(f"✅ Generated {len([s for s in solutions.values() if s])} solutions")
+        except Exception as e:
+            print(f"❌ Failed to generate solutions: {e}")
+            print("   Continuing without solutions (will test deployment only)...")
     
     print(f"\n🚀 Running evaluation for: {model_name}")
     if functional_validation:
         print(f"🔬 Functional validation: ENABLED (realistic mode)")
     else:
         print(f"⚡ Functional validation: DISABLED (deployment-only)")
+    if scratch_org_alias:
+        print(f"🏢 Scratch org: {scratch_org_alias}")
     print(f"📂 Output directory: {output_dir}")
     print("-" * 60)
     
-    results = engine.run_all_tasks(solutions if solutions else None)
+    try:
+        results = engine.run_all_tasks(solutions if solutions else None)
+    finally:
+        # Cleanup: Delete scratch org if we created it
+        if scratch_org_created and scratch_org_alias:
+            print(f"\n🧹 Cleaning up scratch org: {scratch_org_alias}")
+            try:
+                delete_scratch_org(scratch_org_alias)
+                print("✅ Scratch org deleted")
+            except Exception as e:
+                print(f"⚠️  Warning: Could not delete scratch org: {e}")
     
     # Run functional validation if enabled
     functional_results = []

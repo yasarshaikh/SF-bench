@@ -20,8 +20,8 @@ class LightningPageRunner(BenchmarkRunner):
     Validates page configuration, component placement, and visibility rules.
     """
     
-    def __init__(self, task: Task, workspace_dir: Path):
-        super().__init__(task, workspace_dir)
+    def __init__(self, task: Task, workspace_dir: Path, scratch_org_alias=None):
+        super().__init__(task, workspace_dir, scratch_org_alias)
         self.org_username: str = None
     
     def setup(self) -> None:

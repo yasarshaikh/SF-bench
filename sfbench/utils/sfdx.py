@@ -99,3 +99,88 @@ def verify_devhub() -> bool:
         return False
     except Exception:
         return False
+
+
+def create_scratch_org(
+    alias: str,
+    duration_days: int = 1,
+    definition_file: Optional[Path] = None
+) -> Dict[str, Any]:
+    """
+    Create a scratch org for evaluation.
+    
+    Args:
+        alias: Alias for the scratch org
+        duration_days: Duration in days (default: 1)
+        definition_file: Optional scratch org definition file
+        
+    Returns:
+        Dictionary with org details (username, orgId, etc.)
+    """
+    try:
+        # Use default definition if not provided
+        if definition_file is None:
+            definition_file = Path(__file__).parent.parent.parent / "data" / "templates" / "project-scratch-def.json"
+        
+        if not definition_file.exists():
+            # Fallback: create org without definition file
+            cmd = f"sf org create scratch --alias {alias} --duration-days {duration_days} --set-default"
+        else:
+            cmd = f"sf org create scratch --alias {alias} --duration-days {duration_days} --definition-file {definition_file} --set-default"
+        
+        exit_code, stdout, stderr = run_sfdx(cmd, timeout=600)
+        data = parse_json_output(stdout)
+        
+        if 'result' in data:
+            return data['result']
+        else:
+            raise OrgCreationError("Failed to create scratch org: no result in response", 1, stdout)
+            
+    except Exception as e:
+        if isinstance(e, (OrgCreationError, TimeoutError)):
+            raise
+        raise OrgCreationError(f"Failed to create scratch org: {str(e)}", 1, str(e))
+
+
+def delete_scratch_org(alias: str) -> bool:
+    """
+    Delete a scratch org.
+    
+    Args:
+        alias: Alias of the scratch org to delete
+        
+    Returns:
+        True if successful
+    """
+    try:
+        cmd = f"sf org delete scratch --alias {alias} --no-prompt"
+        exit_code, stdout, stderr = run_sfdx(cmd, timeout=60)
+        return True
+    except Exception as e:
+        # Log but don't fail - org might already be deleted
+        print(f"⚠️  Warning: Could not delete scratch org {alias}: {str(e)}")
+        return False
+
+
+def get_scratch_org_username(alias: str) -> Optional[str]:
+    """
+    Get the username for a scratch org alias.
+    
+    Args:
+        alias: Alias of the scratch org
+        
+    Returns:
+        Username or None if not found
+    """
+    try:
+        exit_code, stdout, stderr = run_sfdx("sf org list", timeout=30)
+        data = parse_json_output(stdout)
+        
+        if 'result' in data:
+            for org in data.get('result', {}).get('scratchOrgs', []):
+                if org.get('alias') == alias:
+                    return org.get('username')
+        
+        return None
+    except Exception:
+        return None
