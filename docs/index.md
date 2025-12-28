@@ -38,11 +38,12 @@ SF-Bench **measures and reports**. We don't predict or claim expected outcomes.
 
 *December 2024*
 
-| Rank | Model | Overall | Apex | LWC | Flow | Lightning Pages |
-|:----:|-------|:-------:|:----:|:---:|:----:|:---------------:|
-| 🥇 | Gemini 3 Flash | 75.0% | 100% | 100% | 50% | 0% |
-| 🥈 | Gemini 2.5 Flash | 75.0% | 100% | 100% | 100% | 0% |
-| 🥉 | *Your model* | [Submit](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) | | | | |
+| Rank | Model | Overall | LWC | Apex | Flow | Lightning |
+|:----:|-------|:-------:|:---:|:----:|:----:|:---------:|
+| 🥇 | Gemini 2.5 Flash | 16.7% | 100% | 0%* | 0%* | 0% |
+| 🥈 | *Your model* | [Submit](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
+
+*\* Apex/Flow require scratch org. LWC uses local Jest.*
 
 **[Full Leaderboard →](LEADERBOARD.md)**
 

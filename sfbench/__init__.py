@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict, Any, Optional
+from dataclasses import dataclass, field
+from typing import Dict, Any, Optional, List
 from enum import Enum
 
 
@@ -25,26 +25,32 @@ class TaskType(Enum):
     PLATFORM_CLOUD = "PLATFORM_CLOUD"
     
     # Architecture Tasks
-    ARCHITECTURE = "ARCHITECTURE"  # Planning, execution, prototype validation
-    INTEGRATION = "INTEGRATION"  # API integrations, webhooks
-    DATA_MODEL = "DATA_MODEL"  # Schema design, relationships
-    SECURITY = "SECURITY"  # Sharing rules, field-level security
+    ARCHITECTURE = "ARCHITECTURE"
+    INTEGRATION = "INTEGRATION"
+    DATA_MODEL = "DATA_MODEL"
+    SECURITY = "SECURITY"
 
 
 @dataclass
 class ValidationConfig:
+    """Validation configuration for a task."""
     command: str
     expected_outcome: str
+    code_checks: Optional[List[str]] = None
+    additional_checks: Optional[Dict[str, Any]] = None
 
 
 @dataclass
 class TimeoutConfig:
+    """Timeout configuration for a task."""
     setup: int
     run: int
+    functional_test: Optional[int] = None
 
 
 @dataclass
 class Task:
+    """A benchmark task definition."""
     instance_id: str
     task_type: TaskType
     repo_url: str
@@ -52,21 +58,46 @@ class Task:
     problem_description: str
     validation: ValidationConfig
     timeouts: TimeoutConfig
+    metadata: Optional[Dict[str, Any]] = None
+    functional_validation: Optional[Dict[str, Any]] = None
+    test_scripts: Optional[Dict[str, str]] = None
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Task':
+        """Create Task from dictionary."""
+        # Parse validation config - handle extra fields gracefully
+        validation_data = data.get('validation', {})
+        validation = ValidationConfig(
+            command=validation_data.get('command', ''),
+            expected_outcome=validation_data.get('expected_outcome', ''),
+            code_checks=validation_data.get('code_checks'),
+            additional_checks=validation_data.get('additional_checks')
+        )
+        
+        # Parse timeout config - handle extra fields gracefully
+        timeout_data = data.get('timeouts', {})
+        timeouts = TimeoutConfig(
+            setup=timeout_data.get('setup', 600),
+            run=timeout_data.get('run', 300),
+            functional_test=timeout_data.get('functional_test')
+        )
+        
         return cls(
             instance_id=data['instance_id'],
             task_type=TaskType(data['task_type']),
             repo_url=data['repo_url'],
             base_commit=data['base_commit'],
             problem_description=data['problem_description'],
-            validation=ValidationConfig(**data['validation']),
-            timeouts=TimeoutConfig(**data['timeouts'])
+            validation=validation,
+            timeouts=timeouts,
+            metadata=data.get('metadata'),
+            functional_validation=data.get('functional_validation'),
+            test_scripts=data.get('test_scripts')
         )
     
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        """Convert Task to dictionary."""
+        result = {
             'instance_id': self.instance_id,
             'task_type': self.task_type.value,
             'repo_url': self.repo_url,
@@ -81,3 +112,11 @@ class Task:
                 'run': self.timeouts.run
             }
         }
+        
+        if self.validation.code_checks:
+            result['validation']['code_checks'] = self.validation.code_checks
+        
+        if self.metadata:
+            result['metadata'] = self.metadata
+        
+        return result

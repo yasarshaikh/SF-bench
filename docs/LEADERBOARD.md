@@ -4,11 +4,12 @@
 
 ## Overall Rankings
 
-| Rank | Model | Overall | Apex | LWC | Flow | Lightning Pages | Experience Cloud | Architecture |
-|:----:|-------|:-------:|:----:|:---:|:----:|:---------------:|:----------------:|:------------:|
-| 🥇 | **Gemini 3 Flash** | **75.0%** | 100% | 100% | 50% | 0% | 100% | 100% |
-| 🥈 | **Gemini 2.5 Flash** | **75.0%** | 100% | 100% | 100% | 0% | 100% | 50% |
-| 🥉 | *Your model here* | -% | -% | -% | -% | -% | -% | -% |
+| Rank | Model | Overall | LWC | Apex | Flow | Lightning | Experience | Architecture |
+|:----:|-------|:-------:|:---:|:----:|:----:|:---------:|:----------:|:------------:|
+| 🥇 | **Gemini 2.5 Flash** | **16.7%** | 100% | 0% | 0% | 0% | 0% | 0% |
+| 🥈 | *Your model here* | -% | -% | -% | -% | -% | -% | -% |
+
+> **Note**: These are real results from running SF-Bench with full validation. LWC tasks use Jest tests (local), other tasks require scratch org deployment.
 
 ## Detailed Segment Results
 
