@@ -1,0 +1,286 @@
+[
+  {
+    "instance_id": "apex-null-safety-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "The AccountTriggerHandler class has a NullPointerException when Account.Owner is null. Fix it by implementing null-safety checks. The trigger should set Account.Description to 'Owner: <OwnerName>' when Owner exists, or 'Owner: Unassigned' when Owner is null.",
+    "validation": {
+      "command": "sf apex run test --class-names AccountTriggerHandlerTests --result-format json",
+      "expected_outcome": "Passed"
+    },
+    "functional_validation": {
+      "description": "Verify the trigger actually works with real data",
+      "test_data_script": "scripts/apex/create_account_no_owner.apex",
+      "verification_query": "SELECT Id, Description, OwnerId FROM Account WHERE Name = 'Test No Owner Account'",
+      "expected_values": {
+        "record_count": 1,
+        "field_value": {
+          "field": "Description",
+          "value": "Owner: Unassigned"
+        }
+      },
+      "bulk_test_script": "scripts/apex/bulk_create_accounts.apex",
+      "negative_test": {
+        "description": "Verify trigger does NOT throw error when Owner IS set",
+        "script": "scripts/apex/create_account_with_owner.apex",
+        "expected_outcome": "No exception, Description contains owner name"
+      }
+    },
+    "test_scripts": {
+      "create_account_no_owner.apex": "Account acc = new Account(Name = 'Test No Owner Account'); insert acc;",
+      "create_account_with_owner.apex": "Account acc = new Account(Name = 'Test With Owner'); insert acc; System.debug(acc.Description);",
+      "bulk_create_accounts.apex": "List<Account> accs = new List<Account>(); for(Integer i=0; i<200; i++) { accs.add(new Account(Name='Bulk Test ' + i)); } insert accs;"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300,
+      "functional_test": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "apex",
+      "subcategory": "trigger-handling",
+      "real_world_scenario": "Handling null relationships in triggers",
+      "common_failures": [
+        "Not checking for null before accessing relationship fields",
+        "Using Owner.Name directly without null check",
+        "Forgetting bulk scenarios"
+      ],
+      "expected_ai_success_rate": "75%",
+      "validation_level": "functional"
+    }
+  },
+  {
+    "instance_id": "flow-account-automation-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Create a Record-Triggered Flow on Account that:\n1. Triggers when Account.Type changes to 'Customer - Direct'\n2. Creates a Task for the Account Owner with:\n   - Subject: 'Welcome new customer: <AccountName>'\n   - Due Date: 7 days from today\n   - Priority: High\n3. Updates all related Contacts where Title contains 'Director' to set a custom field Contact.VIP__c = true\n\nThe Flow must handle bulk operations (200 accounts at once) without hitting governor limits.",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flows --dry-run --json",
+      "expected_outcome": "Succeeded"
+    },
+    "functional_validation": {
+      "description": "Verify Flow actually creates Tasks and updates Contacts",
+      "flow_name": "Account_New_Customer_Automation",
+      "trigger_test_script": "scripts/flow/create_customer_account.apex",
+      "outcome_verifications": [
+        {
+          "name": "Verify Task Created",
+          "query": "SELECT Id, Subject, Priority, ActivityDate FROM Task WHERE WhatId IN (SELECT Id FROM Account WHERE Name = 'Flow Test Customer')",
+          "expected": {
+            "record_count": 1,
+            "field_value": {
+              "field": "Priority",
+              "value": "High"
+            }
+          }
+        },
+        {
+          "name": "Verify Contact Updated",
+          "query": "SELECT Id, VIP__c FROM Contact WHERE Account.Name = 'Flow Test Customer' AND Title LIKE '%Director%'",
+          "expected": {
+            "field_value": {
+              "field": "VIP__c",
+              "value": true
+            }
+          }
+        }
+      ],
+      "bulk_test_script": "scripts/flow/bulk_create_customers.apex",
+      "negative_test_script": "scripts/flow/create_prospect_account.apex"
+    },
+    "test_scripts": {
+      "create_customer_account.apex": "Account acc = new Account(Name = 'Flow Test Customer', Type = 'Prospect'); insert acc; Contact c = new Contact(LastName = 'Smith', Title = 'Director of Sales', AccountId = acc.Id); insert c; acc.Type = 'Customer - Direct'; update acc;",
+      "bulk_create_customers.apex": "List<Account> accs = new List<Account>(); for(Integer i=0; i<200; i++) { accs.add(new Account(Name='Bulk Customer ' + i, Type='Prospect')); } insert accs; for(Account a : accs) { a.Type = 'Customer - Direct'; } update accs;",
+      "create_prospect_account.apex": "Account acc = new Account(Name = 'Flow Test Prospect', Type = 'Prospect'); insert acc; // Should NOT create task"
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300,
+      "functional_test": 600
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "flow",
+      "subcategory": "record-triggered-flow",
+      "real_world_scenario": "Customer onboarding automation",
+      "common_failures": [
+        "Entry conditions not matching correctly",
+        "Task not linked to Account (WhatId missing)",
+        "Due date calculation wrong",
+        "Contact query not working",
+        "Bulkification issues causing CPU timeout"
+      ],
+      "expected_ai_success_rate": "30%",
+      "validation_level": "functional"
+    }
+  },
+  {
+    "instance_id": "lwc-error-handling-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "The apexImperativeMethod component does not properly display errors to users. Update it to:\n1. Show a loading spinner while the Apex call is in progress\n2. Display user-friendly error messages using lightning-card with error styling\n3. Handle network timeout gracefully (show 'Server is taking too long, please retry')\n4. Clear previous errors when user retries\n5. Maintain accessibility (error messages should be announced to screen readers)",
+    "validation": {
+      "command": "npm run test:unit -- --testPathPattern=apexImperativeMethod",
+      "expected_outcome": "0"
+    },
+    "functional_validation": {
+      "description": "Verify component handles all error scenarios correctly",
+      "jest_tests_required": [
+        "displays loading spinner during API call",
+        "shows error message when API fails",
+        "clears error on retry",
+        "error message is accessible"
+      ],
+      "controller_test_script": "scripts/lwc/test_apex_controller.apex",
+      "expected_jest_coverage": 80
+    },
+    "test_scripts": {
+      "test_apex_controller.apex": "try { AccountController.getAccountList(); System.debug('SUCCESS'); } catch(Exception e) { System.debug('ERROR: ' + e.getMessage()); }"
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 180,
+      "functional_test": 180
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "lwc",
+      "subcategory": "error-handling",
+      "real_world_scenario": "User-friendly error handling in components",
+      "common_failures": [
+        "Loading state not implemented",
+        "Error message not user-friendly",
+        "State not cleared on retry",
+        "Accessibility issues"
+      ],
+      "expected_ai_success_rate": "65%",
+      "validation_level": "functional"
+    }
+  },
+  {
+    "instance_id": "lightning-page-dynamic-001",
+    "task_type": "LIGHTNING_PAGE",
+    "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
+    "base_commit": "main",
+    "problem_description": "Convert Property_Record_Page to use Dynamic Forms with visibility rules:\n1. Create 4 field sections: 'Property Details', 'Location', 'Pricing', 'Status'\n2. Add visibility rules:\n   - Show 'Sold Details' section ONLY when Status__c = 'Sold'\n   - Show 'Negotiation Notes' field ONLY when Status__c = 'Contracted'\n3. Include a custom action bar with: New Task, New Event, Clone, Delete\n4. Add the propertyMap component to the right sidebar\n5. Ensure page works on both desktop and mobile",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flexipages --json",
+      "expected_outcome": "Succeeded"
+    },
+    "functional_validation": {
+      "description": "Verify page renders correctly with all visibility rules working",
+      "test_scenarios": [
+        {
+          "name": "Verify Available Property",
+          "setup": "Create Property with Status = 'Available'",
+          "verify": [
+            "Property Details section visible",
+            "Sold Details section NOT visible",
+            "Negotiation Notes field NOT visible"
+          ]
+        },
+        {
+          "name": "Verify Sold Property",
+          "setup": "Create Property with Status = 'Sold'",
+          "verify": [
+            "Sold Details section IS visible"
+          ]
+        },
+        {
+          "name": "Verify Contracted Property",
+          "setup": "Create Property with Status = 'Contracted'",
+          "verify": [
+            "Negotiation Notes field IS visible"
+          ]
+        }
+      ],
+      "ui_test_required": true,
+      "mobile_test_required": true
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300,
+      "functional_test": 600
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "lightning_page",
+      "subcategory": "dynamic-forms",
+      "real_world_scenario": "Conditional field visibility based on record status",
+      "common_failures": [
+        "Visibility rules syntax incorrect",
+        "Field sections not properly structured",
+        "Components missing from sidebar",
+        "Mobile layout broken",
+        "Action bar not customized"
+      ],
+      "expected_ai_success_rate": "20%",
+      "validation_level": "functional"
+    }
+  },
+  {
+    "instance_id": "experience-cloud-guest-001",
+    "task_type": "COMMUNITY",
+    "repo_url": "https://github.com/trailheadapps/ebikes-lwc",
+    "base_commit": "main",
+    "problem_description": "Configure the E-Bikes Experience Cloud site for guest user access:\n1. Create a public-facing landing page with product categories\n2. Configure guest user profile with read access to Product__c\n3. Add product search component that works without login\n4. Implement 'Sign In to Purchase' call-to-action on product detail\n5. Ensure all LWC components work for unauthenticated users\n6. Test that private data (Orders, Accounts) is NOT visible to guests",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/experiences --json",
+      "expected_outcome": "Succeeded"
+    },
+    "functional_validation": {
+      "description": "Verify guest access works correctly with proper security",
+      "requires_site_publish": true,
+      "test_scenarios": [
+        {
+          "name": "Guest can view products",
+          "url": "/s/products",
+          "expected": {
+            "http_status": 200,
+            "contains": ["E-Bike", "category"]
+          }
+        },
+        {
+          "name": "Guest CANNOT view orders",
+          "url": "/s/orders",
+          "expected": {
+            "http_status": 403,
+            "or_redirect_to_login": true
+          }
+        },
+        {
+          "name": "Search works without login",
+          "action": "search for 'Mountain'",
+          "expected": {
+            "results_count": ">= 1"
+          }
+        }
+      ],
+      "security_test_required": true
+    },
+    "timeouts": {
+      "setup": 900,
+      "run": 600,
+      "functional_test": 600
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "experience_cloud",
+      "subcategory": "guest-access",
+      "real_world_scenario": "Public-facing e-commerce site",
+      "common_failures": [
+        "Guest profile permissions not configured",
+        "LWC components fail without session",
+        "Private data exposed to guests",
+        "Navigation not working",
+        "Site not published"
+      ],
+      "expected_ai_success_rate": "10%",
+      "validation_level": "functional"
+    }
+  }
+]
