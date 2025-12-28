@@ -281,13 +281,15 @@ validation:
 
 ### Score Interpretation
 
-| Score | Meaning | Real-World Equivalent |
-|:-----:|---------|----------------------|
-| 100% | Perfect first-try solution | "I can go to lunch, it's done" |
-| 80-99% | Works with minor issues | "Needs a quick fix" |
-| 50-79% | Partially works | "Good start, needs iteration" |
-| 20-49% | Barely functional | "Needs significant rework" |
-| 0-19% | Doesn't work | "Start over" |
+| Score | What It Means |
+|:-----:|---------------|
+| 100% | All validation steps passed |
+| 80-99% | Most steps passed, minor issues |
+| 50-79% | Partial success |
+| 20-49% | Limited success |
+| 0-19% | Most steps failed |
+
+**We report scores objectively.** We don't claim what's "good" or "bad" - users decide based on their requirements.
 
 ---
 
