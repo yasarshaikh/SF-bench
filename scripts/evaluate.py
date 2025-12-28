@@ -2,28 +2,31 @@
 """
 SF-Bench Evaluation Script
 
-This is the main entry point for running evaluations.
+The industry's first comprehensive benchmark for Salesforce AI coding agents.
+Validates not just deployment, but actual functionality.
+
 Usage:
     python scripts/evaluate.py --model <model_name> --tasks <task_file>
 
 Example:
-    python scripts/evaluate.py --model gpt-4 --tasks data/tasks/dev.json
-    python scripts/evaluate.py --model claude-3 --tasks data/tasks/full.json --output results/claude-3/
+    python scripts/evaluate.py --model gpt-4 --tasks data/tasks/verified.json
+    python scripts/evaluate.py --model claude-3 --tasks data/tasks/realistic.json --functional
 """
 import argparse
 import json
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sfbench.engine import BenchmarkEngine
-from sfbench import Task
+from sfbench import Task, TaskType
 from sfbench.utils.solution_loader import SolutionLoader
 from sfbench.utils.sfdx import verify_devhub
+from sfbench.validators.functional_validator import FunctionalValidator, FunctionalValidationResult
 
 
 def run_evaluation(
@@ -32,7 +35,9 @@ def run_evaluation(
     solutions_path: Optional[Path] = None,
     output_dir: Optional[Path] = None,
     max_workers: int = 3,
-    skip_devhub: bool = False
+    skip_devhub: bool = False,
+    functional_validation: bool = False,
+    scratch_org_alias: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Run a complete evaluation for a model.
@@ -44,15 +49,18 @@ def run_evaluation(
         output_dir: Output directory for results
         max_workers: Maximum parallel workers
         skip_devhub: Skip Dev Hub verification
+        functional_validation: Enable full functional validation (requires scratch org)
+        scratch_org_alias: Alias for scratch org to use for functional testing
         
     Returns:
         Evaluation results dictionary
     """
     # Setup
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    model_safe_name = model_name.replace("/", "-").replace(" ", "_")
     
     if output_dir is None:
-        output_dir = Path(f"results/{model_name}/{timestamp}")
+        output_dir = Path(f"results/{model_safe_name}")
     output_dir.mkdir(parents=True, exist_ok=True)
     
     workspace_dir = Path("workspace")
@@ -60,15 +68,16 @@ def run_evaluation(
     
     # Verify Dev Hub if needed
     if not skip_devhub:
-        print("Verifying Dev Hub authentication...")
+        print("🔐 Verifying Dev Hub authentication...")
         if not verify_devhub():
-            print("Warning: No Dev Hub found. Apex/Deploy tasks may fail.")
+            print("⚠️  Warning: No Dev Hub found. Apex/Deploy tasks may fail.")
+            print("   Run: sf org login web --set-default-dev-hub")
     
     # Load solutions
     solutions = {}
     if solutions_path:
         solutions = SolutionLoader.load_solutions(solutions_path)
-        print(f"Loaded {len(solutions)} solutions")
+        print(f"📁 Loaded {len(solutions)} solutions")
     
     # Initialize engine
     engine = BenchmarkEngine(
@@ -79,27 +88,75 @@ def run_evaluation(
     )
     
     # Load and run tasks
-    print(f"Loading tasks from: {tasks_file}")
+    print(f"📋 Loading tasks from: {tasks_file}")
     engine.load_tasks(validate=True)
-    print(f"Loaded {len(engine.tasks)} tasks")
+    print(f"✅ Loaded {len(engine.tasks)} tasks")
     
-    print(f"\nRunning evaluation for: {model_name}")
-    print(f"Output directory: {output_dir}")
+    print(f"\n🚀 Running evaluation for: {model_name}")
+    if functional_validation:
+        print(f"🔬 Functional validation: ENABLED (realistic mode)")
+    else:
+        print(f"⚡ Functional validation: DISABLED (deployment-only)")
+    print(f"📂 Output directory: {output_dir}")
     print("-" * 60)
     
     results = engine.run_all_tasks(solutions if solutions else None)
     
-    # Generate evaluation summary
+    # Run functional validation if enabled
+    functional_results = []
+    if functional_validation and scratch_org_alias:
+        print("\n🔬 Running functional validation...")
+        validator = FunctionalValidator(scratch_org_alias, workspace_dir)
+        
+        for result in results:
+            if result.status.value == "PASS":
+                # Get task config
+                task = next((t for t in engine.tasks if t.instance_id == result.task_id), None)
+                if task and hasattr(task, 'functional_validation'):
+                    repo_dir = workspace_dir / result.task_id
+                    
+                    if task.task_type == TaskType.APEX:
+                        func_result = validator.validate_apex(
+                            result.task_id, 
+                            task.__dict__, 
+                            repo_dir
+                        )
+                    elif task.task_type == TaskType.FLOW:
+                        func_result = validator.validate_flow(
+                            result.task_id,
+                            task.__dict__,
+                            repo_dir
+                        )
+                    elif task.task_type == TaskType.LWC:
+                        func_result = validator.validate_lwc(
+                            result.task_id,
+                            task.__dict__,
+                            repo_dir
+                        )
+                    else:
+                        func_result = FunctionalValidationResult(
+                            task_id=result.task_id,
+                            validation_level=None
+                        )
+                    
+                    functional_results.append(func_result.to_dict())
+    
+    # Generate evaluation summary with segment breakdown
+    segment_results = calculate_segment_results(results)
+    
     evaluation = {
         "model": model_name,
         "timestamp": datetime.now().isoformat(),
         "tasks_file": str(tasks_file),
+        "validation_mode": "functional" if functional_validation else "deployment",
         "total_tasks": len(results),
         "passed": sum(1 for r in results if r.status.value == "PASS"),
         "failed": sum(1 for r in results if r.status.value == "FAIL"),
         "timeout": sum(1 for r in results if r.status.value == "TIMEOUT"),
         "error": sum(1 for r in results if r.status.value == "ERROR"),
         "pass_rate": 0.0,
+        "segment_results": segment_results,
+        "functional_validation": functional_results if functional_results else None,
         "results": [r.to_dict() for r in results]
     }
     
@@ -109,33 +166,97 @@ def run_evaluation(
         )
     
     # Save evaluation
-    eval_file = output_dir / "evaluation.json"
+    eval_file = output_dir / f"evaluation_{model_safe_name}_{timestamp}.json"
     with open(eval_file, 'w') as f:
         json.dump(evaluation, f, indent=2)
     
-    print("\n" + "=" * 60)
-    print(f"EVALUATION COMPLETE: {model_name}")
-    print("=" * 60)
-    print(f"Total Tasks: {evaluation['total_tasks']}")
-    print(f"Passed: {evaluation['passed']}")
-    print(f"Failed: {evaluation['failed']}")
-    print(f"Timeout: {evaluation['timeout']}")
-    print(f"Error: {evaluation['error']}")
-    print(f"Pass Rate: {evaluation['pass_rate']}%")
-    print(f"\nResults saved to: {eval_file}")
+    # Print results
+    print_results(evaluation)
+    print(f"\n💾 Results saved to: {eval_file}")
     
     return evaluation
 
 
+def calculate_segment_results(results) -> Dict[str, Dict[str, Any]]:
+    """Calculate pass rates by task segment/category."""
+    segments = {}
+    
+    for result in results:
+        # Extract task type from ID (e.g., "apex-trigger-001" -> "apex")
+        task_id = result.task_id
+        if "-" in task_id:
+            segment = task_id.split("-")[0].upper()
+        else:
+            segment = "OTHER"
+        
+        if segment not in segments:
+            segments[segment] = {"total": 0, "passed": 0, "failed": 0, "error": 0}
+        
+        segments[segment]["total"] += 1
+        if result.status.value == "PASS":
+            segments[segment]["passed"] += 1
+        elif result.status.value == "FAIL":
+            segments[segment]["failed"] += 1
+        else:
+            segments[segment]["error"] += 1
+    
+    # Calculate pass rates
+    for segment in segments:
+        total = segments[segment]["total"]
+        passed = segments[segment]["passed"]
+        segments[segment]["pass_rate"] = round((passed / total) * 100, 1) if total > 0 else 0.0
+    
+    return segments
+
+
+def print_results(evaluation: Dict[str, Any]):
+    """Print formatted evaluation results."""
+    print("\n" + "=" * 60)
+    print(f"📊 EVALUATION COMPLETE: {evaluation['model']}")
+    print("=" * 60)
+    
+    # Overall results
+    print(f"\n📈 Overall Results:")
+    print(f"   Total Tasks: {evaluation['total_tasks']}")
+    print(f"   ✅ Passed: {evaluation['passed']}")
+    print(f"   ❌ Failed: {evaluation['failed']}")
+    print(f"   ⏱️  Timeout: {evaluation['timeout']}")
+    print(f"   ⚠️  Error: {evaluation['error']}")
+    print(f"   📊 Pass Rate: {evaluation['pass_rate']}%")
+    
+    # Segment breakdown
+    if evaluation.get('segment_results'):
+        print(f"\n📋 Results by Segment:")
+        print("-" * 40)
+        for segment, data in sorted(evaluation['segment_results'].items()):
+            status_icon = "✅" if data['pass_rate'] >= 80 else "⚠️" if data['pass_rate'] >= 50 else "❌"
+            print(f"   {status_icon} {segment}: {data['pass_rate']}% ({data['passed']}/{data['total']})")
+    
+    # Functional validation results
+    if evaluation.get('functional_validation'):
+        print(f"\n🔬 Functional Validation:")
+        print("-" * 40)
+        for func_result in evaluation['functional_validation']:
+            score = func_result.get('score', 0)
+            status_icon = "✅" if score >= 80 else "⚠️" if score >= 50 else "❌"
+            print(f"   {status_icon} {func_result['task_id']}: {score}% functional score")
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description='SF-Bench: Evaluate AI models on Salesforce tasks',
+        description='SF-Bench: The Salesforce AI Coding Benchmark',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python scripts/evaluate.py --model gpt-4 --tasks data/tasks/dev.json
-  python scripts/evaluate.py --model claude-3 --solutions solutions/claude-3/
-  python scripts/evaluate.py --model gemini --tasks data/tasks/full.json --output results/gemini/
+  # Quick evaluation (deployment only)
+  python scripts/evaluate.py --model gpt-4 --tasks data/tasks/verified.json
+
+  # Realistic evaluation (functional validation)
+  python scripts/evaluate.py --model claude-3 --tasks data/tasks/realistic.json \\
+      --functional --scratch-org my-scratch-org
+
+  # With pre-generated solutions
+  python scripts/evaluate.py --model gemini --solutions solutions/gemini/
         """
     )
     
@@ -143,14 +264,14 @@ Examples:
         '--model', '-m',
         type=str,
         required=True,
-        help='Name of the model being evaluated (e.g., gpt-4, claude-3)'
+        help='Name of the model being evaluated (e.g., gpt-4, claude-3, gemini-2.5-flash)'
     )
     
     parser.add_argument(
         '--tasks', '-t',
         type=str,
-        default='data/tasks/dev.json',
-        help='Path to tasks JSON file (default: data/tasks/dev.json)'
+        default='data/tasks/verified.json',
+        help='Path to tasks JSON file (default: data/tasks/verified.json)'
     )
     
     parser.add_argument(
@@ -162,7 +283,7 @@ Examples:
     parser.add_argument(
         '--output', '-o',
         type=str,
-        help='Output directory for results (default: results/<model>/<timestamp>)'
+        help='Output directory for results (default: results/<model>/)'
     )
     
     parser.add_argument(
@@ -178,13 +299,28 @@ Examples:
         help='Skip Dev Hub verification'
     )
     
+    parser.add_argument(
+        '--functional', '-f',
+        action='store_true',
+        help='Enable functional validation (requires scratch org)'
+    )
+    
+    parser.add_argument(
+        '--scratch-org',
+        type=str,
+        help='Scratch org alias for functional testing'
+    )
+    
     args = parser.parse_args()
     
     # Validate inputs
     tasks_file = Path(args.tasks)
     if not tasks_file.exists():
-        print(f"Error: Tasks file not found: {tasks_file}")
+        print(f"❌ Error: Tasks file not found: {tasks_file}")
         sys.exit(1)
+    
+    if args.functional and not args.scratch_org:
+        print("⚠️  Warning: --functional requires --scratch-org. Falling back to deployment validation.")
     
     solutions_path = Path(args.solutions) if args.solutions else None
     output_dir = Path(args.output) if args.output else None
@@ -196,10 +332,11 @@ Examples:
         solutions_path=solutions_path,
         output_dir=output_dir,
         max_workers=args.max_workers,
-        skip_devhub=args.skip_devhub
+        skip_devhub=args.skip_devhub,
+        functional_validation=args.functional,
+        scratch_org_alias=args.scratch_org
     )
 
 
 if __name__ == '__main__':
     main()
-

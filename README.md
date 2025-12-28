@@ -5,7 +5,11 @@
 <h1 align="center">SF-Bench</h1>
 
 <p align="center">
-  <strong>The First Comprehensive Benchmark for Evaluating AI Coding Agents on Salesforce Development</strong>
+  <strong>The Industry's First Comprehensive Benchmark for Evaluating AI Coding Agents on Salesforce Development</strong>
+</p>
+
+<p align="center">
+  <em>Real execution. Functional validation. Honest results.</em>
 </p>
 
 <p align="center">
@@ -23,11 +27,10 @@
 
 <p align="center">
   <a href="#-why-sf-bench">Why SF-Bench</a> •
+  <a href="#-realistic-validation">Validation</a> •
   <a href="#-leaderboard">Leaderboard</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#-task-types">Tasks</a> •
-  <a href="#-contributing">Contributing</a> •
-  <a href="#-citation">Citation</a>
+  <a href="#-contributing">Contributing</a>
 </p>
 
 ---
@@ -47,6 +50,46 @@ Generic benchmarks like **HumanEval** and **SWE-bench** don't capture:
 | **Enterprise patterns** | Triggers, batch jobs, integrations |
 
 **SF-Bench fills this gap** with real execution in actual Salesforce environments.
+
+---
+
+## 🔬 Realistic Validation
+
+> **"If a benchmark says 100% pass rate, it must mean the solution works 100% of the time in production, first try."**
+
+### Most AI Benchmarks Are Broken
+
+They check if code **compiles**, not if it **works**.
+
+```
+❌ Old Way:   Flow deployed successfully → PASS
+✅ SF-Bench:  Flow deployed + Task created + Contact updated + Bulk works → PASS
+```
+
+### Expected Real-World Success Rates
+
+Based on production Salesforce development experience:
+
+| Task Type | Expected AI Success (One-Shot) | Notes |
+|-----------|:------------------------------:|-------|
+| **Apex Trigger** | 70-80% | Usually works, may need null checks |
+| **LWC Component** | 60-70% | Error handling often incomplete |
+| **Flow (Simple)** | 40-50% | Entry conditions often wrong |
+| **Flow (Complex)** | 10-20% | Subflows, bulkification = nightmare |
+| **Lightning Page** | 20-30% | Visibility rules complex |
+| **Experience Cloud** | 10-20% | Guest access, security = hard |
+
+**If an AI scores 100% on complex Flows, either the tasks are too easy or the validation is broken.**
+
+### Validation Levels
+
+| Level | Points | What We Check |
+|-------|:------:|---------------|
+| Syntax | 10 | Code parses, valid XML/JSON |
+| Deployment | 20 | Deploys to scratch org |
+| Unit Tests | 20 | All tests pass, coverage ≥80% |
+| **Functional** | **40** | **Solution actually WORKS** |
+| Production-Ready | 10 | Handles 200+ records, no governor limits |
 
 ---
 
@@ -71,9 +114,6 @@ Generic benchmarks like **HumanEval** and **SWE-bench** don't capture:
 | **Page Layouts** | 1 | ❌ 0/1 (0%) | ❌ 0/1 (0%) |
 | **Experience Cloud** | 1 | ✅ 1/1 (100%) | ✅ 1/1 (100%) |
 | **Architecture** | 2 | ✅ 2/2 (100%) | ⚠️ 1/2 (50%) |
-| **Deployment** | 1 | ✅ 1/1 (100%) | ✅ 1/1 (100%) |
-
-**LWC Validation:** Jest tests 122/122 passed for both models
 
 **[📊 Submit your results →](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)**
 
@@ -100,11 +140,15 @@ pip install -e .
 ### Run Evaluation
 
 ```bash
-# Evaluate your model
-python scripts/evaluate.py --model <model-name> --solutions solutions/<model-name>/
+# Quick evaluation (deployment validation only)
+python scripts/evaluate.py --model <model-name> --tasks data/tasks/verified.json
 
-# Example with GPT-4
-python scripts/evaluate.py --model gpt-4 --solutions solutions/gpt-4/ --tasks data/tasks/full.json
+# Realistic evaluation (functional validation - requires scratch org)
+python scripts/evaluate.py --model <model-name> --tasks data/tasks/realistic.json \
+    --functional --scratch-org <your-scratch-org>
+
+# With pre-generated solutions
+python scripts/evaluate.py --model gpt-4 --solutions solutions/gpt-4/
 ```
 
 ### Generate Leaderboard
@@ -117,58 +161,26 @@ python scripts/leaderboard.py --results-dir results/
 
 ## 📊 Task Types
 
-SF-Bench covers **12 verified task types** across the Salesforce ecosystem:
+SF-Bench covers **multiple task types** across the Salesforce ecosystem:
 
 | Type | Description | Validation | Verified Repo |
 |------|-------------|------------|:-------------:|
-| `APEX` | Triggers, Classes, Integration | Apex unit tests | ✅ apex-recipes |
-| `LWC` | Lightning Web Components | Jest tests | ✅ lwc-recipes |
-| `FLOW` | Screen Components, Invocable Actions | Deploy + Tests | ✅ automation-components |
-| `DEPLOY` | Metadata deployment | Deploy check | ✅ ebikes-lwc |
-| `LIGHTNING_PAGE` | FlexiPages, Dynamic Forms | Deploy check | ✅ dreamhouse-lwc |
-| `PAGE_LAYOUT` | Record Layouts | Deploy check | ✅ dreamhouse-lwc |
-| `COMMUNITY` | Experience Cloud sites | Deploy check | ✅ ebikes-lwc |
-| `ARCHITECTURE` | Full-stack, System Design | Multi-check | ✅ dreamhouse-lwc |
-| `AGENTFORCE` | Agent Scripts, Prompts | Deploy check | ✅ agent-script-recipes |
+| `APEX` | Triggers, Classes, Integration | Apex unit tests + functional | apex-recipes |
+| `LWC` | Lightning Web Components | Jest tests + deployment | lwc-recipes |
+| `FLOW` | Record-Triggered, Screen Components | Deploy + outcome verification | automation-components |
+| `LIGHTNING_PAGE` | FlexiPages, Dynamic Forms | Deploy + visibility rules | dreamhouse-lwc |
+| `COMMUNITY` | Experience Cloud sites | Deploy + guest access test | ebikes-lwc |
+| `ARCHITECTURE` | Full-stack, System Design | Multi-component validation | dreamhouse-lwc |
 
 ### Verified Repositories (API Confirmed)
 
-All tasks use **official Salesforce sample repositories** verified via GitHub API:
-
 | Repository | Stars | Description |
 |------------|:-----:|-------------|
-| [apex-recipes](https://github.com/trailheadapps/apex-recipes) | 1,059 ⭐ | Apex code examples for common use cases |
-| [lwc-recipes](https://github.com/trailheadapps/lwc-recipes) | 2,805 ⭐ | Lightning Web Components examples |
-| [dreamhouse-lwc](https://github.com/trailheadapps/dreamhouse-lwc) | 469 ⭐ | Real estate sample app |
-| [automation-components](https://github.com/trailheadapps/automation-components) | 384 ⭐ | Flow actions and screen components |
-| [ebikes-lwc](https://github.com/trailheadapps/ebikes-lwc) | 830 ⭐ | Experience Cloud sample app |
-| [agent-script-recipes](https://github.com/trailheadapps/agent-script-recipes) | 53 ⭐ | Agentforce script examples |
-| [coral-cloud](https://github.com/trailheadapps/coral-cloud) | 138 ⭐ | Data Cloud and AI Prompts |
-
----
-
-## 📈 Evaluation Pipeline
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     SF-BENCH EVALUATION                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. LOAD TASKS          → Read from data/tasks/*.json            │
-│  2. LOAD SOLUTIONS      → Load patches from solutions/<model>/   │
-│  3. FOR EACH TASK:                                               │
-│     ├── Clone repository at specified commit                     │
-│     ├── Create scratch org (if needed)                           │
-│     ├── Apply AI-generated solution patch                        │
-│     ├── Deploy metadata                                          │
-│     ├── Run validation (tests, deployment)                       │
-│     ├── Record: PASS / FAIL / TIMEOUT / ERROR                    │
-│     └── Cleanup (delete org, workspace)                          │
-│  4. GENERATE RESULTS    → results/<model>/evaluation.json        │
-│  5. UPDATE LEADERBOARD  → Rank by pass rate                      │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+| [apex-recipes](https://github.com/trailheadapps/apex-recipes) | 1,059 ⭐ | Apex code examples |
+| [lwc-recipes](https://github.com/trailheadapps/lwc-recipes) | 2,805 ⭐ | LWC examples |
+| [dreamhouse-lwc](https://github.com/trailheadapps/dreamhouse-lwc) | 469 ⭐ | Real estate app |
+| [automation-components](https://github.com/trailheadapps/automation-components) | 384 ⭐ | Flow actions |
+| [ebikes-lwc](https://github.com/trailheadapps/ebikes-lwc) | 830 ⭐ | Experience Cloud |
 
 ---
 
@@ -183,12 +195,14 @@ sf-bench/
 │   │   ├── lwc_runner.py
 │   │   ├── flow_runner.py
 │   │   └── architecture_runner.py
+│   ├── validators/           # Functional validation
+│   │   └── functional_validator.py
 │   └── utils/                # Utilities
 ├── data/
-│   └── tasks/                # Task definitions
-│       ├── dev.json          # Development set (3 tasks)
-│       ├── verified.json     # Full verified benchmark (12 tasks)
-│       └── full.json         # Full benchmark (12 tasks)
+│   ├── tasks/                # Task definitions
+│   │   ├── verified.json     # Verified benchmark (12 tasks)
+│   │   └── realistic.json    # Functional validation tasks
+│   └── test-scripts/         # Apex test scripts
 ├── scripts/
 │   ├── evaluate.py           # Run evaluations
 │   └── leaderboard.py        # Generate leaderboard
@@ -203,7 +217,7 @@ sf-bench/
 We welcome contributions! Here's how you can help:
 
 ### Submit Your Results
-Run SF-Bench on your model and [submit results](https://github.com/yasarshaikh/SF-bench/issues/new) to be added to the leaderboard.
+Run SF-Bench on your model and [submit results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) to be added to the leaderboard.
 
 ### Add New Tasks
 Contribute real-world Salesforce tasks. See [CONTRIBUTING.md](CONTRIBUTING.md).
