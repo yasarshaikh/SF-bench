@@ -61,7 +61,7 @@ class AIAgent:
             self.api_key = None  # Ollama doesn't need API key
         else:
             self.api_key = os.getenv(f"{provider.upper()}_API_KEY")
-    
+        
     def generate_solution(
         self,
         task_description: str,
@@ -221,7 +221,7 @@ class AIAgent:
                     {"role": "user", "content": prompt}
                 ],
                 "temperature": 0.1,
-                "max_tokens": 8192
+                "max_tokens": 6000  # Reduced for free tier compatibility
             }
             
             response = requests.post(
@@ -374,7 +374,7 @@ CRITICAL INSTRUCTIONS:
         )
         
         return "\n".join(prompt_parts)
-    
+
     def _clean_response(self, response: str) -> str:
         """Clean the AI response, removing markdown code blocks if present."""
         result = response.strip()

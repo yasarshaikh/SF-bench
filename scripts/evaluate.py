@@ -71,24 +71,24 @@ def run_evaluation(
     scratch_org_created = False
     if not skip_devhub:
         print("🔐 Verifying Dev Hub authentication...")
-        if not verify_devhub():
-            print("⚠️  Warning: No Dev Hub found. Apex/Deploy tasks may fail.")
-            print("   Run: sf org login web --set-default-dev-hub")
+        devhub_found = verify_devhub()
+        if not devhub_found:
+            print("⚠️  Warning: Dev Hub verification failed, but attempting to create scratch org anyway...")
+        
+        # Try to create scratch org (even if verify_devhub failed - it might still work)
+        if not scratch_org_alias:
+            scratch_org_alias = f"sfbench-{model_safe_name}-{timestamp}"
+            print(f"\n🏗️  Creating scratch org: {scratch_org_alias}")
+            try:
+                org_info = create_scratch_org(scratch_org_alias, duration_days=1)
+                scratch_org_created = True
+                print(f"✅ Scratch org created: {org_info.get('username', scratch_org_alias)}")
+            except Exception as e:
+                print(f"❌ Failed to create scratch org: {e}")
+                print("   Continuing with existing orgs or local validation only...")
+                scratch_org_alias = None
         else:
-            # Create scratch org if not provided
-            if not scratch_org_alias:
-                scratch_org_alias = f"sfbench-{model_safe_name}-{timestamp}"
-                print(f"\n🏗️  Creating scratch org: {scratch_org_alias}")
-                try:
-                    org_info = create_scratch_org(scratch_org_alias, duration_days=1)
-                    scratch_org_created = True
-                    print(f"✅ Scratch org created: {org_info.get('username', scratch_org_alias)}")
-                except Exception as e:
-                    print(f"❌ Failed to create scratch org: {e}")
-                    print("   Continuing with existing orgs or local validation only...")
-                    scratch_org_alias = None
-            else:
-                print(f"📌 Using existing scratch org: {scratch_org_alias}")
+            print(f"📌 Using existing scratch org: {scratch_org_alias}")
     
     # Initialize engine with scratch org
     engine = BenchmarkEngine(
