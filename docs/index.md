@@ -1,125 +1,136 @@
 ---
 layout: default
 title: SF-Bench - Salesforce AI Benchmark
-description: The industry's first comprehensive benchmark for evaluating AI coding agents on Salesforce development. Real execution, functional validation, honest results.
+description: The open benchmark for evaluating AI coding agents on Salesforce development. Objective measurement, real execution, verified results.
 ---
 
-# SF-Bench: The Salesforce AI Coding Benchmark
+# SF-Bench: The Salesforce AI Benchmark
 
-**The industry's first comprehensive benchmark for evaluating AI coding agents on Salesforce development tasks.**
-
-Unlike generic benchmarks (HumanEval, SWE-bench), SF-Bench tests what actually matters for Salesforce developers:
-
-- ✅ **Real Execution**: Tests run in actual Salesforce scratch orgs
-- ✅ **Functional Validation**: We verify the solution *works*, not just deploys
-- ✅ **Platform Constraints**: Governor limits, security model, bulkification
-- ✅ **Multi-Modal**: Apex, LWC (JavaScript), Flows (XML), Lightning Pages, Metadata
+**The open, objective benchmark for measuring AI coding agents on Salesforce development tasks.**
 
 ---
 
-## 🏆 Leaderboard (December 2024)
+## 📌 Quick Navigation
 
-| Segment | Gemini 3 Flash | Gemini 2.5 Flash | GPT-4o | Claude 3.5 |
-|---------|:--------------:|:----------------:|:------:|:----------:|
-| **Apex** | ✅ 100% | ✅ 100% | -% | -% |
-| **LWC** | ✅ 100% | ✅ 100% | -% | -% |
-| **Flow** | ⚠️ 50% | ✅ 100% | -% | -% |
-| **Lightning Pages** | ❌ 0% | ❌ 0% | -% | -% |
-| **Experience Cloud** | ✅ 100% | ✅ 100% | -% | -% |
-| **Architecture** | ✅ 100% | ⚠️ 50% | -% | -% |
-| | | | | |
-| **Overall** | **75.0%** | **75.0%** | **-%** | **-%** |
-
-**🏅 Both Gemini Flash models achieve 75% on SF-Bench!**
-
-[**📊 Submit Your Results →**](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
+| I want to... | Link |
+|--------------|------|
+| 🏆 See results | [Leaderboard](#-leaderboard) |
+| 🧪 Test my model | [Testing Your Model](#-testing-your-model) |
+| ➕ Add tasks | [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
+| 📊 Submit results | [Submit Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
 
 ---
 
-## 🔬 Realistic Validation
+## 🎯 What We Do
 
-**Most AI benchmarks are broken.** They check if code compiles, not if it works.
+SF-Bench **measures and reports**. We don't predict or claim expected outcomes.
 
-SF-Bench validates **actual functionality**:
+| We Do | We Don't |
+|-------|----------|
+| ✅ Measure actual performance | ❌ Predict success rates |
+| ✅ Report objective results | ❌ Claim what models "should" score |
+| ✅ Verify functional outcomes | ❌ Interpret or editorialize |
+| ✅ Test in real Salesforce orgs | ❌ Just check syntax |
+
+---
+
+## 🏆 Leaderboard
+
+*December 2024*
+
+| Rank | Model | Overall | Apex | LWC | Flow | Lightning Pages |
+|:----:|-------|:-------:|:----:|:---:|:----:|:---------------:|
+| 🥇 | Gemini 3 Flash | 75.0% | 100% | 100% | 50% | 0% |
+| 🥈 | Gemini 2.5 Flash | 75.0% | 100% | 100% | 100% | 0% |
+| 🥉 | *Your model* | [Submit](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) | | | | |
+
+**[Full Leaderboard →](LEADERBOARD.md)**
+
+---
+
+## 🧪 Testing Your Model
+
+### Supported Providers
+
+| Provider | Models | Setup |
+|----------|--------|-------|
+| **OpenRouter** | 100+ models | `OPENROUTER_API_KEY` |
+| OpenAI | GPT-4, GPT-3.5 | `OPENAI_API_KEY` |
+| Anthropic | Claude 3.5, 3 | `ANTHROPIC_API_KEY` |
+| Google | Gemini 2.5, Pro | `GOOGLE_API_KEY` |
+| Ollama | Local models | No key needed |
+
+### Quick Start
+
+```bash
+git clone https://github.com/yasarshaikh/SF-bench.git
+cd SF-bench
+pip install -e .
+
+# Run with OpenRouter (access to all models)
+export OPENROUTER_API_KEY="your-key"
+python scripts/evaluate.py --model anthropic/claude-3.5-sonnet
+
+# Run with Gemini
+export GOOGLE_API_KEY="your-key"
+python scripts/evaluate.py --model gemini-2.5-flash
+
+# Run with local Ollama
+python scripts/evaluate.py --model codellama --provider ollama
+```
+
+---
+
+## 🔧 How Validation Works
+
+### We Check Outcomes, Not Just Deployment
 
 ```
-❌ Old Way: "Flow deployed" = PASS
-✅ SF-Bench: "Flow deployed" + "Task created" + "Contact updated" + "Bulk works" = PASS
+Standard Benchmark:
+  Deploy succeeded? → PASS ✅
+  
+SF-Bench:
+  Deploy succeeded? → Step 1 of 3
+  Tests passed? → Step 2 of 3
+  Business outcome achieved? → Step 3 of 3 → PASS/FAIL
 ```
 
-### Expected Real-World Success Rates
+### Example: Flow Task
 
-Based on production Salesforce development experience:
+```bash
+# Step 1: Deploy
+sf project deploy start  # ✅
 
-| Task Type | Expected AI Success | Notes |
-|-----------|:-------------------:|-------|
-| **Apex Trigger** | 70-80% | Usually works, may need tweaks |
-| **LWC Component** | 60-70% | Error handling often incomplete |
-| **Flow (Simple)** | 40-50% | Entry conditions often wrong |
-| **Flow (Complex)** | 10-20% | Subflows, bulk = nightmare |
-| **Lightning Page** | 20-30% | Visibility rules complex |
-| **Experience Cloud** | 10-20% | Guest access, security hard |
+# Step 2: Create test data
+sf apex run -c "insert new Account(Name='Test', Type='Customer');"
 
-**If an AI scores 100% on Flows, the benchmark is broken.**
+# Step 3: Verify outcome
+sf data query -q "SELECT Id FROM Task WHERE WhatId = :accId"
+# 1 Task created → PASS
+# 0 Tasks → FAIL (Flow didn't work)
+```
 
 ---
 
 ## 📊 Task Categories
 
-| Category | Description | Tasks |
-|----------|-------------|:-----:|
-| **Apex** | Triggers, Classes, Integration | 2 |
-| **LWC** | Lightning Web Components | 2 |
-| **Flow** | Screen Components, Record-Triggered | 2 |
-| **Lightning Pages** | FlexiPages, Dynamic Forms | 1 |
-| **Experience Cloud** | Guest Access, Sites | 1 |
-| **Architecture** | Full-Stack Design | 2 |
-
-### Verified Repositories
-
-All tasks use **official Salesforce sample repositories**:
-
-| Repository | Stars | Categories |
-|------------|:-----:|------------|
-| [apex-recipes](https://github.com/trailheadapps/apex-recipes) | 1,059 ⭐ | Apex |
-| [lwc-recipes](https://github.com/trailheadapps/lwc-recipes) | 2,805 ⭐ | LWC |
-| [dreamhouse-lwc](https://github.com/trailheadapps/dreamhouse-lwc) | 469 ⭐ | Architecture |
-| [automation-components](https://github.com/trailheadapps/automation-components) | 384 ⭐ | Flow |
-| [ebikes-lwc](https://github.com/trailheadapps/ebikes-lwc) | 830 ⭐ | Experience Cloud |
+| Category | Tasks | Description |
+|----------|:-----:|-------------|
+| Apex | 2 | Triggers, Classes |
+| LWC | 2 | Lightning Components |
+| Flow | 2 | Record-Triggered Flows |
+| Lightning Pages | 1 | Dynamic Forms |
+| Experience Cloud | 1 | Guest Access |
+| Architecture | 4 | Full-stack Design |
 
 ---
 
-## 🚀 Quick Start
+## 📖 Documentation
 
-```bash
-# Clone and install
-git clone https://github.com/yasarshaikh/SF-bench.git
-cd SF-bench
-pip install -e .
-
-# Run evaluation (deployment validation)
-python scripts/evaluate.py --model <your-model> --tasks data/tasks/verified.json
-
-# Run evaluation (full functional validation - requires scratch org)
-python scripts/evaluate.py --model <your-model> --tasks data/tasks/realistic.json \
-    --functional --scratch-org <your-scratch-org>
-```
-
-**Prerequisites:** Python 3.10+ • [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) • Node.js 18+ • Authenticated Dev Hub
-
----
-
-## 🎯 Why SF-Bench?
-
-| What Generic Benchmarks Miss | Why It Matters |
-|------------------------------|----------------|
-| ❌ No Apex/LWC testing | Salesforce's primary languages |
-| ❌ No scratch org execution | Real platform validation |
-| ❌ No governor limits | Critical platform constraints |
-| ❌ No declarative tools | Flows, validation rules, formulas |
-| ❌ No enterprise patterns | Triggers, batch jobs, integrations |
-
-**The Salesforce ecosystem represents $50B+ in annual revenue** with millions of developers worldwide. SF-Bench provides the standardized evaluation the industry needs.
+- [Validation Methodology](REALISTIC_VALIDATION.md)
+- [Benchmark Details](BENCHMARK.md)
+- [Leaderboard](LEADERBOARD.md)
+- [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md)
 
 ---
 
@@ -127,32 +138,11 @@ python scripts/evaluate.py --model <your-model> --tasks data/tasks/realistic.jso
 
 | Action | Link |
 |--------|------|
-| ⭐ Star the repo | [GitHub Repository](https://github.com/yasarshaikh/SF-bench) |
-| 📊 Submit results | [Submit Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
-| 🐛 Report bugs | [Issue Tracker](https://github.com/yasarshaikh/SF-bench/issues) |
-| 📝 Contribute | [Contributing Guide](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
-
----
-
-## 📖 Citation
-
-```bibtex
-@software{sfbench2024,
-  author = {Shaikh, Yasar},
-  title = {SF-Bench: Benchmark for Evaluating AI Coding Agents on Salesforce Development},
-  year = {2024},
-  url = {https://github.com/yasarshaikh/SF-bench}
-}
-```
-
----
-
-## Keywords
-
-Salesforce AI Benchmark • AI Coding Agents • Apex Testing • LWC Testing • Flow Automation • Lightning Web Components • Salesforce Development • LLM Evaluation • AI Code Generation • Salesforce Developer Tools • Agentforce • Einstein AI • Copilot Salesforce • AI Benchmark 2024
+| ⭐ Star the repo | [GitHub](https://github.com/yasarshaikh/SF-bench) |
+| 📊 Submit results | [Submit](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
+| 🐛 Report bugs | [Issues](https://github.com/yasarshaikh/SF-bench/issues) |
+| ➕ Add tasks | [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
 
 ---
 
 **⭐ Star us on GitHub if you find SF-Bench useful!**
-
-Made with ❤️ for the Salesforce & AI community

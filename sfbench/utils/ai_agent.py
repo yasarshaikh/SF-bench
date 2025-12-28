@@ -1,13 +1,18 @@
 """
 AI Agent integration for generating solutions to tasks.
-Supports multiple AI providers including free tiers.
+Supports multiple AI providers including:
+- OpenAI (GPT-4, GPT-3.5)
+- Anthropic (Claude)
+- Google Gemini (AI Studio)
+- OpenRouter (access to 100+ models)
+- Hugging Face
+- Local models (Ollama, etc.)
 """
 import json
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pathlib import Path
 import requests
-import subprocess
 
 
 class AIAgentError(Exception):
@@ -16,25 +21,47 @@ class AIAgentError(Exception):
 
 
 class AIAgent:
-    """Interface for AI code generation agents."""
+    """
+    Interface for AI code generation agents.
     
-    def __init__(self, provider: str = "openai", model: str = "gpt-3.5-turbo", api_key: Optional[str] = None):
+    Supports multiple providers for flexibility in model testing.
+    """
+    
+    # Supported providers
+    PROVIDERS = ["openai", "anthropic", "gemini", "google", "openrouter", "huggingface", "local", "ollama"]
+    
+    def __init__(
+        self, 
+        provider: str = "openai", 
+        model: str = "gpt-3.5-turbo", 
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None
+    ):
         """
         Initialize AI agent.
         
         Args:
-            provider: AI provider ("openai", "anthropic", "gemini", "local", "huggingface")
+            provider: AI provider (openai, anthropic, gemini, openrouter, huggingface, local, ollama)
             model: Model name/identifier
             api_key: API key (if required)
+            base_url: Custom base URL (for OpenRouter or self-hosted)
         """
         self.provider = provider.lower()
         self.model = model
-        # For Gemini, check GOOGLE_API_KEY or GEMINI_API_KEY
-        if self.provider in ["gemini", "google"]:
-            self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        else:
-            self.api_key = api_key or os.getenv(f"{provider.upper()}_API_KEY")
+        self.base_url = base_url
         
+        # Resolve API key based on provider
+        if api_key:
+            self.api_key = api_key
+        elif self.provider in ["gemini", "google"]:
+            self.api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        elif self.provider == "openrouter":
+            self.api_key = os.getenv("OPENROUTER_API_KEY")
+        elif self.provider == "ollama":
+            self.api_key = None  # Ollama doesn't need API key
+        else:
+            self.api_key = os.getenv(f"{provider.upper()}_API_KEY")
+    
     def generate_solution(
         self,
         task_description: str,
@@ -52,18 +79,22 @@ class AIAgent:
         Returns:
             Unified diff string (patch format)
         """
-        if self.provider == "openai":
-            return self._generate_openai(task_description, context, files)
-        elif self.provider == "anthropic":
-            return self._generate_anthropic(task_description, context, files)
-        elif self.provider == "gemini" or self.provider == "google":
-            return self._generate_gemini(task_description, context, files)
-        elif self.provider == "local":
-            return self._generate_local(task_description, context, files)
-        elif self.provider == "huggingface":
-            return self._generate_huggingface(task_description, context, files)
+        generators = {
+            "openai": self._generate_openai,
+            "anthropic": self._generate_anthropic,
+            "gemini": self._generate_gemini,
+            "google": self._generate_gemini,
+            "openrouter": self._generate_openrouter,
+            "huggingface": self._generate_huggingface,
+            "ollama": self._generate_ollama,
+            "local": self._generate_local,
+        }
+        
+        generator = generators.get(self.provider)
+        if generator:
+            return generator(task_description, context, files)
         else:
-            raise AIAgentError(f"Unsupported provider: {self.provider}")
+            raise AIAgentError(f"Unsupported provider: {self.provider}. Supported: {self.PROVIDERS}")
     
     def _generate_openai(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
         """Generate solution using OpenAI API."""
@@ -71,7 +102,6 @@ class AIAgent:
             import openai
             
             if not self.api_key:
-                # Try to use free tier or local fallback
                 return self._generate_local(task_description, context, files)
             
             client = openai.OpenAI(api_key=self.api_key)
@@ -81,14 +111,14 @@ class AIAgent:
             response = client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are an expert Salesforce developer. Generate solutions as unified diff patches."},
+                    {"role": "system", "content": self._get_system_prompt()},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.1,
-                max_tokens=4000
+                max_tokens=8192
             )
             
-            return response.choices[0].message.content
+            return self._clean_response(response.choices[0].message.content)
             
         except ImportError:
             return self._generate_local(task_description, context, files)
@@ -109,15 +139,15 @@ class AIAgent:
             
             message = client.messages.create(
                 model=self.model,
-                max_tokens=4000,
+                max_tokens=8192,
                 temperature=0.1,
-                system="You are an expert Salesforce developer. Generate solutions as unified diff patches.",
+                system=self._get_system_prompt(),
                 messages=[
                     {"role": "user", "content": prompt}
                 ]
             )
             
-            return message.content[0].text
+            return self._clean_response(message.content[0].text)
             
         except ImportError:
             return self._generate_local(task_description, context, files)
@@ -132,89 +162,123 @@ class AIAgent:
             if not self.api_key:
                 return self._generate_local(task_description, context, files)
             
-            # Configure Gemini API
             genai.configure(api_key=self.api_key)
             
-            # Use the specified model (default to gemini-2.5-flash)
             model_name = self.model if self.model else "gemini-2.5-flash"
-            # Remove "models/" prefix if present
             if model_name.startswith("models/"):
                 model_name = model_name.replace("models/", "")
             
-            # Get the model
             model = genai.GenerativeModel(model_name)
             
             prompt = self._build_prompt(task_description, context, files)
+            full_prompt = f"{self._get_system_prompt()}\n\n{prompt}"
             
-            # Generate content
             response = model.generate_content(
-                f"""You are an expert Salesforce developer. Generate solutions as unified diff patches.
-
-CRITICAL INSTRUCTIONS:
-1. Output ONLY the raw patch content, NO markdown code blocks (no ```diff or ```)
-2. Start directly with: diff --git a/path/to/file b/path/to/file
-3. Include COMPLETE file changes - do not truncate
-4. Use proper unified diff format with context lines
-
-{prompt}""",
+                full_prompt,
                 generation_config={
                     "temperature": 0.1,
-                    "max_output_tokens": 16384,  # Large enough for complete patches
+                    "max_output_tokens": 16384,
                 }
             )
             
-            # Clean the response - strip markdown code blocks if present
-            result = response.text.strip()
-            
-            # Remove markdown code blocks
-            if result.startswith("```"):
-                lines = result.split("\n")
-                # Remove first line (```diff or similar)
-                lines = lines[1:]
-                # Remove last line if it's ```
-                if lines and lines[-1].strip() == "```":
-                    lines = lines[:-1]
-                result = "\n".join(lines)
-            
-            return result
+            return self._clean_response(response.text)
             
         except ImportError:
             raise AIAgentError("google-generativeai package not installed. Install with: pip install google-generativeai")
         except Exception as e:
             raise AIAgentError(f"Gemini generation failed: {str(e)}")
     
-    def _generate_local(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
+    def _generate_openrouter(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
         """
-        Generate solution using local model or fallback.
-        For now, returns a placeholder that indicates manual review needed.
+        Generate solution using OpenRouter API.
+        
+        OpenRouter provides unified access to 100+ models including:
+        - Claude 3.5 Sonnet
+        - GPT-4 Turbo
+        - Llama 3.1
+        - Mistral Large
+        - And many more
+        
+        See: https://openrouter.ai/docs
         """
-        # This is a placeholder - in production, you'd integrate with:
-        # - Ollama (local LLM)
-        # - Hugging Face Transformers
-        # - Or return a template for manual completion
+        if not self.api_key:
+            raise AIAgentError("OpenRouter API key required. Set OPENROUTER_API_KEY environment variable.")
         
-        prompt = self._build_prompt(task_description, context, files)
+        try:
+            prompt = self._build_prompt(task_description, context, files)
+            
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://github.com/yasarshaikh/SF-bench",
+                "X-Title": "SF-Bench"
+            }
+            
+            data = {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": self._get_system_prompt()},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.1,
+                "max_tokens": 8192
+            }
+            
+            response = requests.post(
+                self.base_url or "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=data,
+                timeout=120
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return self._clean_response(result["choices"][0]["message"]["content"])
+            else:
+                error_msg = response.json().get("error", {}).get("message", response.text)
+                raise AIAgentError(f"OpenRouter API error: {error_msg}")
+                
+        except requests.exceptions.Timeout:
+            raise AIAgentError("OpenRouter request timed out after 120 seconds")
+        except Exception as e:
+            if "AIAgentError" in str(type(e)):
+                raise
+            raise AIAgentError(f"OpenRouter generation failed: {str(e)}")
+    
+    def _generate_ollama(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
+        """
+        Generate solution using local Ollama instance.
         
-        # Return a template patch that needs to be filled
-        return f"""# AI-Generated Solution (Placeholder)
-# Task: {task_description}
-# 
-# NOTE: This is a placeholder. In production, integrate with:
-# - Ollama for local models
-# - Hugging Face for open models
-# - Or use API-based providers
-#
-# Expected format: Unified diff patch
-# 
-# diff --git a/path/to/file b/path/to/file
-# index 1234567..abcdefg 100644
-# --- a/path/to/file
-# +++ b/path/to/file
-# @@ -10,6 +10,7 @@
-#      // Existing code
-# +    // AI-generated solution
-#      // More code
-"""
+        Requires Ollama running locally: https://ollama.ai
+        """
+        try:
+            prompt = self._build_prompt(task_description, context, files)
+            
+            base_url = self.base_url or "http://localhost:11434"
+            
+            response = requests.post(
+                f"{base_url}/api/generate",
+                json={
+                    "model": self.model or "codellama",
+                    "prompt": f"{self._get_system_prompt()}\n\n{prompt}",
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.1,
+                        "num_predict": 8192
+                    }
+                },
+                timeout=300
+            )
+            
+            if response.status_code == 200:
+                return self._clean_response(response.json()["response"])
+            else:
+                raise AIAgentError(f"Ollama error: {response.text}")
+                
+        except requests.exceptions.ConnectionError:
+            raise AIAgentError("Ollama not running. Start with: ollama serve")
+        except Exception as e:
+            raise AIAgentError(f"Ollama generation failed: {str(e)}")
     
     def _generate_huggingface(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
         """Generate solution using Hugging Face Inference API."""
@@ -224,25 +288,64 @@ CRITICAL INSTRUCTIONS:
             
             prompt = self._build_prompt(task_description, context, files)
             
-            # Hugging Face Inference API
             api_url = f"https://api-inference.huggingface.co/models/{self.model}"
             headers = {"Authorization": f"Bearer {self.api_key}"}
             
             response = requests.post(
                 api_url,
                 headers=headers,
-                json={"inputs": prompt, "parameters": {"max_length": 2000}}
+                json={"inputs": prompt, "parameters": {"max_length": 4000}},
+                timeout=60
             )
             
             if response.status_code == 200:
                 result = response.json()
                 if isinstance(result, list) and len(result) > 0:
-                    return result[0].get("generated_text", "")
+                    return self._clean_response(result[0].get("generated_text", ""))
             
             return self._generate_local(task_description, context, files)
             
         except Exception as e:
             return self._generate_local(task_description, context, files)
+    
+    def _generate_local(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
+        """
+        Fallback for when no AI provider is available.
+        Returns a template for manual completion.
+        """
+        return f"""# Solution Template (No AI Provider Available)
+# Task: {task_description}
+# 
+# To use an AI provider, set one of:
+# - OPENAI_API_KEY
+# - ANTHROPIC_API_KEY
+# - GOOGLE_API_KEY or GEMINI_API_KEY
+# - OPENROUTER_API_KEY
+# 
+# Or use Ollama locally: ollama serve
+#
+# Expected format: Unified diff patch
+# 
+# diff --git a/path/to/file b/path/to/file
+# index 1234567..abcdefg 100644
+# --- a/path/to/file
+# +++ b/path/to/file
+# @@ -10,6 +10,7 @@
+#      // Existing code
+# +    // Your solution here
+#      // More code
+"""
+    
+    def _get_system_prompt(self) -> str:
+        """Get the system prompt for AI models."""
+        return """You are an expert Salesforce developer. Generate solutions as unified diff patches.
+
+CRITICAL INSTRUCTIONS:
+1. Output ONLY the raw patch content, NO markdown code blocks (no ```diff or ```)
+2. Start directly with: diff --git a/path/to/file b/path/to/file
+3. Include COMPLETE file changes - do not truncate
+4. Use proper unified diff format with context lines
+5. The patch must apply cleanly with 'git apply'"""
     
     def _build_prompt(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
         """Build the prompt for AI generation."""
@@ -261,54 +364,96 @@ CRITICAL INSTRUCTIONS:
             prompt_parts.append("Relevant Files:")
             for file_path, content in files.items():
                 prompt_parts.append(f"\n--- {file_path} ---")
-                prompt_parts.append(content[:2000])  # Limit file content
+                prompt_parts.append(content[:3000])  # Limit file content
             prompt_parts.append("\n")
         
         prompt_parts.append(
             "\nGenerate a COMPLETE unified diff patch that solves this task. "
             "The patch MUST be in standard git diff format and ready to apply with 'git apply'. "
-            "IMPORTANT: Include ALL file changes needed. Do not truncate the patch. "
-            "The patch must start with 'diff --git' and include complete file changes with proper context lines."
+            "Include ALL file changes needed. Do not truncate."
         )
         
         return "\n".join(prompt_parts)
-
-
-class FreeTierAIAgent:
-    """
-    Wrapper for free-tier AI services.
-    Supports: Hugging Face (free tier), local models, or manual templates.
-    """
     
-    @staticmethod
-    def create_agent(provider: str = "huggingface") -> AIAgent:
-        """
-        Create an AI agent using free-tier services.
+    def _clean_response(self, response: str) -> str:
+        """Clean the AI response, removing markdown code blocks if present."""
+        result = response.strip()
         
-        Args:
-            provider: "huggingface", "local", or "template"
-        """
-        if provider == "huggingface":
-            # Hugging Face free tier - no API key needed for some models
-            return AIAgent(provider="huggingface", model="bigcode/starcoder")
-        elif provider == "local":
-            return AIAgent(provider="local", model="local")
-        else:
-            # Template-based (for testing without actual AI)
-            return AIAgent(provider="local", model="template")
+        # Remove markdown code blocks
+        if result.startswith("```"):
+            lines = result.split("\n")
+            lines = lines[1:]  # Remove first line (```diff or similar)
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            result = "\n".join(lines)
+        
+        return result
 
 
-def test_ai_agent(task_description: str, provider: str = "local") -> str:
+# Convenience functions for common providers
+
+def create_openai_agent(model: str = "gpt-4-turbo", api_key: Optional[str] = None) -> AIAgent:
+    """Create an OpenAI agent."""
+    return AIAgent(provider="openai", model=model, api_key=api_key)
+
+
+def create_anthropic_agent(model: str = "claude-3-5-sonnet-20241022", api_key: Optional[str] = None) -> AIAgent:
+    """Create an Anthropic Claude agent."""
+    return AIAgent(provider="anthropic", model=model, api_key=api_key)
+
+
+def create_gemini_agent(model: str = "gemini-2.5-flash", api_key: Optional[str] = None) -> AIAgent:
+    """Create a Google Gemini agent."""
+    return AIAgent(provider="gemini", model=model, api_key=api_key)
+
+
+def create_openrouter_agent(model: str = "anthropic/claude-3.5-sonnet", api_key: Optional[str] = None) -> AIAgent:
     """
-    Test AI agent with a sample task.
+    Create an OpenRouter agent.
     
-    Args:
-        task_description: Task to solve
-        provider: AI provider to use
-        
-    Returns:
-        Generated solution (patch)
+    Popular models:
+    - anthropic/claude-3.5-sonnet
+    - openai/gpt-4-turbo
+    - meta-llama/llama-3.1-405b-instruct
+    - mistralai/mistral-large
+    - google/gemini-pro-1.5
+    
+    See full list: https://openrouter.ai/models
     """
-    agent = FreeTierAIAgent.create_agent(provider)
-    return agent.generate_solution(task_description)
+    return AIAgent(provider="openrouter", model=model, api_key=api_key)
 
+
+def create_ollama_agent(model: str = "codellama", base_url: str = "http://localhost:11434") -> AIAgent:
+    """
+    Create a local Ollama agent.
+    
+    Popular models:
+    - codellama
+    - deepseek-coder
+    - qwen2.5-coder
+    - llama3.1
+    
+    Requires Ollama running: https://ollama.ai
+    """
+    return AIAgent(provider="ollama", model=model, base_url=base_url)
+
+
+def list_openrouter_models(api_key: Optional[str] = None) -> List[Dict]:
+    """
+    List available models from OpenRouter.
+    
+    Returns list of models with pricing and capabilities.
+    """
+    key = api_key or os.getenv("OPENROUTER_API_KEY")
+    if not key:
+        raise AIAgentError("OpenRouter API key required")
+    
+    response = requests.get(
+        "https://openrouter.ai/api/v1/models",
+        headers={"Authorization": f"Bearer {key}"}
+    )
+    
+    if response.status_code == 200:
+        return response.json().get("data", [])
+    else:
+        raise AIAgentError(f"Failed to fetch models: {response.text}")

@@ -11,7 +11,7 @@
     },
     "functional_validation": {
       "description": "Verify the trigger actually works with real data",
-      "test_data_script": "scripts/apex/create_account_no_owner.apex",
+      "test_data_script": "data/test-scripts/apex/create_account_no_owner.apex",
       "verification_query": "SELECT Id, Description, OwnerId FROM Account WHERE Name = 'Test No Owner Account'",
       "expected_values": {
         "record_count": 1,
@@ -20,17 +20,12 @@
           "value": "Owner: Unassigned"
         }
       },
-      "bulk_test_script": "scripts/apex/bulk_create_accounts.apex",
+      "bulk_test_script": "data/test-scripts/apex/bulk_create_accounts.apex",
       "negative_test": {
         "description": "Verify trigger does NOT throw error when Owner IS set",
-        "script": "scripts/apex/create_account_with_owner.apex",
+        "script": "data/test-scripts/apex/create_account_with_owner.apex",
         "expected_outcome": "No exception, Description contains owner name"
       }
-    },
-    "test_scripts": {
-      "create_account_no_owner.apex": "Account acc = new Account(Name = 'Test No Owner Account'); insert acc;",
-      "create_account_with_owner.apex": "Account acc = new Account(Name = 'Test With Owner'); insert acc; System.debug(acc.Description);",
-      "bulk_create_accounts.apex": "List<Account> accs = new List<Account>(); for(Integer i=0; i<200; i++) { accs.add(new Account(Name='Bulk Test ' + i)); } insert accs;"
     },
     "timeouts": {
       "setup": 600,
@@ -41,13 +36,6 @@
       "difficulty": "medium",
       "category": "apex",
       "subcategory": "trigger-handling",
-      "real_world_scenario": "Handling null relationships in triggers",
-      "common_failures": [
-        "Not checking for null before accessing relationship fields",
-        "Using Owner.Name directly without null check",
-        "Forgetting bulk scenarios"
-      ],
-      "expected_ai_success_rate": "75%",
       "validation_level": "functional"
     }
   },
@@ -64,7 +52,7 @@
     "functional_validation": {
       "description": "Verify Flow actually creates Tasks and updates Contacts",
       "flow_name": "Account_New_Customer_Automation",
-      "trigger_test_script": "scripts/flow/create_customer_account.apex",
+      "trigger_test_script": "data/test-scripts/flow/create_customer_account.apex",
       "outcome_verifications": [
         {
           "name": "Verify Task Created",
@@ -88,13 +76,8 @@
           }
         }
       ],
-      "bulk_test_script": "scripts/flow/bulk_create_customers.apex",
-      "negative_test_script": "scripts/flow/create_prospect_account.apex"
-    },
-    "test_scripts": {
-      "create_customer_account.apex": "Account acc = new Account(Name = 'Flow Test Customer', Type = 'Prospect'); insert acc; Contact c = new Contact(LastName = 'Smith', Title = 'Director of Sales', AccountId = acc.Id); insert c; acc.Type = 'Customer - Direct'; update acc;",
-      "bulk_create_customers.apex": "List<Account> accs = new List<Account>(); for(Integer i=0; i<200; i++) { accs.add(new Account(Name='Bulk Customer ' + i, Type='Prospect')); } insert accs; for(Account a : accs) { a.Type = 'Customer - Direct'; } update accs;",
-      "create_prospect_account.apex": "Account acc = new Account(Name = 'Flow Test Prospect', Type = 'Prospect'); insert acc; // Should NOT create task"
+      "bulk_test_script": "data/test-scripts/flow/bulk_create_customers.apex",
+      "negative_test_script": "data/test-scripts/flow/create_prospect_account.apex"
     },
     "timeouts": {
       "setup": 600,
@@ -105,15 +88,6 @@
       "difficulty": "hard",
       "category": "flow",
       "subcategory": "record-triggered-flow",
-      "real_world_scenario": "Customer onboarding automation",
-      "common_failures": [
-        "Entry conditions not matching correctly",
-        "Task not linked to Account (WhatId missing)",
-        "Due date calculation wrong",
-        "Contact query not working",
-        "Bulkification issues causing CPU timeout"
-      ],
-      "expected_ai_success_rate": "30%",
       "validation_level": "functional"
     }
   },
@@ -135,11 +109,8 @@
         "clears error on retry",
         "error message is accessible"
       ],
-      "controller_test_script": "scripts/lwc/test_apex_controller.apex",
+      "controller_test_script": "data/test-scripts/lwc/test_apex_controller.apex",
       "expected_jest_coverage": 80
-    },
-    "test_scripts": {
-      "test_apex_controller.apex": "try { AccountController.getAccountList(); System.debug('SUCCESS'); } catch(Exception e) { System.debug('ERROR: ' + e.getMessage()); }"
     },
     "timeouts": {
       "setup": 300,
@@ -150,14 +121,6 @@
       "difficulty": "medium",
       "category": "lwc",
       "subcategory": "error-handling",
-      "real_world_scenario": "User-friendly error handling in components",
-      "common_failures": [
-        "Loading state not implemented",
-        "Error message not user-friendly",
-        "State not cleared on retry",
-        "Accessibility issues"
-      ],
-      "expected_ai_success_rate": "65%",
       "validation_level": "functional"
     }
   },
@@ -210,15 +173,6 @@
       "difficulty": "hard",
       "category": "lightning_page",
       "subcategory": "dynamic-forms",
-      "real_world_scenario": "Conditional field visibility based on record status",
-      "common_failures": [
-        "Visibility rules syntax incorrect",
-        "Field sections not properly structured",
-        "Components missing from sidebar",
-        "Mobile layout broken",
-        "Action bar not customized"
-      ],
-      "expected_ai_success_rate": "20%",
       "validation_level": "functional"
     }
   },
@@ -271,15 +225,6 @@
       "difficulty": "expert",
       "category": "experience_cloud",
       "subcategory": "guest-access",
-      "real_world_scenario": "Public-facing e-commerce site",
-      "common_failures": [
-        "Guest profile permissions not configured",
-        "LWC components fail without session",
-        "Private data exposed to guests",
-        "Navigation not working",
-        "Site not published"
-      ],
-      "expected_ai_success_rate": "10%",
       "validation_level": "functional"
     }
   }

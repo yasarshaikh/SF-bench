@@ -1,11 +1,23 @@
-# SF-Bench Realistic Validation
+# SF-Bench Validation Methodology
 
-## The Problem with Current AI Benchmarks
+## Our Role: Auditors, Not Predictors
+
+SF-Bench is a **measurement tool**. We don't predict or claim what AI models "should" score. We:
+
+- ✅ **Measure** actual performance
+- ✅ **Report** objective results
+- ✅ **Verify** functional outcomes
+- ❌ ~~Predict expected success rates~~
+- ❌ ~~Claim what models should achieve~~
+
+---
+
+## The Problem with Most AI Benchmarks
 
 Most AI coding benchmarks check:
 - ✅ Code compiles
 - ✅ Unit tests pass
-- ❌ **Does it actually work?**
+- ❌ **Does it actually work in production?**
 
 This is like checking if a car starts, not if it can drive.
 
@@ -19,12 +31,12 @@ We don't just check if the solution deploys. We verify the **business outcome is
 
 **Task:** Create a Flow that creates a Task when Account.Type changes to 'Customer - Direct'
 
-**Old Validation (Inadequate):**
+**Standard Benchmark (Inadequate):**
 ```bash
 sf project deploy start --dry-run  # ✅ Deploys? Great! PASS
 ```
 
-**SF-Bench Validation (Realistic):**
+**SF-Bench Validation:**
 ```bash
 # Step 1: Deploy Flow
 sf project deploy start  # ✅ Deployed
@@ -40,72 +52,42 @@ sf apex run -c "
 # Step 3: VERIFY THE OUTCOME
 sf data query -q "SELECT Id, Subject FROM Task WHERE WhatId = :accId"
 
-# Expected: 1 Task with Subject containing 'Test'
-# If 0 Tasks → FAIL (Flow didn't fire or Task not created)
-# If Subject wrong → FAIL (Logic error)
-# If 1 Task with correct Subject → PASS
+# Result: 1 Task with Subject containing 'Test' → PASS
+# Result: 0 Tasks → FAIL (Flow didn't fire)
+# Result: Wrong Subject → FAIL (Logic error)
 ```
-
----
-
-## Expected AI Success Rates (Realistic)
-
-Based on real-world Salesforce development experience:
-
-| Task Type | Current AI Success (One-Shot) | Notes |
-|-----------|:-----------------------------:|-------|
-| **Apex Trigger** | 70-80% | Usually works, may need tweaks |
-| **Apex Integration** | 50-60% | Auth/retry logic often wrong |
-| **LWC Component** | 60-70% | Error handling often incomplete |
-| **LWC with Apex** | 50-60% | Wire/imperative patterns tricky |
-| **Flow (Simple)** | 40-50% | Entry conditions often wrong |
-| **Flow (Complex)** | 10-20% | Subflows, bulkification fail |
-| **Lightning Page** | 20-30% | Visibility rules complex |
-| **Page Layout** | 30-40% | XML structure finicky |
-| **Experience Cloud** | 10-20% | Guest access, security complex |
-| **Architecture** | 20-30% | Multi-component coordination hard |
-
-**These are the numbers we expect to see in a realistic benchmark.**
-
-If an AI scores 90%+ on Flows, either:
-1. The tasks are too easy, OR
-2. The validation is not realistic
 
 ---
 
 ## Validation Levels
 
-### Level 1: Syntax (10 points)
-- Code parses
-- Valid XML/JSON
-- No missing dependencies
-
-### Level 2: Deployment (20 points)
-- Deploys to scratch org
-- No metadata errors
-- All components recognized
-
-### Level 3: Unit Tests (20 points)
-- All tests pass
-- Coverage >= 80%
-- No test-specific hacks
-
-### Level 4: Functional Tests (40 points) ⭐ **THE CORE**
-- Create real test data
-- Execute the solution
-- Query database for results
-- Verify expected outcomes
-
-### Level 5: Production-Ready (10 points)
-- Handles 200+ records
-- No governor limit issues
-- Proper error handling
+| Level | Weight | What We Measure |
+|-------|:------:|-----------------|
+| Syntax | 10% | Code parses, valid XML/JSON |
+| Deployment | 20% | Deploys to scratch org |
+| Unit Tests | 20% | All tests pass, coverage ≥80% |
+| **Functional** | **40%** | **Business outcome achieved** |
+| Bulk Operations | 10% | Handles 200+ records |
 
 **Total: 100 points**
 
 ---
 
-## Task Structure for Realistic Validation
+## What We Measure
+
+For each task, we measure:
+
+1. **Did the solution deploy?** (Binary: Yes/No)
+2. **Did unit tests pass?** (Ratio: X/Y passed)
+3. **Did the functional test pass?** (Binary: Yes/No)
+4. **Did bulk operations succeed?** (Binary: Yes/No)
+5. **Any errors or timeouts?** (Logged)
+
+We report these **as-is**, without interpretation or prediction.
+
+---
+
+## Task Structure
 
 ```json
 {
@@ -120,29 +102,24 @@ If an AI scores 90%+ on Flows, either:
   
   "functional_validation": {
     "description": "Verify Flow creates Task when Account type changes",
-    
     "trigger_test_script": "scripts/flow/trigger_test.apex",
-    
     "outcome_verifications": [
       {
         "name": "Verify Task Created",
         "query": "SELECT Id, Subject FROM Task WHERE WhatId = :accountId",
         "expected": {
           "record_count": 1,
-          "field_value": {
-            "field": "Subject",
-            "contains": "Welcome"
-          }
+          "field_value": { "field": "Subject", "contains": "Welcome" }
         }
       }
     ],
-    
     "bulk_test_script": "scripts/flow/bulk_test.apex",
     "negative_test_script": "scripts/flow/should_not_trigger.apex"
   },
   
   "metadata": {
-    "expected_ai_success_rate": "30%",
+    "difficulty": "hard",
+    "category": "flow",
     "validation_level": "functional"
   }
 }
@@ -150,43 +127,47 @@ If an AI scores 90%+ on Flows, either:
 
 ---
 
-## Why This Matters for Credibility
+## How Results Are Reported
 
-When someone uses SF-Bench results to evaluate an AI model:
+When a model is evaluated, we report:
 
-**If we say:** "Model X scores 75% on Flows"
+```
+Model: claude-3.5-sonnet
+Tasks: 12
+Passed: 8
+Failed: 4
+Pass Rate: 66.7%
 
-**It should mean:** "75% of Model X's Flow solutions work correctly the first time, no tweaks needed"
+Breakdown by Category:
+- Apex: 2/2 (100%)
+- LWC: 2/2 (100%)
+- Flow: 1/2 (50%)
+- Lightning Pages: 0/1 (0%)
+- Architecture: 3/5 (60%)
+```
 
-**NOT:** "75% of Model X's Flow solutions deploy without errors (but only 30% actually work)"
-
----
-
-## Implementation Status
-
-| Component | Status | Notes |
-|-----------|:------:|-------|
-| FunctionalValidator class | ✅ Created | Core validation logic |
-| Task schema with functional_validation | ✅ Created | realistic.json |
-| Test scripts for each task | 🚧 In Progress | Need Apex scripts |
-| Integration with evaluate.py | 🚧 Pending | Need to wire up |
-| End-to-end testing | 🚧 Pending | Need scratch org |
+**We don't say "this is good" or "this is bad"**. We report what we measured.
 
 ---
 
 ## For Contributors
 
-When adding new tasks, ALWAYS include:
+When adding new tasks, include:
 
-1. **functional_validation** section
-2. **Test scripts** that create real data
-3. **Outcome queries** that verify results
-4. **Negative tests** (what should NOT happen)
-5. **Bulk tests** (200 records)
-6. **expected_ai_success_rate** (be realistic!)
-
-A task without functional validation is an **incomplete task**.
+1. **Functional validation section** - How to verify the outcome
+2. **Test scripts** - Apex scripts to create test data
+3. **Outcome queries** - SOQL to verify results
+4. **Negative tests** - What should NOT happen
+5. **Bulk tests** - 200 record scenarios
 
 ---
 
-*"A benchmark is only as credible as its worst validation."*
+## Credibility Principle
+
+> **"When SF-Bench reports 75%, it means 75% of solutions passed all validation steps."**
+
+We don't interpret. We don't predict. We measure and report.
+
+---
+
+*"A benchmark is only as credible as its objectivity."*
