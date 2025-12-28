@@ -23,8 +23,8 @@ class ArchitectureRunner(BenchmarkRunner):
     Evaluates planning, execution, and prototype validation.
     """
     
-    def __init__(self, task: Task, workspace_dir: Path):
-        super().__init__(task, workspace_dir)
+    def __init__(self, task: Task, workspace_dir: Path, scratch_org_alias=None):
+        super().__init__(task, workspace_dir, scratch_org_alias)
         self.org_username: str = None
         self.architecture_plan: Dict[str, Any] = {}
     

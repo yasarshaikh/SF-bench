@@ -9,10 +9,11 @@ from sfbench.utils.git import clone_repository, checkout_commit, apply_patch
 
 
 class BenchmarkRunner(ABC):
-    def __init__(self, task: Task, workspace_dir: Path):
+    def __init__(self, task: Task, workspace_dir: Path, scratch_org_alias: Optional[str] = None):
         self.task = task
         self.workspace_dir = workspace_dir
         self.repo_dir = workspace_dir / task.instance_id
+        self.scratch_org_alias = scratch_org_alias
         self.start_time: Optional[float] = None
         self.setup_complete = False
     
