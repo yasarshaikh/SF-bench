@@ -28,7 +28,7 @@ class AIAgent:
     """
     
     # Supported providers
-    PROVIDERS = ["openai", "anthropic", "gemini", "google", "openrouter", "huggingface", "local", "ollama"]
+    PROVIDERS = ["openai", "anthropic", "gemini", "google", "openrouter", "routellm", "huggingface", "local", "ollama"]
     
     def __init__(
         self, 
@@ -57,6 +57,8 @@ class AIAgent:
             self.api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         elif self.provider == "openrouter":
             self.api_key = os.getenv("OPENROUTER_API_KEY")
+        elif self.provider == "routellm":
+            self.api_key = os.getenv("ROUTELLM_API_KEY")
         elif self.provider == "ollama":
             self.api_key = None  # Ollama doesn't need API key
         else:
@@ -85,6 +87,7 @@ class AIAgent:
             "gemini": self._generate_gemini,
             "google": self._generate_gemini,
             "openrouter": self._generate_openrouter,
+            "routellm": self._generate_routellm,
             "huggingface": self._generate_huggingface,
             "ollama": self._generate_ollama,
             "local": self._generate_local,
@@ -245,6 +248,70 @@ class AIAgent:
                 raise
             raise AIAgentError(f"OpenRouter generation failed: {str(e)}")
     
+    def _generate_routellm(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
+        """
+        Generate solution using RouteLLM API.
+        
+        RouteLLM follows OpenAI Chat Completions API spec.
+        Supports models like Grok 4.1 Fast, GPT-5, etc.
+        
+        See: https://routellm.abacus.ai
+        """
+        if not self.api_key:
+            raise AIAgentError("RouteLLM API key required. Set ROUTELLM_API_KEY environment variable.")
+        
+        try:
+            prompt = self._build_prompt(task_description, context, files)
+            
+            url = self.base_url or "https://routellm.abacus.ai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            data = {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": self._get_system_prompt()},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.1,
+                "max_tokens": 8192,
+                "stream": False
+            }
+            
+            response = requests.post(
+                url,
+                headers=headers,
+                json=data,
+                timeout=120
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, dict) and "choices" in result:
+                    return self._clean_response(result["choices"][0]["message"]["content"])
+                else:
+                    raise AIAgentError(f"RouteLLM API returned unexpected response format: {result}")
+            else:
+                # Handle error response
+                try:
+                    error_data = response.json()
+                    if isinstance(error_data, dict):
+                        error_msg = error_data.get("error", {}).get("message", response.text) if isinstance(error_data.get("error"), dict) else str(error_data)
+                    else:
+                        error_msg = str(error_data)
+                except:
+                    error_msg = response.text or f"HTTP {response.status_code}"
+                raise AIAgentError(f"RouteLLM API error ({response.status_code}): {error_msg}")
+                
+        except requests.exceptions.Timeout:
+            raise AIAgentError("RouteLLM request timed out after 120 seconds")
+        except Exception as e:
+            if "AIAgentError" in str(type(e)):
+                raise
+            raise AIAgentError(f"RouteLLM generation failed: {str(e)}")
+    
     def _generate_ollama(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
         """
         Generate solution using local Ollama instance.
@@ -376,18 +443,38 @@ CRITICAL INSTRUCTIONS:
         return "\n".join(prompt_parts)
 
     def _clean_response(self, response: str) -> str:
-        """Clean the AI response, removing markdown code blocks if present."""
+        """Clean the AI response, removing markdown code blocks and fixing common issues."""
         result = response.strip()
         
         # Remove markdown code blocks
-        if result.startswith("```"):
+        if "```" in result:
             lines = result.split("\n")
-            lines = lines[1:]  # Remove first line (```diff or similar)
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            result = "\n".join(lines)
+            cleaned_lines = []
+            skip_until_end = False
+            for line in lines:
+                if line.strip().startswith("```"):
+                    if "diff" in line.lower() or "patch" in line.lower():
+                        skip_until_end = True
+                        continue
+                    elif skip_until_end:
+                        skip_until_end = False
+                        continue
+                if not skip_until_end:
+                    cleaned_lines.append(line)
+            result = "\n".join(cleaned_lines)
         
-        return result
+        # Remove any leading/trailing non-diff content
+        lines = result.split("\n")
+        diff_start = -1
+        for i, line in enumerate(lines):
+            if line.startswith("diff --git") or line.startswith("---"):
+                diff_start = i
+                break
+        
+        if diff_start > 0:
+            result = "\n".join(lines[diff_start:])
+        
+        return result.strip()
 
 
 # Convenience functions for common providers
@@ -421,6 +508,29 @@ def create_openrouter_agent(model: str = "anthropic/claude-3.5-sonnet", api_key:
     See full list: https://openrouter.ai/models
     """
     return AIAgent(provider="openrouter", model=model, api_key=api_key)
+
+
+def create_routellm_agent(model: str = "grok-4-1-fast-non-reasoning", api_key: Optional[str] = None) -> AIAgent:
+    """
+    Create a RouteLLM agent.
+    
+    Popular models (cheapest to most expensive):
+    - grok-4-1-fast-non-reasoning (cheapest for full runs: $0.2/$0.5 per 1M tokens)
+    - grok-4-fast-non-reasoning
+    - gpt-5-nano ($0.05/$0.4 per 1M tokens)
+    - gpt-5 ($1.25/$10 per 1M tokens)
+    - claude-sonnet-4-5-20250929 ($3/$15 per 1M tokens)
+    
+    See: https://routellm.abacus.ai
+    """
+    # Map user-friendly names to actual model IDs
+    model_map = {
+        "grok-4.1-fast": "grok-4-1-fast-non-reasoning",
+        "grok-4.1": "grok-4-1-fast-non-reasoning",
+        "grok-4-fast": "grok-4-fast-non-reasoning",
+    }
+    actual_model = model_map.get(model.lower(), model)
+    return AIAgent(provider="routellm", model=actual_model, api_key=api_key)
 
 
 def create_ollama_agent(model: str = "codellama", base_url: str = "http://localhost:11434") -> AIAgent:

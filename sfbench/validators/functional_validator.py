@@ -81,7 +81,7 @@ class FunctionalValidationResult:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "task_id": self.task_id,
-            "validation_level": self.validation_level.value,
+            "validation_level": self.validation_level.value if self.validation_level else None,
             "overall_status": self.overall_status,
             "score": self.score,
             "deployment_passed": self.deployment_passed,
@@ -170,7 +170,7 @@ class FunctionalValidator:
                 pass
         
         # Step 3: Execute with Test Data
-        functional_config = task_config.get("functional_validation", {})
+        functional_config = task_config.get("functional_validation") or {}
         test_data_script = functional_config.get("test_data_script")
         
         if test_data_script:
@@ -254,7 +254,7 @@ class FunctionalValidator:
             validation_level=ValidationLevel.FUNCTIONAL
         )
         
-        functional_config = task_config.get("functional_validation", {})
+        functional_config = task_config.get("functional_validation") or {}
         
         # Step 1: Deploy Flow
         deploy_step = self._run_step(
@@ -382,6 +382,7 @@ class FunctionalValidator:
         
         # Step 3: Test Apex Controller (if applicable)
         functional_config = task_config.get("functional_validation", {})
+        functional_config = functional_config or {}
         controller_test = functional_config.get("controller_test_script")
         
         if controller_test:
@@ -412,10 +413,13 @@ class FunctionalValidator:
         name: str,
         command: str,
         cwd: Path = None,
-        timeout: int = 120
+        timeout: int = 120,
+        success_criteria: Dict[str, Any] = None
     ) -> ValidationStep:
         """Execute a validation step and capture results."""
-        step = ValidationStep(name=name, command=command, timeout=timeout)
+        if success_criteria is None:
+            success_criteria = {"exit_code": 0}
+        step = ValidationStep(name=name, command=command, success_criteria=success_criteria, timeout=timeout)
         
         start_time = time.time()
         

@@ -57,10 +57,10 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/sfbench/sf-bench"
-Documentation = "https://sfbench.github.io/sf-bench"
-Repository = "https://github.com/sfbench/sf-bench"
-Issues = "https://github.com/sfbench/sf-bench/issues"
+Homepage = "https://github.com/yasarshaikh/SF-bench"
+Documentation = "https://yasarshaikh.github.io/SF-bench"
+Repository = "https://github.com/yasarshaikh/SF-bench"
+Issues = "https://github.com/yasarshaikh/SF-bench/issues"
 
 [project.scripts]
 sfbench = "sfbench.main:main"

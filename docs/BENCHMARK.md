@@ -88,5 +88,5 @@ Then [submit your results](https://github.com/yasarshaikh/SF-bench/issues/new?te
 
 ---
 
-*Last updated: December 2024*
+*Last updated: December 2025*
 

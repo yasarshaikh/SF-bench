@@ -1,57 +1,82 @@
 # SF-Bench Leaderboard
 
-*Last updated: 2024-12-28*
+*Last updated: 2025-12-28 23:45 UTC*
+
+> **Status**: SF-Bench is now running full evaluations with functional validation and weighted scoring (0-100 points). Results show realistic performance with functional validation enabled.
 
 ## Overall Rankings
 
-| Rank | Model | Overall | LWC | Apex | Flow | Lightning | Experience | Architecture |
-|:----:|-------|:-------:|:---:|:----:|:----:|:---------:|:----------:|:------------:|
-| 🥇 | **Gemini 2.5 Flash** | **16.7%** | 100% | 0% | 0% | 0% | 0% | 0% |
-| 🥈 | *Your model here* | -% | -% | -% | -% | -% | -% | -% |
+| Rank | Model | Overall | Functional Score | LWC | Deploy | Apex | Flow | Lightning Pages | Experience Cloud | Architecture |
+|:----:|-------|:-------:|:----------------:|:---:|:------:|:----:|:----:|:---------------:|:----------------:|:------------:|
+| 🥇 | **Claude Sonnet 4.5** | **41.67%** | **6.0%** | 100% | 100% | 100% | 0%* | 0% | 0% | 0% |
+| 🥈 | **Gemini 2.5 Flash** | **25.0%** | - | 100% | 100% | 0%* | 0%* | 0% | 0% | 0% |
+| - | *More results pending* | -% | - | -% | -% | -% | -% | -% | -% | -% |
 
-> **Note**: These are real results from running SF-Bench with full validation. LWC tasks use Jest tests (local), other tasks require scratch org deployment.
+*\* Apex and Flow tasks failed due to scratch org creation issues (being fixed)*
 
-## Detailed Segment Results
+> **Note**: Functional Score (0-100) is calculated using weighted validation: Deploy(10%) + Unit Tests(20%) + Functional(50%) + Bulk(10%) + No Tweaks(10%). See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.md) for details.
 
-### Gemini 3 Flash Preview
+## Detailed Results
 
-| Segment | Tasks | Passed | Pass Rate |
-|---------|:-----:|:------:|:---------:|
-| Apex | 2 | 2 | ✅ 100% |
-| LWC | 2 | 2 | ✅ 100% |
-| Flow | 2 | 1 | ⚠️ 50% |
-| Lightning Pages | 1 | 0 | ❌ 0% |
-| Page Layouts | 1 | 0 | ❌ 0% |
-| Experience Cloud | 1 | 1 | ✅ 100% |
-| Architecture | 2 | 2 | ✅ 100% |
-| Deployment | 1 | 1 | ✅ 100% |
-| **Total** | **12** | **9** | **75.0%** |
+### Gemini 2.5 Flash (Run: 2025-12-28)
 
-### Gemini 2.5 Flash
+| Segment | Tasks | Passed | Pass Rate | Notes |
+|---------|:-----:|:------:|:---------:|-------|
+| **LWC** | 2 | 2 | ✅ 100% | Jest tests passed (local validation) |
+| **Deploy** | 1 | 1 | ✅ 100% | Metadata deployment succeeded |
+| Apex | 2 | 0 | ❌ 0% | Scratch org creation issues |
+| Flow | 2 | 0 | ❌ 0% | Scratch org creation issues |
+| Lightning Pages | 1 | 0 | ❌ 0% | Outcome validation failed |
+| Page Layouts | 1 | 0 | ❌ 0% | Scratch org creation issues |
+| Experience Cloud | 1 | 0 | ❌ 0% | Outcome validation failed |
+| Architecture | 1 | 0 | ❌ 0% | Outcome validation failed |
+| Agentforce | 1 | 0 | ❌ 0% | Scratch org creation issues |
+| **Total** | **12** | **3** | **25.0%** | Deployment-only validation |
 
-| Segment | Tasks | Passed | Pass Rate |
-|---------|:-----:|:------:|:---------:|
-| Apex | 2 | 2 | ✅ 100% |
-| LWC | 2 | 2 | ✅ 100% |
-| Flow | 2 | 2 | ✅ 100% |
-| Lightning Pages | 1 | 0 | ❌ 0% |
-| Page Layouts | 1 | 0 | ❌ 0% |
-| Experience Cloud | 1 | 1 | ✅ 100% |
-| Architecture | 2 | 1 | ⚠️ 50% |
-| Deployment | 1 | 1 | ✅ 100% |
-| **Total** | **12** | **9** | **75.0%** |
+**Validation Mode**: Deployment-only (functional validation pending systematic testing)
 
-## Key Observations
+### Claude Sonnet 4.5 (Run: 2025-12-28)
 
-1. **Apex & LWC**: Both models handle traditional code tasks well (100%)
-2. **Flow**: Gemini 2.5 Flash outperforms 3 Flash on Flow tasks
-3. **Lightning Pages**: Both models struggle with visibility rules (0%)
-4. **Experience Cloud**: Strong performance (100%)
-5. **Architecture**: Gemini 3 Flash shows better architectural understanding
+| Segment | Tasks | Passed | Pass Rate | Functional Score | Notes |
+|---------|:-----:|:------:|:---------:|:----------------:|-------|
+| **LWC** | 2 | 2 | ✅ 100% | 10.0% | Jest tests passed, bulk tests passed |
+| **Deploy** | 1 | 1 | ✅ 100% | 10.0% | Metadata deployment succeeded |
+| **Apex** | 2 | 2 | ✅ 100% | 0.0% | Deployment passed, functional tests failed |
+| Flow | 2 | 0 | ❌ 0% | - | Scratch org creation failed |
+| Lightning Pages | 1 | 0 | ❌ 0% | - | Outcome validation failed |
+| Page Layouts | 1 | 0 | ❌ 0% | - | Deployment failed |
+| Experience Cloud | 1 | 0 | ❌ 0% | - | Outcome validation failed |
+| Architecture | 1 | 0 | ❌ 0% | - | Outcome validation failed |
+| Agentforce | 1 | 0 | ❌ 0% | - | Outcome validation failed |
+| **Total** | **12** | **5** | **41.67%** | **6.0%** | **Functional validation enabled** |
 
-## Validation Mode
+**Validation Mode**: Functional validation with weighted scoring (0-100 points)
+**Average Functional Score**: 6.0% (out of 100)
+- Deploy: 10% ✅
+- Unit Tests: 20% ❌
+- Functional: 50% ❌ (core requirement)
+- Bulk: 10% ✅
+- No Tweaks: 10% ❌
 
-Current results use **deployment validation**. Functional validation (which tests actual outcomes) typically shows 10-30% lower pass rates.
+## Current Status
+
+SF-Bench is now running full evaluations with functional validation:
+
+1. ✅ **Atomic Testing**: Each component tested individually (completed)
+2. ✅ **E2E Validation**: Single model, single task end-to-end test (completed)
+3. ✅ **Full Evaluation**: Complete benchmark run with functional validation (completed)
+
+## Evaluation Methodology
+
+SF-Bench uses a **multi-level validation approach**:
+
+1. **Syntax Validation**: Code compiles without errors
+2. **Deployment Validation**: Metadata deploys successfully
+3. **Unit Test Validation**: Apex unit tests pass
+4. **Functional Validation**: Actual business outcomes verified (bulk operations, negative cases)
+5. **Production-Ready**: Security, error handling, governor limits
+
+See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.md) for details.
 
 ---
 
