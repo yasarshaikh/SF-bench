@@ -1,0 +1,181 @@
+[
+  {
+    "instance_id": "flow-complex-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Create a Complex Record-Triggered Flow that handles Account record changes. Requirements:\n\n1. TRIGGER CONDITIONS:\n   - Entry: Account.Type changes to 'Customer - Direct' OR Account.AnnualRevenue > 1000000\n   - Re-entry: Allow ONLY when Account.Rating changes\n\n2. BUSINESS LOGIC:\n   - Create a related Task for the Account Owner with Due Date = TODAY() + 7\n   - Update all related Contacts: set Contact.Level__c = 'Primary' where Title contains 'Director' or 'VP'\n   - Send email notification to Account Owner using Email Template 'High_Value_Account_Alert'\n   - Create a Platform Event 'Account_Status_Changed__e' with Account details\n\n3. ERROR HANDLING:\n   - Wrap all DML in Fault paths\n   - Log errors to a custom object 'Integration_Log__c'\n   - Continue processing even if email fails\n\n4. BULKIFICATION:\n   - Must handle 200 records per transaction\n   - Use proper loop optimization\n\nThe Flow XML must be valid and deployable. Include all required metadata files.",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flows --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "entry_conditions_correct",
+        "reentry_conditions_correct",
+        "task_creation_logic",
+        "contact_update_logic",
+        "email_notification",
+        "platform_event_creation",
+        "fault_handling",
+        "bulkification"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "flow",
+      "subcategory": "record-triggered-flow",
+      "real_world_scenario": "Enterprise account management automation",
+      "common_failure_points": [
+        "Entry/Re-entry conditions",
+        "Bulkification in loops",
+        "Fault path handling",
+        "Platform Event creation"
+      ]
+    }
+  },
+  {
+    "instance_id": "flow-subflow-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Create a Subflow Architecture for Case Escalation with proper input/output variables. Requirements:\n\n1. MAIN FLOW (CaseEscalationMain):\n   - Input: Case record ID\n   - Logic: Check Case.Priority, Case.Status, Case.CreatedDate\n   - Call appropriate subflow based on escalation level\n   - Update Case.Escalation_Level__c after subflow completes\n\n2. SUBFLOW 1 (CalculateEscalationLevel):\n   - Inputs: Priority (text), Status (text), HoursOpen (number)\n   - Output: EscalationLevel (number 1-5)\n   - Logic: Priority High + Open > 4 hours = Level 4\n           Priority Critical + any status = Level 5\n           Default = Level 1\n\n3. SUBFLOW 2 (NotifyEscalationTeam):\n   - Inputs: CaseId (text), EscalationLevel (number), NotifyManager (boolean)\n   - Outputs: NotificationSent (boolean), ErrorMessage (text)\n   - Logic: Query Case Owner's Manager, Send email, Create Task for follow-up\n\n4. REQUIREMENTS:\n   - All subflows must be reusable and callable from Flow Builder\n   - Proper variable naming (follow Salesforce conventions)\n   - Description and help text for all input/output variables\n\nProvide all Flow XML files and necessary metadata.",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flows --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "main_flow_structure",
+        "subflow_1_inputs_outputs",
+        "subflow_2_inputs_outputs",
+        "variable_naming_convention",
+        "subflow_calling_pattern"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "flow",
+      "subcategory": "subflow-architecture",
+      "real_world_scenario": "Complex case escalation system",
+      "common_failure_points": [
+        "Subflow input/output mappings",
+        "Variable type mismatches",
+        "Missing required variables"
+      ]
+    }
+  },
+  {
+    "instance_id": "apex-governor-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "The current batch Apex implementation in the Data Recipes folder has governor limit issues when processing large datasets. Problems:\n\n1. SOQL query inside a loop (N+1 problem)\n2. DML operations not batched\n3. CPU time limit exceeded for complex calculations\n4. Heap size issues with large record collections\n\nRequirements:\n1. Refactor to use proper SOQL collections (Map<Id, SObject>)\n2. Implement Database.Stateful for accumulating results across batches\n3. Add Queueable chaining for CPU-intensive operations\n4. Implement proper chunking for heap management\n5. Add configurable batch size via Custom Metadata\n6. Implement retry logic for lock errors\n7. All tests must pass with minimum 85% coverage\n\nThe solution must handle 50,000+ records without hitting limits.",
+    "validation": {
+      "command": "sf apex run test --test-level RunLocalTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "no_soql_in_loops",
+        "batched_dml",
+        "database_stateful",
+        "queueable_chaining",
+        "heap_management",
+        "configurable_batch_size",
+        "retry_logic",
+        "test_coverage_85"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 600
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "apex",
+      "subcategory": "batch-processing",
+      "real_world_scenario": "Large data volume processing",
+      "common_failure_points": [
+        "Governor limits",
+        "Heap size",
+        "CPU time",
+        "Lock contention"
+      ]
+    }
+  },
+  {
+    "instance_id": "lwc-complex-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "Create a Complex Datatable LWC with Advanced Features. Requirements:\n\n1. DATATABLE FEATURES:\n   - Server-side pagination (50 records per page)\n   - Multi-column sorting (up to 3 columns)\n   - Column filtering with debounced search\n   - Inline editing with draft values\n   - Row selection with master checkbox\n   - Column resizing and reordering\n\n2. APEX CONTROLLER:\n   - Single controller class handling all operations\n   - Wrapper class for paginated response\n   - Security: WITH SECURITY_ENFORCED\n   - Caching strategy for frequently accessed data\n\n3. ERROR HANDLING:\n   - Toast notifications for all errors\n   - Validation before save\n   - Rollback on partial failure\n   - Loading states for all async operations\n\n4. ACCESSIBILITY:\n   - WCAG 2.1 AA compliant\n   - Keyboard navigation\n   - Screen reader support\n   - Focus management\n\n5. TESTING:\n   - Jest tests with minimum 80% coverage\n   - Mock Apex calls\n   - Test pagination, sorting, filtering scenarios\n\nAll files must be provided including CSS, tests, and metadata.",
+    "validation": {
+      "command": "npm run test:unit -- --coverage --testPathPattern=complexDatatable",
+      "expected_outcome": "0",
+      "code_checks": [
+        "server_side_pagination",
+        "multi_column_sorting",
+        "column_filtering",
+        "inline_editing",
+        "row_selection",
+        "error_handling",
+        "accessibility_compliance",
+        "test_coverage_80"
+      ]
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "lwc",
+      "subcategory": "datatable",
+      "real_world_scenario": "Enterprise data management",
+      "common_failure_points": [
+        "Pagination edge cases",
+        "Sort/filter combination",
+        "Draft value management",
+        "Accessibility"
+      ]
+    }
+  },
+  {
+    "instance_id": "integration-callout-001",
+    "task_type": "INTEGRATION",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Implement a Production-Grade REST Integration Framework. Requirements:\n\n1. HTTP CALLOUT SERVICE:\n   - Generic callout class supporting GET, POST, PUT, DELETE, PATCH\n   - Named Credential support\n   - Dynamic endpoint construction\n   - Request/Response logging to Integration_Log__c\n   - Timeout configuration via Custom Metadata\n\n2. RETRY & CIRCUIT BREAKER:\n   - Exponential backoff retry (max 3 attempts)\n   - Circuit breaker pattern (fail fast after 5 failures)\n   - Retry only on 5xx errors and timeout\n   - Reset circuit after 5 minutes\n\n3. AUTHENTICATION:\n   - Support OAuth 2.0 Client Credentials flow\n   - Token caching with TTL\n   - Automatic token refresh on 401\n   - Secure token storage (Protected Custom Setting)\n\n4. ASYNC PROCESSING:\n   - Queueable for single callouts\n   - Batch for bulk callouts (Batchable + Queueable chain)\n   - Future for fire-and-forget\n   - Platform Event for real-time sync\n\n5. MONITORING:\n   - Custom metrics via Platform Events\n   - Error alerting via email\n   - Dashboard-ready logging\n\nInclude comprehensive unit tests with HttpCalloutMock.",
+    "validation": {
+      "command": "sf apex run test --class-names RestIntegrationTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "generic_callout_service",
+        "retry_logic",
+        "circuit_breaker",
+        "oauth_implementation",
+        "async_patterns",
+        "monitoring",
+        "test_coverage_85"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "integration",
+      "subcategory": "rest-callout",
+      "real_world_scenario": "Enterprise API integration",
+      "common_failure_points": [
+        "Token refresh race conditions",
+        "Circuit breaker state management",
+        "Async callout limits"
+      ]
+    }
+  }
+]

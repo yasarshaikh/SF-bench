@@ -56,22 +56,24 @@ Generic benchmarks like **HumanEval** and **SWE-bench** don't capture:
 
 | Rank | Model | Overall | Apex | LWC | Flow | Lightning Pages | Experience Cloud | Architecture |
 |:----:|-------|:-------:|:----:|:---:|:----:|:---------------:|:----------------:|:------------:|
-| 🥇 | **Gemini 2.5 Flash** | **75.0%** | 100% | 100% | 100% | 0% | 100% | 50% |
-| 🥈 | *Submit results* | -% | -% | -% | -% | -% | -% | -% |
-| 🥉 | - | - | - | - | - | - | - | - |
+| 🥇 | **Gemini 3 Flash** | **75.0%** | 100% | 100% | 50% | 0% | 100% | 100% |
+| 🥈 | **Gemini 2.5 Flash** | **75.0%** | 100% | 100% | 100% | 0% | 100% | 50% |
+| 🥉 | *Submit results* | -% | -% | -% | -% | -% | -% | -% |
 
 ### Segment Breakdown
 
-| Segment | Tasks | Gemini 2.5 Flash | Notes |
-|---------|:-----:|:----------------:|-------|
-| **Apex** | 2 | ✅ 2/2 (100%) | Trigger handlers, integrations |
-| **LWC** | 2 | ✅ 2/2 (100%) | Jest tests: 122/122 passed |
-| **Flow** | 2 | ✅ 2/2 (100%) | Screen components, invocable actions |
-| **Lightning Pages** | 1 | ❌ 0/1 (0%) | Dynamic forms - needs improvement |
-| **Page Layouts** | 1 | ❌ 0/1 (0%) | Layout XML generation |
-| **Experience Cloud** | 1 | ✅ 1/1 (100%) | Site customization |
-| **Architecture** | 2 | ⚠️ 1/2 (50%) | Full-stack design |
-| **Deployment** | 1 | ✅ 1/1 (100%) | Metadata validation |
+| Segment | Tasks | Gemini 3 Flash | Gemini 2.5 Flash |
+|---------|:-----:|:--------------:|:----------------:|
+| **Apex** | 2 | ✅ 2/2 (100%) | ✅ 2/2 (100%) |
+| **LWC** | 2 | ✅ 2/2 (100%) | ✅ 2/2 (100%) |
+| **Flow** | 2 | ⚠️ 1/2 (50%) | ✅ 2/2 (100%) |
+| **Lightning Pages** | 1 | ❌ 0/1 (0%) | ❌ 0/1 (0%) |
+| **Page Layouts** | 1 | ❌ 0/1 (0%) | ❌ 0/1 (0%) |
+| **Experience Cloud** | 1 | ✅ 1/1 (100%) | ✅ 1/1 (100%) |
+| **Architecture** | 2 | ✅ 2/2 (100%) | ⚠️ 1/2 (50%) |
+| **Deployment** | 1 | ✅ 1/1 (100%) | ✅ 1/1 (100%) |
+
+**LWC Validation:** Jest tests 122/122 passed for both models
 
 **[📊 Submit your results →](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)**
 

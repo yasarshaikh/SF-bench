@@ -40,10 +40,14 @@ def validate_solution_quality(solution: str, task_type: str) -> dict:
     
     # Check for actual code content
     code_patterns = {
-        "APEX": [r"public\s+class", r"@AuraEnabled", r"trigger\s+\w+", r"void\s+\w+\("],
+        "APEX": [r"public\s+class", r"@AuraEnabled", r"trigger\s+\w+", r"void\s+\w+\(", r"@InvocableMethod", r"@InvocableVariable"],
         "LWC": [r"import\s+{", r"export\s+default\s+class", r"@track", r"@wire", r"<template>"],
-        "FLOW": [r"actionCalls", r"FlowScreen", r"inputParameters", r"<Flow"],
-        "DEPLOY": [r"sfdx-project\.json", r"force-app", r"<CustomObject", r"<CustomField"],
+        "FLOW": [r"actionCalls", r"FlowScreen", r"inputParameters", r"<Flow", r"@InvocableMethod", r"@InvocableVariable", r"public\s+class"],
+        "DEPLOY": [r"sfdx-project\.json", r"force-app", r"<CustomObject", r"<CustomField", r"<Layout", r"<flexipage"],
+        "LIGHTNING_PAGE": [r"<flexipage", r"componentInstance", r"componentName", r"fieldSection", r"<FlexiPage"],
+        "PAGE_LAYOUT": [r"<Layout", r"<layoutSections", r"layoutItems", r"relatedLists", r"customButtons"],
+        "COMMUNITY": [r"<ExperienceBundle", r"<siteDotCom", r"<network", r"lwc", r"<template>"],
+        "ARCHITECTURE": [r"public\s+class", r"<CustomObject", r"<Flow", r"<flexipage", r"trigger\s+\w+"],
     }
     
     patterns = code_patterns.get(task_type, code_patterns["APEX"])
