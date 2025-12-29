@@ -7,7 +7,7 @@ keywords: salesforce benchmark leaderboard, ai model rankings, salesforce ai per
 
 # SF-Bench Leaderboard
 
-*Last updated: 2025-12-28 23:45 UTC*
+*Last updated: 2025-12-29 22:57 UTC*
 
 > **Status**: SF-Bench is now running full evaluations with functional validation and weighted scoring (0-100 points). Results show realistic performance with functional validation enabled.
 
@@ -20,6 +20,10 @@ keywords: salesforce benchmark leaderboard, ai model rankings, salesforce ai per
 | - | *More results pending* | -% | - | -% | -% | -% | -% | -% | -% | -% |
 
 *\* Apex and Flow tasks failed due to scratch org creation issues (being fixed)*
+
+### Known Issues
+
+**Claude Opus 4.5 (RouteLLM)**: 0% pass rate - All tasks failed due to corrupt patch generation. This is a known issue with RouteLLM provider where generated patches are malformed and cannot be applied. Evaluation completed but no valid results.
 
 > **Note**: Functional Score (0-100) is calculated using weighted validation: Deploy(10%) + Unit Tests(20%) + Functional(50%) + Bulk(10%) + No Tweaks(10%). See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.md) for details.
 
@@ -72,6 +76,15 @@ SF-Bench is now running full evaluations with functional validation:
 1. ✅ **Atomic Testing**: Each component tested individually (completed)
 2. ✅ **E2E Validation**: Single model, single task end-to-end test (completed)
 3. ✅ **Full Evaluation**: Complete benchmark run with functional validation (completed)
+
+### Recent Evaluations
+
+**Claude Opus 4.5 (RouteLLM) - 2025-12-29**
+- **Result**: 0% pass rate (0/12 tasks)
+- **Issue**: Corrupt patch generation - all patches failed to apply
+- **Error Pattern**: "corrupt patch at line X" errors across all tasks
+- **Status**: Known issue with RouteLLM provider patch format
+- **Note**: This is consistent with previous Opus 4.5 evaluations on RouteLLM
 
 ## Evaluation Methodology
 
