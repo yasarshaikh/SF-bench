@@ -245,9 +245,9 @@ SF-Bench includes **12 verified tasks** across Salesforce development domains:
 
 ### Datasets
 
-- **Lite (5 tasks):** Quick validation in ~10 minutes - [data/tasks/lite.json](../data/tasks/lite.json)
-- **Verified (12 tasks):** Full evaluation in ~1 hour - [data/tasks/verified.json](../data/tasks/verified.json)
-- **Realistic:** Challenging scenarios - [data/tasks/realistic.json](../data/tasks/realistic.json)
+- **Lite (5 tasks):** Quick validation in ~10 minutes - [data/tasks/lite.json](https://github.com/yasarshaikh/SF-bench/blob/main/data/tasks/lite.json)
+- **Verified (12 tasks):** Full evaluation in ~1 hour - [data/tasks/verified.json](https://github.com/yasarshaikh/SF-bench/blob/main/data/tasks/verified.json)
+- **Realistic:** Challenging scenarios - [data/tasks/realistic.json](https://github.com/yasarshaikh/SF-bench/blob/main/data/tasks/realistic.json)
 
 ---
 
@@ -275,7 +275,7 @@ SF-Bench includes **12 verified tasks** across Salesforce development domains:
 
 ### Contributing
 - ➕ [Contributing Guide](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md)
-- 🎯 [Task Guidelines](guides/task-guidelines.md) - Creating new tasks
+- 🎯 [Task Guidelines](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md#adding-tasks) - Creating new tasks
 - 📊 [Submitting Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
 
 ---
