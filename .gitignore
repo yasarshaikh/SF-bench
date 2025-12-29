@@ -49,6 +49,7 @@ Thumbs.db
 # SF-Bench runtime directories
 workspace/
 results/
+logs/
 
 # Internal documentation (not for public)
 _internal/

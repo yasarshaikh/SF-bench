@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#00A1E0">
+
+  {% seo %}
+  
+  <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+  
+  <!-- Custom styles for SF-Bench -->
+  <style>
+    :root {
+      --sf-blue: #00A1E0;
+      --sf-dark-blue: #0B4C5F;
+      --sf-light-blue: #E6F7FF;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --border-color: #e1e4e8;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+    
+    .page-header {
+      background: linear-gradient(135deg, var(--sf-blue) 0%, var(--sf-dark-blue) 100%);
+      color: white;
+      padding: 2rem 1rem;
+    }
+    
+    .page-header h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .page-header p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.2rem;
+    }
+    
+    .persona-nav {
+      background: var(--sf-light-blue);
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+      border-left: 4px solid var(--sf-blue);
+    }
+    
+    .persona-nav h3 {
+      margin-top: 0;
+      color: var(--sf-dark-blue);
+    }
+    
+    .persona-nav table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .persona-nav td {
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .persona-nav td:first-child {
+      font-weight: 600;
+    }
+    
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: var(--sf-blue);
+      color: white;
+    }
+    
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+    
+    .leaderboard-table th,
+    .leaderboard-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .leaderboard-table th {
+      background: var(--sf-light-blue);
+      font-weight: 600;
+      color: var(--sf-dark-blue);
+    }
+    
+    .footer {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 2px solid var(--border-color);
+      text-align: center;
+      color: var(--text-secondary);
+    }
+    
+    @media (max-width: 768px) {
+      .page-header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .persona-nav table {
+        font-size: 0.9rem;
+      }
+      
+      .leaderboard-table {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+  
+  {% include head-custom.html %}
+</head>
+<body>
+  <div class="wrapper">
+    <header class="page-header">
+      <h1>{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
+      <p>{{ page.description | default: site.description | default: site.github.project_tagline }}</p>
+    </header>
+
+    <section class="main-content">
+      {{ content }}
+    </section>
+
+    <footer class="footer">
+      <p>
+        <strong>SF-Bench</strong> - The Salesforce AI Benchmark
+        <br>
+        <a href="{{ site.github.repository_url }}">GitHub</a> • 
+        <a href="{{ site.github.repository_url }}/issues">Issues</a> • 
+        <a href="{{ site.github.repository_url }}/blob/main/LICENSE">License</a>
+        <br>
+        Made with ❤️ for the Salesforce community
+      </p>
+    </footer>
+  </div>
+
+  <script src="{{ '/assets/js/scale.fix.js' | relative_url }}"></script>
+</body>
+</html>

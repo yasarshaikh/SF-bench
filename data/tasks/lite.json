@@ -1,0 +1,148 @@
+[
+  {
+    "instance_id": "lwc-component-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "The apexImperativeMethod LWC component has an issue where error states are not properly displayed to the user when the Apex call fails. Update the component to: 1) Display user-friendly error messages, 2) Handle network timeouts gracefully, 3) Add loading state indicator during the Apex call. All existing Jest tests must continue to pass.",
+    "validation": {
+      "command": "npm run test:unit -- --testPathPattern=apexImperativeMethod",
+      "expected_outcome": "0",
+      "code_checks": [
+        "error_handling_ui",
+        "loading_state",
+        "jest_tests_pass"
+      ]
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 180
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "lwc",
+      "subcategory": "apex-integration",
+      "verified_repo": true,
+      "repo_stars": 2805,
+      "file_path": "force-app/main/default/lwc/apexImperativeMethod/",
+      "lite_rationale": "Representative LWC task with error handling - common pattern in real development"
+    }
+  },
+  {
+    "instance_id": "apex-trigger-handler-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "The AccountTriggerHandler class in force-app/main/default/classes/Trigger Recipes/ has a potential NullPointerException when Account.Owner is null. Implement proper null-safety checks in the handler methods without breaking existing test coverage. The solution must handle null Owner references gracefully and maintain all existing trigger functionality.",
+    "validation": {
+      "command": "sf apex run test --class-names AccountTriggerHandlerTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "null_check_required",
+        "no_hardcoded_ids",
+        "maintains_test_coverage"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "apex",
+      "subcategory": "trigger-handling",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Trigger Recipes/AccountTriggerHandler.cls",
+      "lite_rationale": "Core Apex pattern - trigger handlers are essential to Salesforce development"
+    }
+  },
+  {
+    "instance_id": "flow-invocable-action-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Create an invocable Apex action that integrates with the existing automation components. The action should: 1) Accept a collection of record IDs as input, 2) Perform bulk DML operations with proper error handling, 3) Return detailed success/failure results for each record, 4) Support transaction control (allow partial commits vs. all-or-nothing). Include comprehensive unit tests with minimum 85% coverage.",
+    "validation": {
+      "command": "sf apex run test --test-level RunLocalTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "invocable_annotation",
+        "bulk_support",
+        "error_handling",
+        "test_coverage_85"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "flow",
+      "subcategory": "invocable-actions",
+      "verified_repo": true,
+      "repo_stars": 384,
+      "file_path": "src-flows/main/default/classes/",
+      "lite_rationale": "Tests both Flow and Apex integration - critical for declarative automation"
+    }
+  },
+  {
+    "instance_id": "lightning-page-001",
+    "task_type": "LIGHTNING_PAGE",
+    "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
+    "base_commit": "main",
+    "problem_description": "Update the Property_Record_Page.flexipage-meta.xml to implement Dynamic Forms. Convert the existing page to: 1) Use field sections instead of the standard detail component, 2) Add visibility rules to show/hide sections based on Property Status (Available, Contracted, Sold), 3) Include a custom action bar with relevant quick actions, 4) Optimize for both desktop and mobile views.",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flexipages --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "dynamic_forms_enabled",
+        "visibility_rules_defined",
+        "mobile_optimized"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "lightning_page",
+      "subcategory": "dynamic-forms",
+      "verified_repo": true,
+      "repo_stars": 469,
+      "file_path": "force-app/main/default/flexipages/Property_Record_Page.flexipage-meta.xml",
+      "lite_rationale": "UI configuration task - tests metadata manipulation skills"
+    }
+  },
+  {
+    "instance_id": "apex-integration-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Review and fix the REST callout implementation in the Integration Recipes folder. The current implementation lacks proper error handling for HTTP 4xx/5xx responses and timeout scenarios. Implement retry logic with exponential backoff for transient failures. Ensure proper exception handling and logging without exposing sensitive data.",
+    "validation": {
+      "command": "sf apex run test --class-names RestClientTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "error_handling_required",
+        "retry_logic_implemented",
+        "no_sensitive_data_exposed"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "apex",
+      "subcategory": "integration",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Integration Recipes/",
+      "lite_rationale": "Challenging integration scenario - tests advanced Apex patterns and external system handling"
+    }
+  }
+]

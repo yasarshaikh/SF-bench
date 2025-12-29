@@ -443,31 +443,47 @@ CRITICAL INSTRUCTIONS:
         return "\n".join(prompt_parts)
 
     def _clean_response(self, response: str) -> str:
-        """Clean the AI response, removing markdown code blocks and fixing common issues."""
+        """Clean the AI response, extracting diff content from markdown blocks and fixing common issues."""
         result = response.strip()
         
-        # Remove markdown code blocks
+        # Extract diff content from markdown code blocks
         if "```" in result:
             lines = result.split("\n")
             cleaned_lines = []
-            skip_until_end = False
+            in_diff_block = False
+            
             for line in lines:
-                if line.strip().startswith("```"):
-                    if "diff" in line.lower() or "patch" in line.lower():
-                        skip_until_end = True
+                stripped = line.strip()
+                
+                # Detect start of diff/patch code block
+                if stripped.startswith("```"):
+                    if any(x in stripped.lower() for x in ["diff", "patch", "apex", "cls", "js", "html", "xml"]):
+                        in_diff_block = True
+                        continue  # Skip the opening ```diff line
+                    elif stripped == "```" and in_diff_block:
+                        in_diff_block = False
+                        continue  # Skip the closing ``` line
+                    elif stripped == "```":
+                        # Could be start of unmarked code block
+                        in_diff_block = True
                         continue
-                    elif skip_until_end:
-                        skip_until_end = False
+                    else:
+                        # Other code block type, skip it
                         continue
-                if not skip_until_end:
+                
+                # Keep lines inside diff blocks
+                if in_diff_block:
                     cleaned_lines.append(line)
-            result = "\n".join(cleaned_lines)
+            
+            # If we extracted diff content, use it; otherwise fall back to original
+            if cleaned_lines:
+                result = "\n".join(cleaned_lines)
         
         # Remove any leading/trailing non-diff content
         lines = result.split("\n")
         diff_start = -1
         for i, line in enumerate(lines):
-            if line.startswith("diff --git") or line.startswith("---"):
+            if line.startswith("diff --git") or line.startswith("---") or line.startswith("@@"):
                 diff_start = i
                 break
         

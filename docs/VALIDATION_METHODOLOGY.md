@@ -1,3 +1,10 @@
+---
+layout: default
+title: Validation Methodology - How SF-Bench Validates AI Solutions
+description: Comprehensive guide to SF-Bench validation methodology. Learn how we verify functional outcomes, not just deployment success, with weighted scoring and multi-level validation.
+keywords: salesforce benchmark validation, functional validation, ai code validation, salesforce testing methodology
+---
+
 # SF-Bench Validation Methodology
 
 ## Core Philosophy

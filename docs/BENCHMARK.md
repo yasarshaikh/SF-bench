@@ -1,3 +1,10 @@
+---
+layout: default
+title: Benchmark Details - SF-Bench Technical Specifications
+description: Detailed technical specifications and evaluation results for SF-Bench. Task categories, difficulty breakdown, and verified repositories used in the benchmark.
+keywords: salesforce benchmark specifications, ai benchmark details, salesforce evaluation tasks, benchmark technical details
+---
+
 # SF-Bench Evaluation Results
 
 ## Leaderboard by Segment
