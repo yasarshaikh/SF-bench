@@ -52,7 +52,16 @@ def checkout_commit(repo_dir: Path, commit_hash: str, timeout: int = 60) -> None
 
 def apply_patch(repo_dir: Path, patch_diff: str, timeout: int = 60) -> None:
     """
-    Apply a patch to a repository with improved error handling and whitespace fixing.
+    Apply a patch to a repository using multiple fallback strategies (inspired by SWE-bench).
+    
+    This function tries multiple patch application methods in sequence, giving models a fair
+    chance even if their patches have minor formatting issues. Only fails if ALL strategies fail.
+    
+    Strategies (in order):
+    1. git apply --whitespace=fix --ignore-whitespace (strict)
+    2. git apply --whitespace=fix --ignore-whitespace --reject (allows partial)
+    3. git apply --3way --whitespace=fix (3-way merge for context mismatches)
+    4. patch --batch --fuzz=5 -p1 (fuzzy matching, SWE-bench fallback)
     """
     # Validate patch is not empty
     if not patch_diff or not patch_diff.strip():
@@ -73,39 +82,83 @@ def apply_patch(repo_dir: Path, patch_diff: str, timeout: int = 60) -> None:
     if not has_diff_content:
         raise GitError("Patch does not contain valid diff content")
     
-    try:
-        # Try with whitespace fix first
-        result = subprocess.run(
-            ['git', 'apply', '--whitespace=fix', '--ignore-whitespace'],
-            input=cleaned_patch,
-            cwd=str(repo_dir),
-            capture_output=True,
-            text=True,
-            timeout=timeout
-        )
-        
-        if result.returncode == 0:
-            return  # Success
-        
-        # If that fails, try with more lenient options
-        result = subprocess.run(
-            ['git', 'apply', '--whitespace=fix', '--ignore-whitespace', '--reject'],
-            input=cleaned_patch,
-            cwd=str(repo_dir),
-            capture_output=True,
-            text=True,
-            timeout=timeout
-        )
-        
-        if result.returncode != 0:
-            raise GitError(f"Failed to apply patch: {result.stderr}")
+    # Multi-strategy patch application (inspired by SWE-bench)
+    strategies = [
+        {
+            "name": "git_apply_strict",
+            "cmd": ['git', 'apply', '--whitespace=fix', '--ignore-whitespace'],
+            "use_stdin": True
+        },
+        {
+            "name": "git_apply_reject",
+            "cmd": ['git', 'apply', '--whitespace=fix', '--ignore-whitespace', '--reject'],
+            "use_stdin": True
+        },
+        {
+            "name": "git_apply_3way",
+            "cmd": ['git', 'apply', '--3way', '--whitespace=fix'],
+            "use_stdin": True
+        },
+        {
+            "name": "patch_fuzzy",
+            "cmd": ['patch', '--batch', '--fuzz=5', '-p1'],
+            "use_stdin": True,
+            "requires_patch_file": False  # patch command can use stdin
+        }
+    ]
+    
+    last_error = None
+    for strategy in strategies:
+        try:
+            if strategy["use_stdin"]:
+                result = subprocess.run(
+                    strategy["cmd"],
+                    input=cleaned_patch,
+                    cwd=str(repo_dir),
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout
+                )
+            else:
+                # For strategies that need file input (future use)
+                import tempfile
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.patch', delete=False) as f:
+                    f.write(cleaned_patch)
+                    patch_file = f.name
+                
+                try:
+                    result = subprocess.run(
+                        strategy["cmd"] + [patch_file],
+                        cwd=str(repo_dir),
+                        capture_output=True,
+                        text=True,
+                        timeout=timeout
+                    )
+                finally:
+                    import os
+                    os.unlink(patch_file)
             
-    except subprocess.TimeoutExpired:
-        raise GitError(f"Git apply timed out after {timeout} seconds")
-    except GitError:
-        raise
-    except Exception as e:
-        raise GitError(f"Unexpected error applying patch: {str(e)}")
+            if result.returncode == 0:
+                # Success! Log which strategy worked (for debugging)
+                if strategy["name"] != "git_apply_strict":
+                    print(f"⚠️  Patch applied using fallback strategy: {strategy['name']}")
+                return  # Success
+            
+            # Store error for final reporting
+            last_error = result.stderr or result.stdout or f"Exit code: {result.returncode}"
+            
+        except subprocess.TimeoutExpired:
+            last_error = f"Strategy {strategy['name']} timed out after {timeout} seconds"
+            continue
+        except Exception as e:
+            last_error = f"Strategy {strategy['name']} failed: {str(e)}"
+            continue
+    
+    # All strategies failed
+    error_msg = f"Failed to apply patch after trying {len(strategies)} strategies"
+    if last_error:
+        error_msg += f". Last error: {last_error[:500]}"  # Limit error message length
+    raise GitError(error_msg)
 
 
 def _clean_patch(patch_diff: str) -> str:
