@@ -1,7 +1,7 @@
 ---
 layout: default
 title: SF-Bench Leaderboard - AI Model Rankings
-description: Current benchmark results and rankings for AI coding agents on Salesforce development tasks. See which models perform best on Apex, LWC, Flow, and more.
+description: Current benchmark results and rankings for AI coding agents on Salesforce development tasks. Objective evaluation results for Apex, LWC, Flow, and more.
 keywords: salesforce benchmark leaderboard, ai model rankings, salesforce ai performance, llm benchmark results
 ---
 

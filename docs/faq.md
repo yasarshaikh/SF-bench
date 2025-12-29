@@ -29,7 +29,7 @@ Existing AI benchmarks (SWE-bench, HumanEval, etc.) focus on general programming
 ### Who is SF-Bench for?
 
 - **AI researchers:** Benchmark model performance on domain-specific tasks
-- **Salesforce teams:** Evaluate which AI models work best for Salesforce development
+- **Salesforce teams:** Evaluate AI models for Salesforce development using objective metrics
 - **Model providers:** Test and improve models for enterprise use cases
 - **Developers:** Understand AI capabilities and limitations for Salesforce
 
@@ -79,7 +79,7 @@ SF-Bench includes tasks across three categories:
 2. **Flow:** Screen flows, record-triggered flows, scheduled flows
 3. **Lightning Web Components:** UI components, event handling, data binding
 
-See [data/tasks/verified.json](../data/tasks/verified.json) for the full list.
+See [data/tasks/verified.json](https://github.com/yasarshaikh/SF-bench/blob/main/data/tasks/verified.json) for the full list.
 
 ### How are tasks scored?
 
@@ -118,7 +118,7 @@ Yes! SF-Bench is extensible. To add tasks:
 2. Include test cases for functional validation
 3. Submit a PR or use it locally
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) for guidelines.
 
 ---
 
@@ -126,13 +126,9 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ### Which models perform best?
 
-Current top performers (as of Jan 2025):
+SF-Bench measures and reports objective results. We don't make judgments about which models are "best."
 
-1. **Claude Sonnet 4.5:** ~70% success rate
-2. **Gemini 2.5 Flash:** ~60% success rate
-3. **GPT-4 Turbo:** ~55% success rate
-
-See the [Leaderboard](LEADERBOARD.md) for full rankings.
+See the [Leaderboard](LEADERBOARD.md) for current evaluation results and rankings.
 
 ### Why do some models fail functional validation?
 
@@ -189,7 +185,7 @@ python scripts/orchestrator.py --models models.txt --tasks data/tasks/verified.j
    - Reproduction steps
 3. We'll verify and add to the leaderboard
 
-See [Submitting Results](guides/submitting-results.md) for details.
+See [Submitting Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) for details.
 
 ### Are results reproducible?
 
@@ -283,7 +279,7 @@ Yes! Example GitHub Actions workflow:
     SF_USERNAME: ${{ secrets.DEVHUB_USERNAME }}
 ```
 
-See [CI/CD Guide](guides/ci-cd.md) (coming soon).
+CI/CD integration guide coming soon. For now, see [Evaluation Guide](guides/evaluation.md) for running evaluations.
 
 ### How do I analyze failure patterns?
 
@@ -314,7 +310,7 @@ We welcome contributions!
 - **Fix bugs:** Report issues or submit PRs
 - **Documentation:** Improve guides and examples
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) for guidelines.
 
 ### Can I use SF-Bench in my research?
 
@@ -380,7 +376,7 @@ Interested? [Vote here](https://github.com/yasarshaikh/SF-bench/discussions/1)
 
 - 🐛 **Bug reports:** [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
 - 💬 **Questions:** [GitHub Discussions](https://github.com/yasarshaikh/SF-bench/discussions)
-- 📚 **Documentation:** [docs/](../index.md)
+- 📚 **Documentation:** [docs/](https://yasarshaikh.github.io/SF-bench/)
 
 ### How do I stay updated?
 

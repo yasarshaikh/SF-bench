@@ -10,51 +10,89 @@
   
   <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
   
-  <!-- Custom styles for SF-Bench -->
+  <!-- Custom styles for SF-Bench - Salesforce Native Theme -->
   <style>
     :root {
-      --sf-blue: #00A1E0;
-      --sf-dark-blue: #0B4C5F;
-      --sf-light-blue: #E6F7FF;
-      --text-primary: #333;
-      --text-secondary: #666;
-      --border-color: #e1e4e8;
+      /* Salesforce Brand Colors */
+      --sf-primary: #00A1E0;        /* Salesforce Blue */
+      --sf-secondary: #1798C1;      /* Salesforce Darker Blue */
+      --sf-accent: #FF6D00;         /* Salesforce Orange */
+      --sf-dark: #16325C;           /* Salesforce Navy */
+      --sf-light: #F3F2F2;          /* Salesforce Light Gray */
+      --sf-success: #4BC076;        /* Salesforce Green */
+      --sf-warning: #FFB75D;        /* Salesforce Yellow */
+      --sf-error: #C23934;          /* Salesforce Red */
+      
+      /* Text Colors */
+      --text-primary: #16325C;       /* Salesforce Navy for primary text */
+      --text-secondary: #706E6B;     /* Salesforce Gray for secondary */
+      --text-inverse: #FFFFFF;       /* White for dark backgrounds */
+      
+      /* Background Colors */
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F3F2F2;
+      --bg-accent: #E6F7FF;          /* Light blue tint */
+      
+      /* Border Colors */
+      --border-color: #DDDBDA;       /* Salesforce Border Gray */
+      --border-focus: #00A1E0;       /* Salesforce Blue for focus */
     }
     
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-family: "Salesforce Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       line-height: 1.6;
       color: var(--text-primary);
+      background: var(--bg-primary);
+    }
+    
+    a {
+      color: var(--sf-primary);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    
+    a:hover {
+      color: var(--sf-secondary);
+      text-decoration: underline;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--sf-dark);
+      font-weight: 600;
     }
     
     .page-header {
-      background: linear-gradient(135deg, var(--sf-blue) 0%, var(--sf-dark-blue) 100%);
-      color: white;
+      background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-dark) 100%);
+      color: var(--text-inverse);
       padding: 2rem 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
     .page-header h1 {
-      color: white;
+      color: var(--text-inverse);
       font-size: 2.5rem;
       margin-bottom: 0.5rem;
+      font-weight: 700;
     }
     
     .page-header p {
-      color: rgba(255, 255, 255, 0.9);
+      color: rgba(255, 255, 255, 0.95);
       font-size: 1.2rem;
     }
     
     .persona-nav {
-      background: var(--sf-light-blue);
+      background: var(--bg-accent);
       padding: 1rem;
       margin: 1rem 0;
-      border-radius: 8px;
-      border-left: 4px solid var(--sf-blue);
+      border-radius: 4px;
+      border-left: 4px solid var(--sf-primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
     
     .persona-nav h3 {
       margin-top: 0;
-      color: var(--sf-dark-blue);
+      color: var(--sf-dark);
+      font-weight: 600;
     }
     
     .persona-nav table {
@@ -83,14 +121,17 @@
       border-radius: 4px;
       font-size: 0.875rem;
       font-weight: 600;
-      background: var(--sf-blue);
-      color: white;
+      background: var(--sf-primary);
+      color: var(--text-inverse);
     }
     
     .leaderboard-table {
       width: 100%;
       border-collapse: collapse;
       margin: 1rem 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      overflow: hidden;
     }
     
     .leaderboard-table th,
@@ -101,9 +142,16 @@
     }
     
     .leaderboard-table th {
-      background: var(--sf-light-blue);
+      background: var(--bg-accent);
       font-weight: 600;
-      color: var(--sf-dark-blue);
+      color: var(--sf-dark);
+      text-transform: uppercase;
+      font-size: 0.875rem;
+      letter-spacing: 0.5px;
+    }
+    
+    .leaderboard-table tr:hover {
+      background: var(--bg-secondary);
     }
     
     .footer {
@@ -112,6 +160,50 @@
       border-top: 2px solid var(--border-color);
       text-align: center;
       color: var(--text-secondary);
+      background: var(--bg-secondary);
+      padding: 2rem 1rem;
+    }
+    
+    .footer a {
+      color: var(--sf-primary);
+      font-weight: 500;
+    }
+    
+    .footer a:hover {
+      color: var(--sf-secondary);
+    }
+    
+    /* Salesforce-style buttons and links */
+    .btn-primary {
+      background: var(--sf-primary);
+      color: var(--text-inverse);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+      background: var(--sf-secondary);
+    }
+    
+    /* Code blocks with Salesforce styling */
+    code {
+      background: var(--bg-secondary);
+      color: var(--sf-dark);
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: "Monaco", "Courier New", monospace;
+    }
+    
+    pre {
+      background: var(--bg-secondary);
+      border-left: 4px solid var(--sf-primary);
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
     }
     
     @media (max-width: 768px) {
