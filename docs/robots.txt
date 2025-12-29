@@ -1,0 +1,20 @@
+# robots.txt for SF-Bench GitHub Pages
+# https://yasarshaikh.github.io/SF-bench/
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://yasarshaikh.github.io/SF-bench/sitemap.xml
+
+# Disallow internal folders
+Disallow: /_internal/
+Disallow: /results/
+Disallow: /solutions/
+Disallow: /workspace/
+Disallow: /logs/
+
+# Allow important pages
+Allow: /docs/
+Allow: /guides/
+Allow: /reference/

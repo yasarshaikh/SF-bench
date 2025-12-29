@@ -28,6 +28,11 @@ from sfbench.utils.solution_loader import SolutionLoader
 from sfbench.utils.sfdx import verify_devhub, create_scratch_org, delete_scratch_org, get_scratch_org_username
 from sfbench.utils.ai_agent import AIAgent, create_openrouter_agent, create_gemini_agent, create_routellm_agent
 from sfbench.validators.functional_validator import FunctionalValidator, FunctionalValidationResult, ValidationLevel
+from sfbench.utils.preflight import PreflightValidator, interactive_setup
+from sfbench.utils.schema import create_evaluation_report, EvaluationReport
+from sfbench.utils.reporting import make_run_report
+from sfbench.utils.result_converter import convert_test_result_to_instance
+from sfbench.utils.logging_utils import get_log_manager
 
 
 def run_evaluation(
@@ -39,7 +44,10 @@ def run_evaluation(
     skip_devhub: bool = False,
     functional_validation: bool = False,
     scratch_org_alias: Optional[str] = None,
-    provider: Optional[str] = None
+    provider: Optional[str] = None,
+    interactive: bool = False,
+    skip_preflight: bool = False,
+    skip_llm_check: bool = False
 ) -> Dict[str, Any]:
     """
     Run a complete evaluation for a model.
@@ -54,6 +62,9 @@ def run_evaluation(
         functional_validation: Enable full functional validation (requires scratch org)
         scratch_org_alias: Alias for scratch org to use for functional testing
         provider: Explicitly specified AI provider
+        interactive: Enable interactive prompts for missing configuration
+        skip_preflight: Skip all pre-flight checks
+        skip_llm_check: Skip LLM model format validation (faster)
         
     Returns:
         Evaluation results dictionary
@@ -68,6 +79,80 @@ def run_evaluation(
     
     workspace_dir = Path("workspace")
     workspace_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Pre-flight checks
+    if not skip_preflight:
+        print("\n" + "=" * 70)
+        print("🔍 PRE-FLIGHT CHECKS")
+        print("=" * 70)
+        
+        # Auto-detect provider if not specified
+        if not provider:
+            if "grok" in model_name.lower() or model_name.startswith("gpt-5") or model_name.startswith("claude-sonnet-4") or model_name.startswith("claude-opus-4"):
+                provider = "routellm"
+            elif model_name.startswith("anthropic/") or model_name.startswith("openai/") or model_name.startswith("meta-llama/"):
+                provider = "openrouter"
+            elif "gemini" in model_name.lower():
+                provider = "gemini"
+            else:
+                provider = "openrouter"  # Default
+        
+        # Determine required scratch orgs (estimate: 1 per task that needs it)
+        # For now, we'll use a conservative estimate
+        required_scratch_orgs = 1  # We create one shared org
+        
+        validator = PreflightValidator()
+        preflight_result = validator.run_all_checks(
+            model_name=model_name,
+            provider=provider,
+            required_scratch_orgs=required_scratch_orgs,
+            skip_devhub=skip_devhub,
+            skip_llm_check=skip_llm_check
+        )
+        
+        # Print check results
+        print("\n📋 Check Results:")
+        for check_name, (passed, message) in preflight_result.checks.items():
+            status = "✅" if passed else "❌"
+            print(f"  {status} {check_name}: {message}")
+        
+        if preflight_result.warnings:
+            print("\n⚠️  Warnings:")
+            for warning in preflight_result.warnings:
+                print(f"  - {warning}")
+        
+        if preflight_result.errors:
+            print("\n❌ Errors:")
+            for error in preflight_result.errors:
+                print(f"  - {error}")
+        
+        # Handle failures
+        if not preflight_result.passed:
+            if interactive:
+                print("\n🔧 Attempting interactive setup...")
+                interactive_setup()
+                # Re-run checks
+                preflight_result = validator.run_all_checks(
+                    model_name=model_name,
+                    provider=provider,
+                    required_scratch_orgs=required_scratch_orgs,
+                    skip_devhub=skip_devhub,
+                    skip_llm_check=skip_llm_check
+                )
+                
+                if not preflight_result.passed:
+                    print("\n❌ Pre-flight checks failed after interactive setup.")
+                    print("   Please fix the issues above and try again.")
+                    print("   Or use --skip-preflight to proceed anyway (not recommended).")
+                    sys.exit(1)
+            else:
+                print("\n❌ Pre-flight checks failed.")
+                print("   Use --interactive to set up missing configuration interactively,")
+                print("   or --skip-preflight to proceed anyway (not recommended).")
+                sys.exit(1)
+        
+        print("\n✅ All pre-flight checks passed!")
+        print("=" * 70 + "\n")
     
     # Verify Dev Hub and create scratch org
     scratch_org_created = False
@@ -198,7 +283,7 @@ def run_evaluation(
     results = engine.run_all_tasks(solutions if solutions else None)
     
     # Run functional validation BEFORE cleanup (org must still exist!)
-    functional_results = []
+    functional_results_dict = {}  # Map task_id -> FunctionalValidationResult
     if functional_validation and scratch_org_alias:
         print("\n🔬 Running functional validation...")
         try:
@@ -239,7 +324,7 @@ def run_evaluation(
                                 func_result.deployment_passed = True
                                 func_result.calculate_score()
                             
-                            functional_results.append(func_result.to_dict())
+                            functional_results_dict[result.task_id] = func_result
                             print(f"   ✅ {result.task_id}: Score {func_result.score:.1f}%")
                         except Exception as e:
                             print(f"   ⚠️  {result.task_id}: Functional validation error: {e}")
@@ -250,7 +335,7 @@ def run_evaluation(
                             )
                             error_result.overall_status = "error"
                             error_result.score = 0.0
-                            functional_results.append(error_result.to_dict())
+                            functional_results_dict[result.task_id] = error_result
         except Exception as e:
             print(f"⚠️  Functional validation failed: {e}")
             import traceback
@@ -265,9 +350,51 @@ def run_evaluation(
         except Exception as e:
             print(f"⚠️  Warning: Could not delete scratch org: {e}")
     
-    # Generate evaluation summary with segment breakdown
+    # Generate evaluation summary with segment breakdown (legacy format)
     segment_results = calculate_segment_results(results)
     
+    # Create schema v2 evaluation report
+    dataset_name = tasks_file.stem if tasks_file else "verified"
+    report = create_evaluation_report(
+        model_name=model_name,
+        dataset=dataset_name,
+        config={
+            "tasks_file": str(tasks_file),
+            "validation_mode": "functional" if functional_validation else "deployment",
+            "max_workers": max_workers,
+            "functional_validation": functional_validation,
+            "scratch_org_alias": scratch_org_alias,
+        }
+    )
+    report.run_id = f"{model_safe_name}-{timestamp}"
+    
+    # Set up log manager for this run
+    log_manager = get_log_manager()
+    
+    # Convert TestResults to InstanceResults
+    for result in results:
+        func_result = functional_results_dict.get(result.task_id)
+        instance = convert_test_result_to_instance(result, model_name, func_result)
+        
+        # Set log path in instance
+        log_path = log_manager.get_relative_log_path(
+            run_id=report.run_id,
+            model_name=model_safe_name,
+            instance_id=result.task_id,
+            log_type="run_instance"
+        )
+        instance.log_path = log_path
+        
+        report.add_instance(instance)
+    
+    # Calculate summary
+    report.calculate_summary()
+    
+    # Generate reports (JSON + Markdown)
+    print("\n📊 Generating evaluation reports...")
+    generated_files = make_run_report(report, str(output_dir))
+    
+    # Also save legacy format for backward compatibility
     evaluation = {
         "model": model_name,
         "timestamp": datetime.now().isoformat(),
@@ -280,7 +407,7 @@ def run_evaluation(
         "error": sum(1 for r in results if r.status.value == "ERROR"),
         "pass_rate": 0.0,
         "segment_results": segment_results,
-        "functional_validation": functional_results if functional_results else None,
+        "functional_validation": [fr.to_dict() for fr in functional_results_dict.values()] if functional_results_dict else None,
         "results": [r.to_dict() for r in results]
     }
     
@@ -289,14 +416,16 @@ def run_evaluation(
             (evaluation["passed"] / evaluation["total_tasks"]) * 100, 2
         )
     
-    # Save evaluation
+    # Save legacy format
     eval_file = output_dir / f"evaluation_{model_safe_name}_{timestamp}.json"
     with open(eval_file, 'w') as f:
         json.dump(evaluation, f, indent=2)
     
     # Print results
     print_results(evaluation)
-    print(f"\n💾 Results saved to: {eval_file}")
+    print(f"\n💾 Legacy results saved to: {eval_file}")
+    print(f"📊 Schema v2 report: {generated_files.get('json', 'N/A')}")
+    print(f"📝 Markdown summary: {generated_files.get('markdown', 'N/A')}")
     
     return evaluation
 
@@ -423,6 +552,24 @@ Examples:
     )
     
     parser.add_argument(
+        '--interactive', '-i',
+        action='store_true',
+        help='Enable interactive prompts for missing configuration'
+    )
+    
+    parser.add_argument(
+        '--skip-preflight',
+        action='store_true',
+        help='Skip all pre-flight checks (not recommended)'
+    )
+    
+    parser.add_argument(
+        '--skip-llm-check',
+        action='store_true',
+        help='Skip LLM model format validation (faster, but less safe)'
+    )
+    
+    parser.add_argument(
         '--tasks', '-t',
         type=str,
         default='data/tasks/verified.json',
@@ -490,7 +637,10 @@ Examples:
         skip_devhub=args.skip_devhub,
         functional_validation=args.functional,
         scratch_org_alias=args.scratch_org,
-        provider=args.provider
+        provider=args.provider,
+        interactive=args.interactive,
+        skip_preflight=args.skip_preflight,
+        skip_llm_check=args.skip_llm_check
     )
 
 

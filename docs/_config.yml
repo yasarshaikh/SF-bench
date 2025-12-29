@@ -20,7 +20,7 @@ twitter:
   username: yasarshaikh
   card: summary_large_image
 
-# Keywords for discoverability
+# Enhanced SEO Keywords for discoverability
 keywords:
   - salesforce benchmark
   - ai coding agents
@@ -37,9 +37,31 @@ keywords:
   - einstein ai
   - copilot salesforce
   - ai benchmark 2024
+  - salesforce ai benchmark
+  - ai coding benchmark
+  - salesforce llm benchmark
+  - code generation benchmark
+  - salesforce automation testing
+  - ai agent evaluation
+  - salesforce development tools
+  - apex code generation
+  - lightning web component testing
+  - salesforce flow testing
+  - ai code quality
+  - salesforce best practices
+  - llm code generation
+  - salesforce scratch org
+  - functional validation
 
 # Open Graph for social sharing
 og_image: /assets/og-image.png
+
+# Language and locale
+lang: en-US
+locale: en_US
+
+# Search engine optimization
+search: true
 
 # Plugins
 plugins:

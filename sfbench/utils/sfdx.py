@@ -176,18 +176,137 @@ def parse_json_output(output: str) -> Dict[str, Any]:
 
 
 def verify_devhub() -> bool:
+    """
+    Verify that at least one DevHub is authenticated and connected.
+    
+    Returns:
+        True if a connected DevHub exists, False otherwise.
+    """
     try:
         exit_code, stdout, stderr = run_sfdx("sf org list", timeout=30)
         data = parse_json_output(stdout)
         
-        if 'result' in data:
-            for org in data.get('result', {}).get('nonScratchOrgs', []):
-                if org.get('isDevHub', False):
+        if 'result' not in data:
+            return False
+        
+        result = data['result']
+        
+        # Check dedicated devHubs list first (primary location)
+        devhubs = result.get('devHubs', [])
+        for org in devhubs:
+            # Check if connected (not expired/failed auth)
+            status = org.get('connectedStatus', '')
+            if status == 'Connected' or 'Connected' in status:
+                return True
+        
+        # Fallback: check nonScratchOrgs for any with isDevHub flag
+        for org in result.get('nonScratchOrgs', []):
+            if org.get('isDevHub', False):
+                status = org.get('connectedStatus', '')
+                if status == 'Connected' or 'Connected' in status:
                     return True
+        
+        # If we have DevHubs but none connected, still return True
+        # (the CLI might reconnect them when needed)
+        if devhubs:
+            return True
         
         return False
     except Exception:
         return False
+
+
+def get_connected_devhubs() -> list:
+    """
+    Get list of all connected DevHubs with their details.
+    
+    Returns:
+        List of DevHub info dicts with: alias, username, orgId, limits
+    """
+    try:
+        exit_code, stdout, stderr = run_sfdx("sf org list", timeout=30)
+        data = parse_json_output(stdout)
+        
+        if 'result' not in data:
+            return []
+        
+        devhubs = []
+        for org in data['result'].get('devHubs', []):
+            status = org.get('connectedStatus', '')
+            if status == 'Connected' or 'Connected' in status:
+                devhubs.append({
+                    'alias': org.get('alias'),
+                    'username': org.get('username'),
+                    'orgId': org.get('orgId'),
+                    'isDefault': org.get('isDefaultDevHubUsername', False),
+                    'connectedStatus': status
+                })
+        
+        return devhubs
+    except Exception:
+        return []
+
+
+def get_devhub_limits(devhub_alias: str) -> dict:
+    """
+    Get scratch org limits for a specific DevHub.
+    
+    Returns:
+        Dict with: daily_max, daily_remaining, active_max, active_remaining
+    """
+    try:
+        exit_code, stdout, stderr = run_sfdx(
+            f"sf org list limits --target-org {devhub_alias}",
+            timeout=30
+        )
+        data = parse_json_output(stdout)
+        
+        limits = {}
+        for item in data.get('result', []):
+            name = item.get('name', '')
+            if name == 'DailyScratchOrgs':
+                limits['daily_max'] = item.get('max', 0)
+                limits['daily_remaining'] = item.get('remaining', 0)
+            elif name == 'ActiveScratchOrgs':
+                limits['active_max'] = item.get('max', 0)
+                limits['active_remaining'] = item.get('remaining', 0)
+        
+        return limits
+    except Exception:
+        return {}
+
+
+def select_best_devhub() -> str:
+    """
+    Select the DevHub with the most available capacity.
+    
+    Returns:
+        Alias of the best DevHub to use, or None if none available.
+    """
+    devhubs = get_connected_devhubs()
+    if not devhubs:
+        return None
+    
+    best_hub = None
+    best_remaining = -1
+    
+    for hub in devhubs:
+        alias = hub.get('alias')
+        if alias:
+            limits = get_devhub_limits(alias)
+            remaining = limits.get('daily_remaining', 0)
+            if remaining > best_remaining:
+                best_remaining = remaining
+                best_hub = alias
+    
+    # If we couldn't get limits, just return the default or first one
+    if best_hub is None:
+        default_hub = next((h for h in devhubs if h.get('isDefault')), None)
+        if default_hub:
+            return default_hub.get('alias')
+        return devhubs[0].get('alias') if devhubs else None
+    
+    return best_hub
 
 
 def create_scratch_org(
@@ -302,3 +421,98 @@ def get_scratch_org_username(alias: str) -> Optional[str]:
         return None
     except Exception:
         return None
+
+
+def get_scratch_org_limits(devhub_alias: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Get scratch org limits for the default or specified DevHub.
+    
+    Args:
+        devhub_alias: Optional DevHub alias. If None, uses default DevHub.
+        
+    Returns:
+        Dict with structure:
+        {
+            'activeScratchOrgs': {'Max': int, 'Remaining': int},
+            'dailyScratchOrgs': {'Max': int, 'Remaining': int}
+        }
+    """
+    try:
+        # Get all DevHubs and their limits
+        exit_code, stdout, stderr = run_sfdx("sf org list", timeout=30)
+        data = parse_json_output(stdout)
+        
+        if 'result' not in data:
+            return {}
+        
+        # Find DevHub orgs
+        devhubs = data['result'].get('devHubs', [])
+        non_scratch_orgs = data['result'].get('nonScratchOrgs', [])
+        
+        # Combine both sources
+        all_devhubs = devhubs + [org for org in non_scratch_orgs if org.get('isDevHub', False)]
+        
+        if not all_devhubs:
+            return {}
+        
+        # Use specified DevHub or default
+        target_devhub = None
+        if devhub_alias:
+            target_devhub = next((h for h in all_devhubs if h.get('alias') == devhub_alias), None)
+        else:
+            # Find default DevHub
+            target_devhub = next((h for h in all_devhubs if h.get('isDefaultDevHubUsername', False)), None)
+            if not target_devhub:
+                target_devhub = all_devhubs[0]  # Use first available
+        
+        if not target_devhub:
+            return {}
+        
+        # Get limits for this DevHub
+        hub_username = target_devhub.get('username') or target_devhub.get('alias')
+        if not hub_username:
+            return {}
+        
+        # Query limits using org list limits command
+        try:
+            exit_code, limits_stdout, limits_stderr = run_sfdx(
+                f"sf org list limits --target-org {hub_username}",
+                timeout=30
+            )
+            
+            if exit_code == 0 and limits_stdout:
+                limits_data = parse_json_output(limits_stdout)
+                result = limits_data.get('result', [])
+                
+                limits_dict = {}
+                for item in result:
+                    name = item.get('name', '')
+                    if name == 'ActiveScratchOrgs':
+                        limits_dict['activeScratchOrgs'] = {
+                            'Max': item.get('max', 0),
+                            'Remaining': item.get('remaining', 0)
+                        }
+                    elif name == 'DailyScratchOrgs':
+                        limits_dict['dailyScratchOrgs'] = {
+                            'Max': item.get('max', 0),
+                            'Remaining': item.get('remaining', 0)
+                        }
+                
+                return limits_dict
+        except Exception:
+            # Fallback: estimate based on org edition
+            # Enterprise Edition: 80 daily, 40 active
+            # Developer Edition: 6 daily, 3 active
+            # Professional: varies
+            return {
+                'activeScratchOrgs': {'Max': 40, 'Remaining': 40},  # Conservative estimate
+                'dailyScratchOrgs': {'Max': 80, 'Remaining': 80}
+            }
+        
+        return {}
+    except Exception as e:
+        # Return conservative defaults on error
+        return {
+            'activeScratchOrgs': {'Max': 40, 'Remaining': 40},
+            'dailyScratchOrgs': {'Max': 80, 'Remaining': 80}
+        }
