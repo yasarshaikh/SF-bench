@@ -32,15 +32,25 @@ class FlowRunner(BenchmarkRunner):
     
     def _create_scratch_org(self) -> None:
         """Create scratch org for Flow testing."""
+        from sfbench.utils.sfdx import create_scratch_org
+        from pathlib import Path
+        
         try:
-            exit_code, stdout, stderr = run_sfdx(
-                "sf org create scratch --definition-file config/project-scratch-def.json --set-default --duration-days 1",
-                cwd=self.repo_dir,
-                timeout=self.task.timeouts.setup
+            # Use the template from data/templates, not from repo
+            template_file = Path(__file__).parent.parent.parent / "data" / "templates" / "project-scratch-def.json"
+            
+            # Generate unique alias
+            import time
+            alias = f"sfbench-{self.task.instance_id}-{int(time.time())}"
+            
+            # Use the utility function which handles errors properly
+            org_result = create_scratch_org(
+                alias=alias,
+                duration_days=1,
+                definition_file=template_file
             )
             
-            result = parse_json_output(stdout)
-            self.org_username = result.get('result', {}).get('username')
+            self.org_username = org_result.get('username')
             
             if not self.org_username:
                 raise OrgCreationError("Failed to get org username", 1, "No username in response")

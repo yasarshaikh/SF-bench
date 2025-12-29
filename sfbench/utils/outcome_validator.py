@@ -32,7 +32,12 @@ class OutcomeValidator:
         """
         self.task = task
         self.workspace_dir = workspace_dir
+        # Ensure workspace directory exists
+        workspace_dir.mkdir(parents=True, exist_ok=True)
         self.repo_dir = workspace_dir / task.instance_id
+        # Ensure repo_dir exists (should be created by setup, but defensive check)
+        if not self.repo_dir.exists():
+            self.repo_dir.mkdir(parents=True, exist_ok=True)
     
     def validate_outcome(
         self,
