@@ -12,6 +12,8 @@ class BenchmarkRunner(ABC):
     def __init__(self, task: Task, workspace_dir: Path, scratch_org_alias: Optional[str] = None):
         self.task = task
         self.workspace_dir = workspace_dir
+        # Ensure workspace directory exists
+        workspace_dir.mkdir(parents=True, exist_ok=True)
         self.repo_dir = workspace_dir / task.instance_id
         self.scratch_org_alias = scratch_org_alias
         self.start_time: Optional[float] = None
