@@ -274,9 +274,85 @@ class PreflightValidator:
                 if not api_key:
                     return False, "GOOGLE_API_KEY or GEMINI_API_KEY not set"
                 
-                # For Gemini, we'll do a simpler check
-                # (Full format check would require google.generativeai import)
-                return True, f"✅ Gemini API key configured (format check skipped for speed)"
+                # Test format generation for Gemini (CRITICAL: catches invalid format issues)
+                try:
+                    import google.generativeai as genai
+                    genai.configure(api_key=api_key)
+                    
+                    # Use the actual model name if provided, otherwise default
+                    test_model = model_name if model_name else "gemini-2.5-flash"
+                    if test_model.startswith("models/"):
+                        test_model = test_model.replace("models/", "")
+                    
+                    model = genai.GenerativeModel(test_model)
+                    
+                    # Test prompt that should generate a diff
+                    test_prompt = """You are an expert Salesforce developer. Generate solutions as unified diff patches.
+
+CRITICAL INSTRUCTIONS:
+1. Output ONLY the raw patch content, NO markdown code blocks
+2. Start directly with: diff --git a/path/to/file b/path/to/file
+3. Use proper unified diff format
+
+Generate a simple git diff patch to add a comment '// Test' to a file force-app/main/default/classes/Test.cls"""
+                    
+                    response = model.generate_content(
+                        test_prompt,
+                        generation_config={
+                            "temperature": 0.1,
+                            "max_output_tokens": 500,
+                        }
+                    )
+                    
+                    content = response.text if hasattr(response, 'text') else str(response)
+                    
+                    # Check format - must have proper diff markers AND actual diff content lines
+                    # This matches the validation in git.py apply_patch()
+                    has_diff_header = (
+                        content.strip().startswith('diff --git') or
+                        ('---' in content and '+++' in content)
+                    )
+                    
+                    # CRITICAL: Must have actual diff content lines (+, -, or @@)
+                    # This is what git.py checks - just having header isn't enough
+                    has_diff_content = any(
+                        line.startswith(('+', '-', '@@')) and 
+                        not line.startswith('+++') and 
+                        not line.startswith('---')
+                        for line in content.split('\n')
+                    )
+                    
+                    has_markdown = '```' in content
+                    
+                    # Check for common Gemini 3 Flash issues
+                    is_plain_text = not has_diff_header and not has_markdown
+                    is_markdown_only = has_markdown and not has_diff_header
+                    has_header_but_no_content = has_diff_header and not has_diff_content
+                    
+                    if is_plain_text or is_markdown_only:
+                        return False, f"❌ Model '{model_name}' does NOT generate proper git diff format. It generates {'plain text' if is_plain_text else 'markdown blocks'} instead of unified diff patches. This will cause all tasks to fail."
+                    
+                    if has_header_but_no_content:
+                        return False, f"❌ Model '{model_name}' generates diff header but NO actual diff content lines (missing +, -, or @@ lines). This will cause 'Patch does not contain valid diff content' errors."
+                    
+                    if not has_diff_header:
+                        return False, f"❌ Model '{model_name}' does not generate proper git diff format (missing diff header)"
+                    
+                    if not has_diff_content:
+                        return False, f"❌ Model '{model_name}' does not generate proper git diff format (missing diff content lines)"
+                    
+                    return True, f"✅ Model '{model_name}' available and generates valid diff format"
+                    
+                except ImportError:
+                    # Fallback if google.generativeai not installed
+                    return True, f"⚠️  Gemini API key configured (format check skipped - install google-generativeai for full validation)"
+                except Exception as e:
+                    # If format check fails, that's a problem
+                    error_msg = str(e)
+                    if "does not exist" in error_msg.lower() or "not found" in error_msg.lower():
+                        return False, f"Model '{model_name}' not found or not available: {error_msg}"
+                    # For other errors, still try to check format from error message
+                    return False, f"Format validation failed: {error_msg}"
                 
             else:
                 # For other providers, just check API key exists
