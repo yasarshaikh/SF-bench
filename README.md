@@ -271,6 +271,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 <p align="center">
+  <img src="docs/assets/logo.png" alt="SF-Bench" width="120" height="120"/>
+  <br><br>
   <strong>⭐ Star us if you find SF-Bench useful!</strong>
   <br>
   <em>Help us build the best Salesforce AI benchmark</em>
