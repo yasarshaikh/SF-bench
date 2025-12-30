@@ -110,4 +110,4 @@ After pre-flight checks pass, the evaluation proceeds normally:
 
 ---
 
-*Last updated: 2025-12-29*
+*Last updated: 2025-12-30*

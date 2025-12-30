@@ -7,7 +7,7 @@ keywords: salesforce benchmark leaderboard, ai model rankings, salesforce ai per
 
 # SF-Bench Leaderboard
 
-*Last updated: 2025-12-29 22:57 UTC*
+*Last updated: 2025-12-30 UTC*
 
 > **Status**: SF-Bench is now running full evaluations with functional validation and weighted scoring (0-100 points). Results show realistic performance with functional validation enabled.
 
@@ -23,7 +23,9 @@ keywords: salesforce benchmark leaderboard, ai model rankings, salesforce ai per
 
 ### Known Issues
 
-**Claude Opus 4.5 (RouteLLM)**: 0% pass rate - All tasks failed due to corrupt patch generation. This is a known issue with RouteLLM provider where generated patches are malformed and cannot be applied. Evaluation completed but no valid results.
+**Claude Opus 4.5 (RouteLLM) - 2025-12-29**: 0% pass rate - All tasks failed due to patch application issues. This evaluation was completed with the previous patch application system. Re-evaluation recommended with improved patch handling.
+
+**Grok 4.1 Fast (RouteLLM) - 2025-12-30**: Evaluation completed. Errors were due to error handling bugs (org creation warning parsing, malformed patch cleaning) which have been fixed. Re-evaluation recommended.
 
 > **Note**: Functional Score (0-100) is calculated using weighted validation: Deploy(10%) + Unit Tests(20%) + Functional(50%) + Bulk(10%) + No Tweaks(10%). See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.md) for details.
 
@@ -79,12 +81,18 @@ SF-Bench is now running full evaluations with functional validation:
 
 ### Recent Evaluations
 
+**Grok 4.1 Fast (RouteLLM) - 2025-12-30**
+- **Result**: 0% pass rate (0/12 tasks)
+- **Issues**: 10 tasks failed due to org creation error parsing, 2 tasks failed due to malformed patch handling
+- **Status**: Errors were due to error handling bugs (not model issues). Fixes implemented:
+  - Improved org creation error parsing (filters CLI warnings)
+  - Enhanced patch cleaning (handles malformed patches)
+- **Note**: Re-evaluation recommended with improved error handling
+
 **Claude Opus 4.5 (RouteLLM) - 2025-12-29**
 - **Result**: 0% pass rate (0/12 tasks)
-- **Issue**: Corrupt patch generation - all patches failed to apply
-- **Error Pattern**: "corrupt patch at line X" errors across all tasks
-- **Status**: Known issue with RouteLLM provider patch format
-- **Note**: This is consistent with previous Opus 4.5 evaluations on RouteLLM
+- **Issue**: Patch application failures with previous patch system
+- **Status**: Re-evaluation recommended with improved multi-strategy patch application
 
 ## Evaluation Methodology
 
