@@ -10,6 +10,55 @@ Complete guide to running SF-Bench evaluations, from basic usage to advanced con
 
 ---
 
+## Prerequisites
+
+Before running evaluations, ensure you have:
+
+### Required Setup
+
+1. **API Key** - Set environment variable for your provider:
+   ```bash
+   # RouteLLM (for Grok 4, GPT-5, Claude Opus 4)
+   export ROUTELLM_API_KEY="your-key"
+   
+   # OpenRouter (for Claude, GPT-4, Llama)
+   export OPENROUTER_API_KEY="your-key"
+   
+   # Google Gemini
+   export GOOGLE_API_KEY="your-key"
+   
+   # Anthropic (direct)
+   export ANTHROPIC_API_KEY="your-key"
+   
+   # OpenAI (direct)
+   export OPENAI_API_KEY="your-key"
+   ```
+
+2. **DevHub Authentication**:
+   ```bash
+   sf org login web --alias DevHub --set-default-dev-hub
+   ```
+
+3. **Scratch Org Capacity**:
+   - **Minimum:** 1 scratch org (with `--max-workers 1`)
+   - **Recommended:** 2-3 scratch orgs (with `--max-workers 2-3`)
+   - **Maximum:** 5 scratch orgs (with `--max-workers 5`)
+   - **Note:** Each worker needs its own scratch org. For 12 tasks, you'll create 12 orgs total (sequentially or in parallel based on workers).
+
+### Resource Estimates
+
+**Full Evaluation (12 tasks, `--functional`):**
+- **Scratch Orgs:** 1-5 concurrent orgs (based on `--max-workers`)
+- **Token Usage:** ~96,000 tokens (~0.1M tokens)
+  - Per task: ~8,000 tokens (input + output + context)
+- **Time:** 1-2 hours
+- **Cost:** $0.10-$2 (varies by model)
+
+**Lite Evaluation (5 tasks):**
+- **Scratch Orgs:** 1-3 concurrent orgs
+- **Token Usage:** ~40,000 tokens
+- **Time:** ~10-15 minutes
+
 ## Quick Start
 
 ```bash

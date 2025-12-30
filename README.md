@@ -38,6 +38,45 @@
 
 ---
 
+## 📋 Prerequisites
+
+Before running SF-Bench, ensure you have:
+
+| Requirement | Details | Where to Get |
+|------------|---------|--------------|
+| **Python 3.10+** | Required runtime | [python.org](https://www.python.org/downloads/) |
+| **Salesforce CLI** | `sf` command-line tool | [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) |
+| **DevHub Org** | Salesforce org with scratch org allocation | [Create DevHub](https://developer.salesforce.com/signup) |
+| **API Key** | Provider-specific key (see below) | Provider dashboard |
+
+### API Key Requirements by Provider
+
+| Provider | Environment Variable | Example Models | Get Key |
+|----------|---------------------|----------------|---------|
+| **RouteLLM** | `ROUTELLM_API_KEY` | Grok 4.1, GPT-5, Claude Opus 4 | [RouteLLM](https://routellm.com) |
+| **OpenRouter** | `OPENROUTER_API_KEY` | Claude Sonnet, GPT-4, Llama | [OpenRouter](https://openrouter.ai) |
+| **Google Gemini** | `GOOGLE_API_KEY` | Gemini 2.5 Flash, Gemini Pro | [Google AI Studio](https://aistudio.google.com) |
+| **Anthropic** | `ANTHROPIC_API_KEY` | Claude 3.5 Sonnet, Claude Opus | [Anthropic](https://console.anthropic.com) |
+| **OpenAI** | `OPENAI_API_KEY` | GPT-4, GPT-3.5 | [OpenAI](https://platform.openai.com) |
+
+### Resource Requirements
+
+**For Full Evaluation (12 tasks):**
+- **Scratch Orgs:** 1-5 orgs (depends on `--max-workers`)
+  - Minimum: 1 org (sequential, `--max-workers 1`)
+  - Recommended: 2-3 orgs (`--max-workers 2-3`)
+  - Maximum: 5 orgs (`--max-workers 5`)
+- **Token Usage:** ~100,000 tokens (~0.1M tokens)
+  - Per task: ~8,000 tokens (input + output + context)
+  - Full run: ~96,000 tokens
+- **Time:** 1-2 hours (with functional validation)
+- **Cost:** $0.10-$2 per evaluation (varies by model)
+
+**For Lite Evaluation (5 tasks):**
+- **Scratch Orgs:** 1-3 orgs
+- **Token Usage:** ~40,000 tokens
+- **Time:** ~10-15 minutes
+
 ## 🚀 Quick Start (5 Minutes)
 
 ```bash
@@ -46,11 +85,11 @@ git clone https://github.com/yasarshaikh/SF-bench.git
 cd SF-bench
 pip install -e .
 
-# 2. Set API key
-export OPENROUTER_API_KEY="your-key"
+# 2. Set API key (example: RouteLLM for Grok 4)
+export ROUTELLM_API_KEY="your-key"
 
 # 3. Run evaluation
-python scripts/evaluate.py --model anthropic/claude-3.5-sonnet --tasks data/tasks/verified.json
+python scripts/evaluate.py --model grok-4.1-fast --tasks data/tasks/verified.json --functional
 ```
 
 **📖 [Full Quick Start Guide →](docs/quickstart.md)**
