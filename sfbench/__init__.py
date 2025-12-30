@@ -50,7 +50,12 @@ class TimeoutConfig:
 
 @dataclass
 class Task:
-    """A benchmark task definition."""
+    """
+    A benchmark task definition.
+    
+    Following SWE-bench methodology, each task should have a golden_patch
+    (verified human solution) to ensure the task is solvable before asking AI to solve it.
+    """
     instance_id: str
     task_type: TaskType
     repo_url: str
@@ -61,6 +66,8 @@ class Task:
     metadata: Optional[Dict[str, Any]] = None
     functional_validation: Optional[Dict[str, Any]] = None
     test_scripts: Optional[Dict[str, str]] = None
+    golden_patch: Optional[str] = None  # Reference to verified solution (diff format)
+    golden_patch_path: Optional[str] = None  # Path to golden patch file (relative to data/)
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Task':
@@ -92,7 +99,9 @@ class Task:
             timeouts=timeouts,
             metadata=data.get('metadata'),
             functional_validation=data.get('functional_validation'),
-            test_scripts=data.get('test_scripts')
+            test_scripts=data.get('test_scripts'),
+            golden_patch=data.get('golden_patch'),
+            golden_patch_path=data.get('golden_patch_path')
         )
     
     def to_dict(self) -> Dict[str, Any]:
@@ -118,5 +127,17 @@ class Task:
         
         if self.metadata:
             result['metadata'] = self.metadata
+        
+        if self.functional_validation:
+            result['functional_validation'] = self.functional_validation
+        
+        if self.test_scripts:
+            result['test_scripts'] = self.test_scripts
+        
+        if self.golden_patch:
+            result['golden_patch'] = self.golden_patch
+        
+        if self.golden_patch_path:
+            result['golden_patch_path'] = self.golden_patch_path
         
         return result

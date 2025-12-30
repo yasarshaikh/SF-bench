@@ -1,0 +1,30 @@
+[
+  {
+    "instance_id": "lightning-page-001",
+    "task_type": "LIGHTNING_PAGE",
+    "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
+    "base_commit": "main",
+    "problem_description": "Update the Property_Record_Page.flexipage-meta.xml to implement Dynamic Forms. Convert the existing page to: 1) Use field sections instead of the standard detail component, 2) Add visibility rules to show/hide sections based on Property Status (Available, Contracted, Sold), 3) Include a custom action bar with relevant quick actions, 4) Optimize for both desktop and mobile views.",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flexipages --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "dynamic_forms_enabled",
+        "visibility_rules_defined",
+        "mobile_optimized"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "lightning_page",
+      "subcategory": "dynamic-forms",
+      "verified_repo": true,
+      "repo_stars": 469,
+      "file_path": "force-app/main/default/flexipages/Property_Record_Page.flexipage-meta.xml"
+    }
+  }
+]

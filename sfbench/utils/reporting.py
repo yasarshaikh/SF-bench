@@ -80,7 +80,7 @@ def generate_markdown_summary(report: EvaluationReport) -> str:
     """
     summary = report.summary
     
-    # Header
+    # Header (SWE-bench style)
     md = f"""# SF-Bench Evaluation Report
 
 **Model:** {report.model_name}  
@@ -90,15 +90,18 @@ def generate_markdown_summary(report: EvaluationReport) -> str:
 
 ---
 
-## 📊 Overall Results
+## 📊 Overall Results (SWE-bench Compatible)
 
 | Metric | Value |
 |--------|-------|
-| **Total Tasks** | {summary.total_instances} |
-| **Resolved** | {summary.resolved_instances} ✅ |
-| **Failed** | {summary.failed_instances} ❌ |
-| **Errors** | {summary.error_instances} ⚠️ |
-| **Success Rate** | {summary.resolve_rate * 100:.1f}% |
+| **Total Instances** | {summary.total_instances} |
+| **Instances Submitted** | {getattr(summary, 'instances_submitted', summary.total_instances)} |
+| **Instances Completed** | {getattr(summary, 'instances_completed', summary.total_instances - summary.error_instances)} |
+| **Instances Resolved** | {summary.resolved_instances} ✅ |
+| **Instances Unresolved** | {getattr(summary, 'instances_unresolved', summary.failed_instances)} |
+| **Instances Error** | {summary.error_instances} ⚠️ |
+| **Instances Empty Patch** | {getattr(summary, 'instances_empty_patch', 0)} |
+| **Resolution Rate** | {getattr(summary, 'resolution_rate', summary.resolve_rate * 100):.1f}% |
 
 ---
 
@@ -107,6 +110,7 @@ def generate_markdown_summary(report: EvaluationReport) -> str:
 | Metric | Value |
 |--------|-------|
 | **Average Score** | {summary.avg_score:.1f}/100 |
+| **Average Functional Score** | {getattr(summary, 'avg_functional_score', 0):.1f}/50 |
 | **Median Score** | {summary.median_score:.1f}/100 |
 | **Min Score** | {summary.min_score}/100 |
 | **Max Score** | {summary.max_score}/100 |
@@ -134,7 +138,20 @@ def generate_markdown_summary(report: EvaluationReport) -> str:
 
 ---
 
-## 📋 Task Results
+## 📋 Task Results (SWE-bench Style)
+
+### Resolved Tasks ({len([i for i in report.instances if i.resolved])})
+{chr(10).join(f"- ✅ {inst.instance_id}" for inst in sorted(report.instances, key=lambda x: x.instance_id) if inst.resolved) if any(i.resolved for i in report.instances) else "*None*"}
+
+### Unresolved Tasks ({len([i for i in report.instances if not i.resolved and i.status.value == 'fail'])})
+{chr(10).join(f"- ❌ {inst.instance_id}" for inst in sorted(report.instances, key=lambda x: x.instance_id) if not inst.resolved and inst.status.value == 'fail') if any(not i.resolved and i.status.value == 'fail' for i in report.instances) else "*None*"}
+
+### Error Tasks ({len([i for i in report.instances if i.status.value == 'error'])})
+{chr(10).join(f"- ⚠️ {inst.instance_id}" for inst in sorted(report.instances, key=lambda x: x.instance_id) if inst.status.value == 'error') if any(i.status.value == 'error' for i in report.instances) else "*None*"}
+
+---
+
+## 📋 Detailed Task Results
 
 """
     

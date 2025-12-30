@@ -1,0 +1,31 @@
+[
+  {
+    "instance_id": "experience-cloud-001",
+    "task_type": "COMMUNITY",
+    "repo_url": "https://github.com/trailheadapps/ebikes-lwc",
+    "base_commit": "main",
+    "problem_description": "Enhance the E_Bikes1 Experience Cloud site with: 1) Custom landing page with featured products carousel, 2) Product category navigation using dynamic routing, 3) User profile page with order history, 4) Responsive design for mobile devices. Ensure all components work for guest and authenticated users with appropriate visibility rules.",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/experiences --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "landing_page_created",
+        "navigation_configured",
+        "guest_access_configured",
+        "responsive_design"
+      ]
+    },
+    "timeouts": {
+      "setup": 900,
+      "run": 600
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "experience_cloud",
+      "subcategory": "site-customization",
+      "verified_repo": true,
+      "repo_stars": 830,
+      "file_path": "force-app/main/default/experiences/E_Bikes1/"
+    }
+  }
+]

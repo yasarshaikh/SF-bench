@@ -20,6 +20,12 @@ class BenchmarkRunner(ABC):
         self.setup_complete = False
     
     def run(self, patch_diff: Optional[str] = None) -> TestResult:
+        """
+        Run the benchmark task with proper cleanup handling.
+        
+        CRITICAL: Always calls teardown() in finally block to prevent resource leaks.
+        This ensures scratch orgs are deleted even if the script crashes.
+        """
         self.start_time = time.time()
         
         try:
@@ -42,10 +48,14 @@ class BenchmarkRunner(ABC):
                 error_message=str(e)
             )
         finally:
+            # CRITICAL: Always cleanup, even on error or crash
+            # This prevents zombie scratch orgs from consuming daily limits
             try:
                 self.teardown()
             except Exception as e:
-                print(f"Warning: Teardown failed for {self.task.instance_id}: {str(e)}")
+                # Log cleanup failures but don't fail the task
+                print(f"⚠️  Warning: Teardown failed for {self.task.instance_id}: {str(e)}")
+                # TODO: Could log to a cleanup_failed.log file for manual cleanup
     
     @abstractmethod
     def setup(self) -> None:

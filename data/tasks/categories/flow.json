@@ -1,0 +1,60 @@
+[
+  {
+    "instance_id": "flow-screen-component-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Create a new Flow Screen Component in src-flows that allows users to perform multi-record selection with search and filtering capabilities. The component must: 1) Support both single and multi-select modes, 2) Implement server-side search for large datasets, 3) Expose output variables for selected record IDs, 4) Include accessibility compliance (WCAG 2.1 AA).",
+    "validation": {
+      "command": "sf project deploy start --source-dir src-flows --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "screen_component_created",
+        "multi_select_support",
+        "search_implemented",
+        "output_variables_defined"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "flow",
+      "subcategory": "screen-components",
+      "verified_repo": true,
+      "repo_stars": 384,
+      "file_path": "src-flows/main/default/lwc/"
+    }
+  },
+  {
+    "instance_id": "flow-invocable-action-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Create an invocable Apex action that integrates with the existing automation components. The action should: 1) Accept a collection of record IDs as input, 2) Perform bulk DML operations with proper error handling, 3) Return detailed success/failure results for each record, 4) Support transaction control (allow partial commits vs. all-or-nothing). Include comprehensive unit tests with minimum 85% coverage.",
+    "validation": {
+      "command": "sf apex run test --test-level RunLocalTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "invocable_annotation",
+        "bulk_support",
+        "error_handling",
+        "test_coverage_85"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "flow",
+      "subcategory": "invocable-actions",
+      "verified_repo": true,
+      "repo_stars": 384,
+      "file_path": "src-flows/main/default/classes/"
+    }
+  }
+]

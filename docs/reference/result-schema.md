@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Result Schema Reference
-description: Complete reference for SF-Bench result schema v2
+description: Complete reference for SF-Bench result schema v2 (SWE-bench compatible)
 ---
 
 # Result Schema Reference
@@ -17,22 +17,32 @@ Complete reference for SF-Bench result schema v2 format.
 
 ---
 
-## Top-Level Structure
+## Top-Level Structure (SWE-bench Compatible)
 
 ```json
 {
   "schema_version": "2.0",
   "run_id": "claude-sonnet-4.5-20251229_143000",
   "model_name": "anthropic/claude-3.5-sonnet",
+  "model_name_or_path": "anthropic/claude-3.5-sonnet",
   "dataset": "verified",
+  "created_at": "2025-12-29T14:30:00Z",
+  "start_time": "2025-12-29T14:30:00Z",
+  "end_time": "2025-12-29T16:45:00Z",
+  "evaluation_config": {...},
   "config": {...},
   "instances": [...],
   "summary": {...},
-  "start_time": "2025-12-29T14:30:00Z",
-  "end_time": "2025-12-29T16:45:00Z",
+  "resolved_ids": ["lwc-component-001", "apex-trigger-handler-001"],
+  "unresolved_ids": ["flow-screen-component-001"],
+  "error_ids": ["architecture-001"],
+  "empty_patch_ids": [],
+  "completed_ids": ["lwc-component-001", "apex-trigger-handler-001", "flow-screen-component-001"],
   "environment": {...}
 }
 ```
+
+**Note:** SF-Bench result schema is compatible with SWE-bench format for tool interoperability. Both field names are included for backward compatibility.
 
 ---
 
@@ -49,12 +59,18 @@ Format: `<model-name>-<timestamp>`
 Name of the AI model being evaluated.
 Examples: `"anthropic/claude-3.5-sonnet"`, `"gemini-2.5-flash"`
 
+### `model_name_or_path` (string, required)
+SWE-bench compatible field name (alias for `model_name`).
+
 ### `dataset` (string, required)
 Dataset used for evaluation.
 Options: `"verified"`, `"lite"`, `"full"`, or custom name
 
 ### `config` (object, required)
-Evaluation configuration.
+Evaluation configuration (backward compatibility).
+
+### `evaluation_config` (object, required)
+SWE-bench compatible field name (alias for `config`).
 
 ```json
 {
@@ -73,10 +89,28 @@ Array of `InstanceResult` objects (one per task).
 Summary statistics. See [Summary Object](#summary-object) below.
 
 ### `start_time` (string, required)
-ISO 8601 timestamp when evaluation started.
+ISO 8601 timestamp when evaluation started (backward compatibility).
+
+### `created_at` (string, required)
+SWE-bench compatible field name (alias for `start_time`).
 
 ### `end_time` (string, optional)
 ISO 8601 timestamp when evaluation completed.
+
+### `resolved_ids` (array, required)
+List of instance IDs that were successfully resolved (SWE-bench compatible).
+
+### `unresolved_ids` (array, required)
+List of instance IDs that failed validation (SWE-bench compatible).
+
+### `error_ids` (array, required)
+List of instance IDs that encountered errors (SWE-bench compatible).
+
+### `empty_patch_ids` (array, required)
+List of instance IDs with empty or missing patches (SWE-bench compatible).
+
+### `completed_ids` (array, required)
+List of instance IDs that completed (not errored) (SWE-bench compatible).
 
 ### `environment` (object, optional)
 Environment information (CLI version, Python version, etc.)
@@ -177,27 +211,45 @@ Overall statistics for the evaluation.
 ```json
 {
   "total_instances": 12,
+  "instances_submitted": 12,
+  "instances_completed": 7,
   "resolved_instances": 5,
+  "instances_resolved": 5,
+  "instances_unresolved": 2,
   "failed_instances": 2,
   "error_instances": 5,
+  "instances_error": 5,
+  "instances_empty_patch": 0,
   
-  "resolve_rate": 41.67,
+  "resolve_rate": 0.4167,
+  "resolution_rate": 41.67,
   
   "avg_score": 6.0,
+  "avg_functional_score": 3.0,
   "median_score": 0.0,
   "min_score": 0,
   "max_score": 100,
   
-  "deployment_pass_rate": 41.67,
-  "unit_test_pass_rate": 33.33,
-  "functional_pass_rate": 8.33,
+  "deployment_pass_rate": 0.4167,
+  "unit_test_pass_rate": 0.3333,
+  "functional_pass_rate": 0.0833,
   "bulk_pass_rate": 0.0,
-  "no_tweaks_pass_rate": 41.67,
+  "no_tweaks_pass_rate": 0.4167,
   
   "avg_duration_seconds": 245.3,
   "total_duration_seconds": 2943.6
 }
 ```
+
+**SWE-bench Compatible Fields:**
+- `instances_submitted`: Total instances submitted for evaluation
+- `instances_completed`: Instances that completed (not errored)
+- `instances_resolved`: Alias for `resolved_instances`
+- `instances_unresolved`: Instances that failed validation
+- `instances_error`: Alias for `error_instances`
+- `instances_empty_patch`: Instances with empty/missing patches
+- `resolution_rate`: Resolution rate as percentage (0-100)
+- `avg_functional_score`: Average functional validation score
 
 ---
 
