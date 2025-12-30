@@ -359,9 +359,9 @@ python -c "from sfbench.utils.schema import migrate_v1_to_v2; import json; print
 
 ## Related Documentation
 
-- [Evaluation Guide](guides/evaluation.md)
-- [Troubleshooting](guides/troubleshooting.md)
-- [FAQ](../faq.md)
+- [Evaluation Guide](../guides/evaluation.html)
+- [Troubleshooting](../guides/troubleshooting.html)
+- [FAQ](../faq.html)
 
 ---
 

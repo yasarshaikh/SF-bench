@@ -33,7 +33,7 @@ SF-Bench is purpose-built to close that gap with domain-specific tasks, verified
 | **Functional Outcomes** | Business requirement succeeds via CLI checks | Captures real-world success criteria |
 | **Bulk & Resilience** | Tasks run at scale without governor violations | Proves readiness for enterprise workloads |
 
-👉 See the [Validation Methodology](../VALIDATION_METHODOLOGY.md) for the exact scoring rubric.
+👉 See the [Validation Methodology](../VALIDATION_METHODOLOGY.html) for the exact scoring rubric.
 
 ---
 
@@ -52,7 +52,7 @@ Each dataset ships with task prompts, acceptance tests, and validation scripts s
 ## How to Run a Salesforce AI Benchmark in 5 Steps
 
 1. **Install & Authenticate**  
-   Follow the [Quick Start](../quickstart.md) to install SF-Bench, log in to your DevHub, and set API keys.
+   Follow the [Quick Start](../quickstart.html) to install SF-Bench, log in to your DevHub, and set API keys.
 2. **Select a Dataset**  
    Start with `data/tasks/lite.json` for a rapid sanity check, then graduate to `data/tasks/verified.json` for leaderboard-ready numbers.
 3. **Pick a Model Provider**  
@@ -68,7 +68,7 @@ Each dataset ships with task prompts, acceptance tests, and validation scripts s
 5. **Review Reports**  
    SF-Bench emits JSON + Markdown summaries under `results/` and `evaluation_results/` for easy sharing, diffing, and submissions.
 
-Need more detail? Jump to the [Evaluation Guide](../guides/evaluation.md) for advanced orchestration tips.
+Need more detail? Jump to the [Evaluation Guide](../guides/evaluation.html) for advanced orchestration tips.
 
 ---
 
@@ -81,7 +81,7 @@ Need more detail? Jump to the [Evaluation Guide](../guides/evaluation.md) for ad
 | **Functional Checks** | Business outcome verification | Patch applies + tests |
 | **Audience** | Enterprises, Salesforce partners, AI vendors | General-purpose LLM researchers |
 
-Read the full [comparison guide](../evaluation/comparison-with-swe-bench.md) to understand why both benchmarks complement each other.
+Read the full [comparison guide](../evaluation/comparison-with-swe-bench.html) to understand why both benchmarks complement each other.
 
 ---
 
@@ -96,7 +96,7 @@ Read the full [comparison guide](../evaluation/comparison-with-swe-bench.md) to 
 
 ## Results & Submissions
 
-1. Explore the live [Leaderboard](../LEADERBOARD.md) for current model standings.
+1. Explore the live [Leaderboard](../LEADERBOARD.html) for current model standings.
 2. Package your `report.json` and `summary.md` from `evaluation_results/`.
 3. [Submit results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) with reproduction steps and model metadata.
 
@@ -106,10 +106,10 @@ Every accepted submission improves community trust and builds the public record 
 
 ## Resources & Next Steps
 
-- 📚 [What is SF-Bench?](what-is-sf-bench.md)
-- 🚀 [Quick Start Guide](../quickstart.md)
-- 🧪 [Evaluation Guide](../guides/evaluation.md)
-- 🧰 [Troubleshooting](../guides/troubleshooting.md)
-- 🧾 [Result Schema Reference](../reference/result-schema.md)
+- 📚 [What is SF-Bench?](what-is-sf-bench.html)
+- 🚀 [Quick Start Guide](../quickstart.html)
+- 🧪 [Evaluation Guide](../guides/evaluation.html)
+- 🧰 [Troubleshooting](../guides/troubleshooting.html)
+- 🧾 [Result Schema Reference](../reference/result-schema.html)
 
 ✨ Need talking points for stakeholders? Share this page or link directly using `/salesforce-ai-benchmark/` for an easy-to-remember URL.

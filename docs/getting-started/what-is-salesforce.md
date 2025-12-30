@@ -162,10 +162,10 @@ Companies customize Salesforce to fit their needs:
 
 ## 📖 Next Steps
 
-1. **Understand SF-Bench**: [What is SF-Bench?](../getting-started/what-is-sf-bench.md)
+1. **Understand SF-Bench**: [What is SF-Bench?](../getting-started/what-is-sf-bench.html)
 2. **Try Salesforce**: Sign up for [Developer Edition](https://developer.salesforce.com/signup)
 3. **Learn Basics**: Complete [Trailhead basics](https://trailhead.salesforce.com)
-4. **Run SF-Bench**: Follow our [Quick Start Guide](../quickstart.md)
+4. **Run SF-Bench**: Follow our [Quick Start Guide](../quickstart.html)
 
 ---
 
@@ -178,4 +178,4 @@ Companies customize Salesforce to fit their needs:
 
 ---
 
-**Still confused?** Check out our [FAQ](../faq.md) or [open an issue](https://github.com/yasarshaikh/SF-bench/issues)!
+**Still confused?** Check out our [FAQ](../faq.html) or [open an issue](https://github.com/yasarshaikh/SF-bench/issues)!

@@ -27,7 +27,7 @@ keywords: salesforce benchmark leaderboard, ai model rankings, salesforce ai per
 
 **Grok 4.1 Fast (RouteLLM) - 2025-12-30**: Evaluation completed. Errors were due to error handling bugs (org creation warning parsing, malformed patch cleaning) which have been fixed. Re-evaluation recommended.
 
-> **Note**: Functional Score (0-100) is calculated using weighted validation: Deploy(10%) + Unit Tests(20%) + Functional(50%) + Bulk(10%) + No Tweaks(10%). See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.md) for details.
+> **Note**: Functional Score (0-100) is calculated using weighted validation: Deploy(10%) + Unit Tests(20%) + Functional(50%) + Bulk(10%) + No Tweaks(10%). See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.html) for details.
 
 ## Detailed Results
 
@@ -104,7 +104,7 @@ SF-Bench uses a **multi-level validation approach**:
 4. **Functional Validation**: Actual business outcomes verified (bulk operations, negative cases)
 5. **Production-Ready**: Security, error handling, governor limits
 
-See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.md) for details.
+See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.html) for details.
 
 ---
 
@@ -114,4 +114,4 @@ See [VALIDATION_METHODOLOGY.md](./VALIDATION_METHODOLOGY.md) for details.
 2. [Submit results via issue](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
 3. Results will be verified and added to leaderboard
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for details.
+See [CONTRIBUTING.md](../CONTRIBUTING.html) for details.

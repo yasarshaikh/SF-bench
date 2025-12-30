@@ -44,7 +44,7 @@ Existing AI benchmarks (SWE-bench, HumanEval, etc.) focus on general programming
 3. **Salesforce CLI** (sf command)
 4. **API key** for an AI model (OpenRouter, Gemini, Claude, etc.)
 
-See the [Quick Start Guide](quickstart.md) for setup instructions.
+See the [Quick Start Guide](quickstart.html) for setup instructions.
 
 ### How long does an evaluation take?
 
@@ -128,7 +128,7 @@ See [CONTRIBUTING.md](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBU
 
 SF-Bench measures and reports objective results. We don't make judgments about which models are "best."
 
-See the [Leaderboard](LEADERBOARD.md) for current evaluation results and rankings.
+See the [Leaderboard](LEADERBOARD.html) for current evaluation results and rankings.
 
 ### Why do some models fail functional validation?
 
@@ -221,7 +221,7 @@ Tools:
 2. DevHub not authenticated (re-run `sf org login`)
 3. Invalid scratch org definition (check `data/templates/project-scratch-def.json`)
 
-See [Troubleshooting Guide](guides/troubleshooting.md) for solutions.
+See [Troubleshooting Guide](guides/troubleshooting.html) for solutions.
 
 ### "API rate limit exceeded"
 
@@ -279,7 +279,7 @@ Yes! Example GitHub Actions workflow:
     SF_USERNAME: ${{ secrets.DEVHUB_USERNAME }}
 ```
 
-CI/CD integration guide coming soon. For now, see [Evaluation Guide](guides/evaluation.md) for running evaluations.
+CI/CD integration guide coming soon. For now, see [Evaluation Guide](guides/evaluation.html) for running evaluations.
 
 ### How do I analyze failure patterns?
 
@@ -392,7 +392,7 @@ Interested? [Vote here](https://github.com/yasarshaikh/SF-bench/discussions/1)
 
 If your question isn't answered here:
 
-1. Check the [Troubleshooting Guide](guides/troubleshooting.md)
+1. Check the [Troubleshooting Guide](guides/troubleshooting.html)
 2. Search [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
 3. Ask in [GitHub Discussions](https://github.com/yasarshaikh/SF-bench/discussions)
 
