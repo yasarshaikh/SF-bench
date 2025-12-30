@@ -1,0 +1,58 @@
+[
+  {
+    "instance_id": "apex-trigger-handler-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "The AccountTriggerHandler class in force-app/main/default/classes/Trigger Recipes/ has a potential NullPointerException when Account.Owner is null. Implement proper null-safety checks in the handler methods without breaking existing test coverage. The solution must handle null Owner references gracefully and maintain all existing trigger functionality.",
+    "validation": {
+      "command": "sf apex run test --class-names AccountTriggerHandlerTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "null_check_required",
+        "no_hardcoded_ids",
+        "maintains_test_coverage"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "apex",
+      "subcategory": "trigger-handling",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Trigger Recipes/AccountTriggerHandler.cls"
+    }
+  },
+  {
+    "instance_id": "apex-integration-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Review and fix the REST callout implementation in the Integration Recipes folder. The current implementation lacks proper error handling for HTTP 4xx/5xx responses and timeout scenarios. Implement retry logic with exponential backoff for transient failures. Ensure proper exception handling and logging without exposing sensitive data.",
+    "validation": {
+      "command": "sf apex run test --class-names RestClientTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "error_handling_required",
+        "retry_logic_implemented",
+        "no_sensitive_data_exposed"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "apex",
+      "subcategory": "integration",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Integration Recipes/"
+    }
+  }
+]

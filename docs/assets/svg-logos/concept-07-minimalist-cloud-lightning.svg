@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Minimalist Cloud + Lightning Icon (Perplexity-style) -->
+  
+  <!-- Simple cloud shape -->
+  <path d="M200 280c-30 0-55-20-65-45-15-10-35-15-55-15-40 0-75 35-75 75s35 75 75 75c20 0 40-5 55-15 10 25 35 45 65 45 40 0 70-30 70-70 0-15-5-30-15-40 25-10 40-35 40-60 0-40-30-70-70-70z" 
+        fill="#00A1E0" opacity="0.9"/>
+  
+  <!-- Integrated lightning bolt -->
+  <path d="M 280 200 L 300 250 L 290 250 L 310 320 L 280 280 L 290 280 L 270 200 Z" 
+        fill="#FFB75D"/>
+  
+  <!-- Subtle highlight -->
+  <path d="M 275 210 L 290 245 L 285 245 L 300 305 L 280 275 L 285 275 L 270 210 Z" 
+        fill="#FFFFFF" opacity="0.5"/>
+</svg>

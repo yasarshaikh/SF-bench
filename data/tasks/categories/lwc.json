@@ -1,0 +1,58 @@
+[
+  {
+    "instance_id": "lwc-component-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "The apexImperativeMethod LWC component has an issue where error states are not properly displayed to the user when the Apex call fails. Update the component to: 1) Display user-friendly error messages, 2) Handle network timeouts gracefully, 3) Add loading state indicator during the Apex call. All existing Jest tests must continue to pass.",
+    "validation": {
+      "command": "npm run test:unit -- --testPathPattern=apexImperativeMethod",
+      "expected_outcome": "0",
+      "code_checks": [
+        "error_handling_ui",
+        "loading_state",
+        "jest_tests_pass"
+      ]
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 180
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "lwc",
+      "subcategory": "apex-integration",
+      "verified_repo": true,
+      "repo_stars": 2805,
+      "file_path": "force-app/main/default/lwc/apexImperativeMethod/"
+    }
+  },
+  {
+    "instance_id": "lwc-wire-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "The apexWireMethodToFunction component needs optimization. Currently, it makes redundant Apex calls when the component re-renders. Implement: 1) Caching of Apex results, 2) Debouncing for parameter changes, 3) Proper cleanup in disconnectedCallback. The solution must maintain reactive updates while minimizing server calls.",
+    "validation": {
+      "command": "npm run test:unit -- --testPathPattern=apexWireMethodToFunction",
+      "expected_outcome": "0",
+      "code_checks": [
+        "caching_implemented",
+        "debounce_logic",
+        "cleanup_in_disconnectedCallback"
+      ]
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 180
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "lwc",
+      "subcategory": "wire-optimization",
+      "verified_repo": true,
+      "repo_stars": 2805,
+      "file_path": "force-app/main/default/lwc/apexWireMethodToFunction/"
+    }
+  }
+]

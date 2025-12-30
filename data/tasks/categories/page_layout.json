@@ -1,0 +1,30 @@
+[
+  {
+    "instance_id": "page-layout-001",
+    "task_type": "PAGE_LAYOUT",
+    "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
+    "base_commit": "main",
+    "problem_description": "Redesign the Property__c-Property Layout.layout-meta.xml for improved user experience. Requirements: 1) Reorganize fields into logical sections (Property Details, Location, Pricing, Status), 2) Add all relevant related lists (Property Images, Favorites, Activities), 3) Configure compact layout for mobile, 4) Add custom links section with property map integration.",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/layouts --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "sections_reorganized",
+        "related_lists_added",
+        "compact_layout_configured"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "easy",
+      "category": "page_layout",
+      "subcategory": "record-layout",
+      "verified_repo": true,
+      "repo_stars": 469,
+      "file_path": "force-app/main/default/layouts/Property__c-Property Layout.layout-meta.xml"
+    }
+  }
+]

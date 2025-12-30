@@ -1,0 +1,36 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cloud Character with Stopwatch -->
+  
+  <!-- Cloud body -->
+  <path d="M256 120c-40 0-75 25-90 60-20-15-45-25-70-25-60 0-110 50-110 110 0 60 50 110 110 110 25 0 50-10 70-25 15 35 50 60 90 60 55 0 100-45 100-100 0-25-10-50-25-70 35-15 60-50 60-90 0-55-45-100-100-100z" 
+        fill="#00A1E0" stroke="#1798C1" stroke-width="3"/>
+  
+  <!-- Cloud highlights -->
+  <ellipse cx="220" cy="180" rx="30" ry="25" fill="#FFFFFF" opacity="0.6"/>
+  <ellipse cx="280" cy="200" rx="25" ry="20" fill="#FFFFFF" opacity="0.4"/>
+  
+  <!-- Happy face -->
+  <circle cx="230" cy="250" r="12" fill="#16325C"/>
+  <circle cx="282" cy="250" r="12" fill="#16325C"/>
+  <circle cx="230" cy="250" r="6" fill="#FFFFFF"/>
+  <circle cx="282" cy="250" r="6" fill="#FFFFFF"/>
+  <path d="M 240 280 Q 256 300 272 280" stroke="#16325C" stroke-width="8" fill="none" stroke-linecap="round"/>
+  
+  <!-- Cloud hand holding stopwatch -->
+  <ellipse cx="320" cy="240" rx="25" ry="30" fill="#00A1E0" stroke="#1798C1" stroke-width="2"/>
+  
+  <!-- Stopwatch -->
+  <circle cx="360" cy="220" r="35" fill="#FFFFFF" stroke="#16325C" stroke-width="4"/>
+  <circle cx="360" cy="220" r="30" fill="#F3F2F2"/>
+  <!-- Stopwatch crown -->
+  <rect x="355" y="180" width="10" height="15" rx="2" fill="#16325C"/>
+  <circle cx="360" cy="195" r="3" fill="#FFB75D"/>
+  <!-- Stopwatch hands -->
+  <line x1="360" y1="220" x2="360" y2="200" stroke="#16325C" stroke-width="3" stroke-linecap="round"/>
+  <line x1="360" y1="220" x2="375" y2="220" stroke="#16325C" stroke-width="2" stroke-linecap="round"/>
+  <!-- Numbers -->
+  <text x="360" y="200" font-family="Arial" font-size="8" fill="#16325C" text-anchor="middle">12</text>
+  <text x="385" y="225" font-family="Arial" font-size="8" fill="#16325C" text-anchor="middle">3</text>
+  <text x="360" y="250" font-family="Arial" font-size="8" fill="#16325C" text-anchor="middle">6</text>
+  <text x="335" y="225" font-family="Arial" font-size="8" fill="#16325C" text-anchor="middle">9</text>
+</svg>

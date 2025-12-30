@@ -37,22 +37,52 @@ class ValidationStep:
 
 @dataclass
 class FunctionalValidationResult:
-    """Complete validation result for a task."""
+    """
+    Complete validation result for a task.
+    
+    CRITICAL: The top-level metric is binary PASS/FAIL based on functional_tests_passed.
+    Score breakdown (0-100) is diagnostic metadata only.
+    """
     task_id: str
     validation_level: ValidationLevel
     overall_status: str = "pending"
     score: float = 0.0
     steps: List[ValidationStep] = field(default_factory=list)
     
-    # Weighted scoring
+    # Weighted scoring (diagnostic metadata)
     deployment_passed: bool = False
     unit_tests_passed: bool = False
     functional_tests_passed: bool = False
     bulk_tests_passed: bool = False
     no_manual_tweaks: bool = False
     
+    def __post_init__(self):
+        """Initialize alias for backward compatibility."""
+        # Create alias for bulk_operations_passed
+        object.__setattr__(self, 'bulk_operations_passed', self.bulk_tests_passed)
+    
+    def _sync_bulk_fields(self):
+        """Sync bulk_tests_passed and bulk_operations_passed for backward compatibility."""
+        # Keep them in sync - bulk_operations_passed is an alias
+        object.__setattr__(self, 'bulk_operations_passed', self.bulk_tests_passed)
+    
     def calculate_score(self) -> float:
-        """Calculate weighted score based on validation results."""
+        """
+        Calculate weighted score based on validation results.
+        
+        NOTE: This score is for DIAGNOSTIC METADATA only.
+        The top-level metric is binary: PASS (functional requirement met) or FAIL.
+        
+        Score breakdown (0-100):
+        - Deployment: 10% (necessary but not sufficient)
+        - Unit Tests: 20% (code quality check)
+        - Functional Tests: 50% (THE CORE - if this fails, task fails)
+        - Bulk Tests: 10% (production readiness)
+        - No Manual Tweaks: 10% (one-shot solution)
+        
+        A task is considered PASSED only if functional_tests_passed == True.
+        The score helps identify WHERE failures occurred, but doesn't change PASS/FAIL status.
+        """
         score = 0.0
         
         # Deployment: 10%
@@ -88,6 +118,7 @@ class FunctionalValidationResult:
             "unit_tests_passed": self.unit_tests_passed,
             "functional_tests_passed": self.functional_tests_passed,
             "bulk_tests_passed": self.bulk_tests_passed,
+            "bulk_operations_passed": self.bulk_operations_passed,
             "no_manual_tweaks": self.no_manual_tweaks,
             "steps": [
                 {
@@ -210,16 +241,18 @@ class FunctionalValidator:
             )
             result.steps.append(bulk_step)
             result.bulk_tests_passed = bulk_step.status == "passed"
+            result._sync_bulk_fields()
         else:
             result.bulk_tests_passed = True  # Assume pass if no bulk test defined
+            result._sync_bulk_fields()
         
-        # Determine overall status
-        if result.deployment_passed and result.unit_tests_passed and result.functional_tests_passed:
+        # Determine overall status (BINARY: PASS or FAIL)
+        # CRITICAL: Functional test is the gatekeeper - if it fails, task fails
+        if result.functional_tests_passed and result.deployment_passed and result.unit_tests_passed:
             result.overall_status = "passed"
             result.no_manual_tweaks = True
-        elif result.deployment_passed and result.unit_tests_passed:
-            result.overall_status = "partial"
         else:
+            # If functional test fails, task fails (regardless of other checks)
             result.overall_status = "failed"
         
         result.calculate_score()
@@ -274,12 +307,19 @@ class FunctionalValidator:
         # Step 2: Activate Flow
         flow_name = functional_config.get("flow_name")
         if flow_name:
-            activate_step = self._run_step(
-                name="Activate Flow",
-                command=f"sf apex run --target-org {self.scratch_org} -c \"Flow flow = [SELECT Id, Status FROM Flow WHERE DeveloperName = '{flow_name}' LIMIT 1]; // Activation logic here\"",
-                cwd=repo_dir,
-                timeout=60
-            )
+            # Use Apex class instead of anonymous apex for robustness
+            activate_script = functional_config.get("activate_flow_script")
+            if activate_script:
+                activate_step = self._run_step(
+                    name="Activate Flow",
+                    command=f"sf apex run --target-org {self.scratch_org} --file {activate_script}",
+                    cwd=repo_dir,
+                    timeout=60
+                )
+            else:
+                # Fallback: create a temporary Apex class for activation
+                # This is more robust than inline anonymous apex
+                activate_step = self._run_flow_activation_via_class(flow_name, repo_dir)
             result.steps.append(activate_step)
         
         # Step 3: Create Test Record (trigger conditions met)
@@ -335,12 +375,14 @@ class FunctionalValidator:
             )
             result.steps.append(negative_step)
         
-        # Determine overall status
-        if result.deployment_passed and result.functional_tests_passed:
+        # Determine overall status (BINARY: PASS or FAIL)
+        # CRITICAL: Functional test is the gatekeeper - if it fails, task fails
+        if result.functional_tests_passed and result.deployment_passed:
             result.overall_status = "passed"
             result.no_manual_tweaks = True
             result.unit_tests_passed = True  # Flows don't have unit tests
         else:
+            # If functional test fails, task fails (regardless of other checks)
             result.overall_status = "failed"
         
         result.calculate_score()
@@ -398,6 +440,7 @@ class FunctionalValidator:
             result.functional_tests_passed = result.unit_tests_passed
         
         result.bulk_tests_passed = True  # Not applicable for LWC
+        result._sync_bulk_fields()
         
         if result.unit_tests_passed and result.deployment_passed:
             result.overall_status = "passed"
@@ -452,6 +495,121 @@ class FunctionalValidator:
             step.duration = time.time() - start_time
         
         return step
+    
+    def _run_flow_activation_via_class(self, flow_name: str, repo_dir: Path) -> ValidationStep:
+        """
+        Activate a Flow using an Apex class instead of anonymous apex.
+        
+        This is more robust than inline anonymous apex strings because:
+        - No quote escaping issues
+        - Better error handling
+        - Easier to debug
+        - Can be version controlled
+        
+        Args:
+            flow_name: Developer name of the Flow to activate
+            repo_dir: Repository directory where Apex class will be created
+            
+        Returns:
+            ValidationStep with activation result
+        """
+        # Create a temporary Apex class for flow activation
+        apex_class_dir = repo_dir / "force-app" / "main" / "default" / "classes"
+        apex_class_dir.mkdir(parents=True, exist_ok=True)
+        
+        class_name = "SFBench_FlowActivator"
+        apex_file = apex_class_dir / f"{class_name}.cls"
+        meta_file = apex_class_dir / f"{class_name}.cls-meta.xml"
+        
+        # Write Apex class
+        apex_code = f"""/**
+ * SF-Bench Flow Activator
+ * Auto-generated for functional validation
+ */
+public class {class_name} {{
+    public static void activateFlow(String flowDeveloperName) {{
+        try {{
+            Flow flow = [
+                SELECT Id, Status, DeveloperName 
+                FROM Flow 
+                WHERE DeveloperName = :flowDeveloperName 
+                LIMIT 1
+            ];
+            
+            if (flow.Status != 'Active') {{
+                flow.Status = 'Active';
+                update flow;
+                System.debug('Flow activated: ' + flowDeveloperName);
+            }} else {{
+                System.debug('Flow already active: ' + flowDeveloperName);
+            }}
+        }} catch (Exception e) {{
+            System.debug('ERROR activating flow: ' + e.getMessage());
+            throw e;
+        }}
+    }}
+}}"""
+        
+        meta_code = """<?xml version="1.0" encoding="UTF-8"?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>60.0</apiVersion>
+    <status>Active</status>
+</ApexClass>"""
+        
+        try:
+            apex_file.write_text(apex_code)
+            meta_file.write_text(meta_code)
+            
+            # Deploy the class first
+            deploy_cmd = f"sf project deploy start --target-org {self.scratch_org} --source-dir {apex_class_dir.parent}"
+            deploy_result = subprocess.run(
+                deploy_cmd,
+                shell=True,
+                cwd=repo_dir,
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+            
+            if deploy_result.returncode != 0:
+                step = ValidationStep(
+                    name="Activate Flow (Deploy Class)",
+                    command=deploy_cmd,
+                    success_criteria={"exit_code": 0}
+                )
+                step.status = "failed"
+                step.error_message = f"Failed to deploy activator class: {deploy_result.stderr}"
+                return step
+            
+            # Now run the activation via Apex
+            activation_code = f"{class_name}.activateFlow('{flow_name}');"
+            activation_cmd = f"sf apex run --target-org {self.scratch_org} -c \"{activation_code}\""
+            
+            step = self._run_step(
+                name="Activate Flow",
+                command=activation_cmd,
+                cwd=repo_dir,
+                timeout=60
+            )
+            
+            # Cleanup: remove temporary files
+            try:
+                apex_file.unlink(missing_ok=True)
+                meta_file.unlink(missing_ok=True)
+            except:
+                pass  # Don't fail validation if cleanup fails
+            
+            return step
+            
+        except Exception as e:
+            step = ValidationStep(
+                name="Activate Flow",
+                command="",
+                success_criteria={"exit_code": 0}
+            )
+            step.status = "error"
+            step.error_message = f"Failed to create activator class: {str(e)}"
+            return step
     
     def _run_soql_verification(
         self,

@@ -1,0 +1,62 @@
+[
+  {
+    "instance_id": "architecture-001",
+    "task_type": "ARCHITECTURE",
+    "repo_url": "https://github.com/trailheadapps/dreamhouse-lwc",
+    "base_commit": "main",
+    "problem_description": "Design and implement a complete property inquiry management system: 1) Create Inquiry__c object with relationships to Property__c and Contact, 2) Implement Apex service layer for inquiry processing with status workflow, 3) Build LWC component for inquiry submission with validation, 4) Create automated notification flow for new inquiries, 5) Add sharing rules for broker visibility, 6) Implement unit and integration tests with minimum 80% coverage. Provide architecture documentation in README.",
+    "validation": {
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "object_created",
+        "apex_service_implemented",
+        "lwc_component_created",
+        "flow_automation_created",
+        "sharing_rules_configured",
+        "test_coverage_80",
+        "documentation_provided"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 900
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "architecture",
+      "subcategory": "full-stack",
+      "verified_repo": true,
+      "repo_stars": 469
+    }
+  },
+  {
+    "instance_id": "agentforce-001",
+    "task_type": "ARCHITECTURE",
+    "repo_url": "https://github.com/trailheadapps/agent-script-recipes",
+    "base_commit": "main",
+    "problem_description": "Create a new Agentforce script recipe that handles customer order inquiries. The script should: 1) Accept order number and customer email as inputs, 2) Query order status from a mock Order object, 3) Generate contextual responses based on order status (Pending, Shipped, Delivered, Cancelled), 4) Include error handling for invalid orders, 5) Follow Salesforce Agent script best practices. Include comprehensive documentation.",
+    "validation": {
+      "command": "sf project deploy start --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "agent_script_created",
+        "input_parameters_defined",
+        "contextual_responses",
+        "error_handling",
+        "documentation_provided"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "agentforce",
+      "subcategory": "agent-scripts",
+      "verified_repo": true,
+      "repo_stars": 53
+    }
+  }
+]

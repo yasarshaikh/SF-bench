@@ -342,13 +342,35 @@ def run_evaluation(
             traceback.print_exc()
     
     # Cleanup: Delete scratch org AFTER functional validation
+    # CRITICAL: Always cleanup, even if script crashes (use try/finally)
+    scratch_orgs_to_cleanup = []
     if scratch_org_created and scratch_org_alias:
-        print(f"\n🧹 Cleaning up scratch org: {scratch_org_alias}")
+        scratch_orgs_to_cleanup.append(scratch_org_alias)
+    
+    try:
+        # Cleanup scratch orgs
+        if scratch_orgs_to_cleanup:
+            print(f"\n🧹 Cleaning up {len(scratch_orgs_to_cleanup)} scratch org(s)...")
+            for org_alias in scratch_orgs_to_cleanup:
+                try:
+                    delete_scratch_org(org_alias)
+                    print(f"✅ Scratch org deleted: {org_alias}")
+                except Exception as e:
+                    print(f"⚠️  Warning: Could not delete scratch org {org_alias}: {e}")
+                    # Log to file for manual cleanup
+                    cleanup_log = output_dir / "cleanup_failed.log"
+                    with open(cleanup_log, "a") as f:
+                        f.write(f"{org_alias}: {e}\n")
+    except Exception as cleanup_error:
+        print(f"⚠️  Critical: Cleanup process failed: {cleanup_error}")
+        # Still try to log orgs that need manual cleanup
+        cleanup_log = output_dir / "cleanup_failed.log"
         try:
-            delete_scratch_org(scratch_org_alias)
-            print("✅ Scratch org deleted")
-        except Exception as e:
-            print(f"⚠️  Warning: Could not delete scratch org: {e}")
+            with open(cleanup_log, "a") as f:
+                for org_alias in scratch_orgs_to_cleanup:
+                    f.write(f"{org_alias}: Cleanup process failed\n")
+        except:
+            pass
     
     # Generate evaluation summary with segment breakdown (legacy format)
     segment_results = calculate_segment_results(results)
