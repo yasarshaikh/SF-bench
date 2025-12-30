@@ -15,10 +15,47 @@ Get SF-Bench running in **5 minutes**.
 
 Before you begin, ensure you have:
 
-- **Python 3.10+** installed
-- **Salesforce CLI** (sf) installed ([Install Guide](https://developer.salesforce.com/tools/salesforcecli))
-- **DevHub org** with scratch org allocation
-- **API key** for your chosen AI model
+### Required Software
+
+- **Python 3.10+** installed ([Download](https://www.python.org/downloads/))
+- **Salesforce CLI** (`sf`) installed ([Install Guide](https://developer.salesforce.com/tools/salesforcecli))
+- **DevHub org** with scratch org allocation ([Create DevHub](https://developer.salesforce.com/signup))
+
+### API Key Requirements
+
+You need an API key from one of these providers:
+
+| Provider | Environment Variable | Example Models | Where to Get |
+|----------|---------------------|----------------|--------------|
+| **RouteLLM** | `ROUTELLM_API_KEY` | Grok 4.1, GPT-5, Claude Opus 4 | [RouteLLM Dashboard](https://routellm.com) |
+| **OpenRouter** | `OPENROUTER_API_KEY` | Claude Sonnet, GPT-4, Llama | [OpenRouter Keys](https://openrouter.ai/keys) |
+| **Google Gemini** | `GOOGLE_API_KEY` | Gemini 2.5 Flash, Gemini Pro | [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| **Anthropic** | `ANTHROPIC_API_KEY` | Claude 3.5 Sonnet, Claude Opus | [Anthropic Console](https://console.anthropic.com) |
+| **OpenAI** | `OPENAI_API_KEY` | GPT-4, GPT-3.5 | [OpenAI Platform](https://platform.openai.com/api-keys) |
+
+### Resource Requirements
+
+**For Full Evaluation (12 tasks with `--functional`):**
+- **Scratch Orgs:** 
+  - Minimum: **1 org** (with `--max-workers 1`, sequential execution)
+  - Recommended: **2-3 orgs** (with `--max-workers 2-3`, balanced speed)
+  - Maximum: **5 orgs** (with `--max-workers 5`, fastest but needs more capacity)
+  - **Note:** Each worker needs its own scratch org. Total tasks = 12, so you'll create 12 orgs sequentially or in parallel based on workers.
+- **Token Usage:** 
+  - Per task: ~8,000 tokens (input prompt + generated code + context)
+  - Full evaluation: ~96,000 tokens (~0.1M tokens)
+- **Time:** 1-2 hours (depends on scratch org creation speed and model response time)
+- **Cost:** $0.10-$2 per evaluation (varies by model and provider)
+
+**For Lite Evaluation (5 tasks):**
+- **Scratch Orgs:** 1-3 orgs
+- **Token Usage:** ~40,000 tokens
+- **Time:** ~10-15 minutes
+
+**System Requirements:**
+- **Max Workers:** Supports up to 5 workers (based on typical DevHub limits)
+- **Network:** Stable internet connection for API calls and scratch org creation
+- **Disk Space:** ~500MB for workspace and cloned repositories
 
 ---
 
