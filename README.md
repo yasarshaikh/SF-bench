@@ -1,8 +1,14 @@
+<div align="center">
+
 # SF-Bench: The Salesforce AI Benchmark
 
-<p align="center">
-  <img src="docs/assets/logo.png" alt="SF-Bench Logo" width="200" height="200" style="border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);"/>
-</p>
+<img src="docs/assets/logo.png" alt="SF-Bench Logo" width="180" height="180"/>
+
+**The Open Benchmark for Evaluating AI Coding Agents on Salesforce Development**
+
+*Objective measurement. Real execution. Verified results.*
+
+</div>
 
 <p align="center">
   <img src="https://img.shields.io/badge/SF--Bench-Salesforce%20AI%20Benchmark-00A1E0?style=for-the-badge&logo=salesforce&logoColor=white" alt="SF-Bench"/>
@@ -12,12 +18,6 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"/></a>
   <a href="https://yasarshaikh.github.io/SF-bench/"><img src="https://img.shields.io/badge/docs-live-brightgreen.svg" alt="Documentation"/></a>
-</p>
-
-<p align="center">
-  <strong>The Open Benchmark for Evaluating AI Coding Agents on Salesforce Development</strong>
-  <br>
-  <em>Objective measurement. Real execution. Verified results.</em>
 </p>
 
 ---
