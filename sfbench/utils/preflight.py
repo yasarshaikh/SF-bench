@@ -129,6 +129,14 @@ class PreflightValidator:
                 if not api_key:
                     return False, "ROUTELLM_API_KEY not set"
                 
+                # Map user-friendly names to actual model IDs (same as in ai_agent.py)
+                model_map = {
+                    "grok-4.1-fast": "grok-4-1-fast-non-reasoning",
+                    "grok-4.1": "grok-4-1-fast-non-reasoning",
+                    "grok-4-fast": "grok-4-fast-non-reasoning",
+                }
+                actual_model = model_map.get(model_name.lower(), model_name)
+                
                 # First, check if model exists
                 models_url = "https://routellm.abacus.ai/v1/models"
                 try:
@@ -140,13 +148,60 @@ class PreflightValidator:
                     if resp.status_code == 200:
                         models_data = resp.json()
                         available_models = [m.get('id', '') for m in models_data.get('data', [])]
-                        if model_name not in available_models:
-                            return False, f"Model '{model_name}' not found in RouteLLM. Available: {', '.join(available_models[:5])}..."
+                        if actual_model not in available_models:
+                            return False, f"Model '{model_name}' (mapped to '{actual_model}') not found in RouteLLM. Available: {', '.join(available_models[:5])}..."
                 except Exception as e:
                     return False, f"Could not verify model availability: {str(e)}"
                 
-                # Test format generation
+                # Test format generation (use actual_model for API call)
                 test_payload = {
+                    "model": actual_model,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are an expert Salesforce developer. Generate solutions as unified diff patches.\n\nCRITICAL INSTRUCTIONS:\n1. Output ONLY the raw patch content, NO markdown code blocks\n2. Start directly with: diff --git a/path/to/file b/path/to/file\n3. Use proper unified diff format"
+                        },
+                        {
+                            "role": "user",
+                            "content": "Generate a simple git diff patch to add a comment '// Test' to a file force-app/main/default/classes/Test.cls"
+                        }
+                    ],
+                    "temperature": 0.1,
+                    "max_tokens": 500
+                }
+                
+                resp = requests.post(
+                    url,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json=test_payload,
+                    timeout=30
+                )
+                
+                if resp.status_code != 200:
+                    error_data = resp.json() if resp.content else {}
+                    error_msg = error_data.get('error', {}).get('message', f"HTTP {resp.status_code}")
+                    return False, f"API call failed: {error_msg}"
+                
+                data = resp.json()
+                if 'choices' not in data or not data['choices']:
+                    return False, "Invalid API response format"
+                
+                content = data['choices'][0]['message']['content']
+                
+                # Check format
+                has_diff_markers = (
+                    content.strip().startswith('diff --git') or
+                    '@@' in content or
+                    ('---' in content and '+++' in content)
+                )
+                
+                if not has_diff_markers:
+                    return False, "Model does not generate proper git diff format"
+                
+                return True, f"✅ Model '{model_name}' (mapped to '{actual_model}') available and generates valid diff format" = {
                     "model": model_name,
                     "messages": [
                         {
