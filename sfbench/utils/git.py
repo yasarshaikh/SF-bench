@@ -164,12 +164,20 @@ def apply_patch(repo_dir: Path, patch_diff: str, timeout: int = 60) -> None:
 def _clean_patch(patch_diff: str) -> str:
     """
     Clean patch content to handle common formatting issues from AI models.
+    
+    Handles:
+    - Markdown code fences
+    - Malformed diff lines (lines starting with + or - but invalid)
+    - Empty lines in diff context
+    - Trailing whitespace
+    - Incomplete patch lines
     """
     lines = patch_diff.split('\n')
     cleaned_lines = []
     in_diff = False
+    last_was_hunk_header = False
     
-    for line in lines:
+    for i, line in enumerate(lines):
         # Remove markdown code fences if present
         if line.strip().startswith('```'):
             continue
@@ -177,19 +185,63 @@ def _clean_patch(patch_diff: str) -> str:
         # Start collecting when we see diff header
         if line.startswith('diff --git') or line.startswith('---') or line.startswith('+++'):
             in_diff = True
+            last_was_hunk_header = False
         
         if in_diff:
-            # Remove trailing whitespace (but preserve intentional whitespace in context)
+            # Handle hunk headers (@@ ... @@)
+            if line.startswith('@@'):
+                cleaned_lines.append(line.rstrip())
+                last_was_hunk_header = True
+                continue
+            
+            # Handle diff content lines
             if line.startswith(' ') or line.startswith('-') or line.startswith('+'):
                 # For diff lines, preserve the leading character but clean trailing whitespace
                 cleaned_line = line.rstrip()
+                
+                # Fix malformed lines: if line is just "+" or "-" or "+ " or "- ", skip it
+                # (these cause "malformed patch" errors)
+                if cleaned_line in ('+', '-', '+ ', '- '):
+                    # Skip malformed single-character lines
+                    continue
+                
+                # Fix lines that are just whitespace after + or -
+                if len(cleaned_line) == 1 and cleaned_line in ('+', '-'):
+                    continue
+                
                 if cleaned_line:  # Don't add empty lines
                     cleaned_lines.append(cleaned_line)
+                last_was_hunk_header = False
+            elif line.startswith('\\'):
+                # Handle "No newline at end of file" markers
+                cleaned_lines.append(line.rstrip())
+                last_was_hunk_header = False
             else:
                 # For non-diff lines (headers, etc.), just strip trailing whitespace
+                # But skip empty lines right after hunk headers (common malformation)
+                if last_was_hunk_header and not line.strip():
+                    continue
                 cleaned_lines.append(line.rstrip())
+                last_was_hunk_header = False
         else:
             # Before diff starts, keep original (might be instructions)
             cleaned_lines.append(line)
     
-    return '\n'.join(cleaned_lines)
+    # Final pass: remove any remaining malformed lines
+    final_lines = []
+    for i, line in enumerate(cleaned_lines):
+        # Skip standalone + or - lines that aren't part of valid diff
+        if line in ('+', '-') and i > 0:
+            prev_line = final_lines[-1] if final_lines else ''
+            # If previous line doesn't look like diff context, skip this malformed line
+            if not (prev_line.startswith((' ', '+', '-', '@@', 'diff', '---', '+++'))):
+                continue
+        final_lines.append(line)
+    
+    result = '\n'.join(final_lines)
+    
+    # Ensure result ends with newline (required by some patch tools)
+    if result and not result.endswith('\n'):
+        result += '\n'
+    
+    return result

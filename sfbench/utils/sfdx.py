@@ -92,12 +92,17 @@ def run_sfdx(
                     pass
             
             # Filter out CLI update warnings (they don't indicate failure)
-            has_warning_only = stderr and "Warning: @salesforce/cli update available" in stderr
-            if has_warning_only and len(stderr.strip()) < 150:
-                # Only warning, no actual error
+            # Remove warning lines from stderr
+            stderr_lines = stderr.split('\n') if stderr else []
+            stderr_clean_lines = [
+                line for line in stderr_lines 
+                if "Warning: @salesforce/cli update available" not in line and line.strip()
+            ]
+            stderr_clean = '\n'.join(stderr_clean_lines).strip()
+            
+            # If stderr only contains warnings, treat as clean
+            if not stderr_clean and stderr and "Warning: @salesforce/cli update available" in stderr:
                 stderr_clean = ""
-            else:
-                stderr_clean = stderr
             
             # Only raise error if exit code is non-zero AND JSON doesn't indicate success
             # For scratch org creation, always trust JSON if it shows success (even if exit code is non-zero)
@@ -123,8 +128,21 @@ def run_sfdx(
                 # Only raise error if we still don't have JSON success
                 if exit_code != 0 and not json_success:
                     if 'org create' in command.lower() or 'scratch' in command.lower():
+                        # For org creation, provide better error message
+                        error_msg = stderr_clean if stderr_clean else "Unknown error during org creation"
+                        # Try to extract actual error from JSON if available
+                        if stdout:
+                            try:
+                                data = parse_json_output(stdout)
+                                if 'message' in data:
+                                    error_msg = data['message']
+                                elif 'error' in data:
+                                    error_msg = str(data['error'])
+                            except:
+                                pass
+                        
                         raise OrgCreationError(
-                            f"Org creation failed: {stderr_clean or stderr}",
+                            f"Org creation failed: {error_msg}",
                             exit_code,
                             stderr_clean or stderr,
                             stdout  # Include stdout so we can check JSON
@@ -353,6 +371,19 @@ def create_scratch_org(
                         return data.get('result', {})
                 except:
                     pass
+            
+            # Check if error is just a warning about CLI update
+            error_msg = str(e)
+            if "Warning: @salesforce/cli update available" in error_msg and len(error_msg) < 200:
+                # This is likely just a warning, try to parse stdout anyway
+                if stdout_from_exception:
+                    try:
+                        data = parse_json_output(stdout_from_exception)
+                        if 'result' in data:
+                            return data.get('result', {})
+                    except:
+                        pass
+
             # If JSON doesn't show success, re-raise
             raise
         
