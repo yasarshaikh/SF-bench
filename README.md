@@ -1,6 +1,10 @@
 # SF-Bench: The Salesforce AI Benchmark
 
 <p align="center">
+  <img src="docs/assets/logo.png" alt="SF-Bench Logo" width="200" height="200" style="border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);"/>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/SF--Bench-Salesforce%20AI%20Benchmark-00A1E0?style=for-the-badge&logo=salesforce&logoColor=white" alt="SF-Bench"/>
   <br>
   <a href="https://github.com/yasarshaikh/SF-bench/stargazers"><img src="https://img.shields.io/github/stars/yasarshaikh/SF-bench?style=social" alt="GitHub stars"/></a>
@@ -108,15 +112,20 @@ Generic benchmarks (HumanEval, SWE-bench) miss Salesforce-specific challenges:
 7. REPORT RESULT     → PASS / FAIL / ERROR
 ```
 
-### Validation Levels (Weighted Scoring: 0-100 points)
+### Validation Levels (Binary Pass/Fail with Diagnostic Scoring)
 
-| Level | Weight | What We Check |
-|-------|:------:|---------------|
-| Deployment | 10% | Solution deploys without errors |
-| Unit Tests | 20% | All tests pass, coverage ≥80% |
-| **Functional** | **50%** | **Business outcome achieved** |
-| Bulk Operations | 10% | Handles 200+ records |
-| No Manual Tweaks | 10% | Works in one shot |
+**CRITICAL: Binary Pass/Fail Methodology**
+- A task is **PASSED** only if the functional requirement is met
+- Score breakdown (0-100) is **diagnostic metadata only** - helps identify where failures occurred
+- This follows SWE-bench methodology: if functional requirement isn't met, task fails regardless of other checks
+
+| Level | Weight | What We Check | Pass Criteria |
+|-------|:------:|---------------|---------------|
+| Deployment | 10% | Solution deploys without errors | Required but not sufficient |
+| Unit Tests | 20% | All tests pass, coverage ≥80% | Required but not sufficient |
+| **Functional** | **50%** | **Business outcome achieved** | **REQUIRED - Gatekeeper** |
+| Bulk Operations | 10% | Handles 200+ records | Diagnostic only |
+| No Manual Tweaks | 10% | Works in one shot | Diagnostic only |
 
 ---
 
