@@ -202,16 +202,6 @@ class PreflightValidator:
                     return False, "Model does not generate proper git diff format"
                 
                 return True, f"✅ Model '{model_name}' (mapped to '{actual_model}') available and generates valid diff format"
-                        },
-                        {
-                            "role": "user",
-                            "content": "Generate a simple git diff patch to add a comment '// Test' to a file force-app/main/default/classes/Test.cls"
-                        }
-                    ],
-                    "temperature": 0.1,
-                    "max_tokens": 500
-                }
-                
                 resp = requests.post(
                     url,
                     headers={
