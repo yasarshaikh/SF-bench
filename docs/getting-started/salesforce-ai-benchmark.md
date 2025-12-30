@@ -1,9 +1,9 @@
 ---
 layout: default
-title: Salesforce AI Benchmark Guide
-description: Learn what a Salesforce AI benchmark is, why SF-Bench matters, and how to run trusted evaluations for Apex, Flow, and Lightning development.
+title: Salesforce AI Benchmark Guide | SF-Bench Developer Guide
+description: Complete guide to the Salesforce AI benchmark for developers. Learn how SF-Bench evaluates AI coding agents on Apex, LWC, Flow, and Lightning development with real scratch org execution.
 permalink: /salesforce-ai-benchmark/
-keywords: salesforce ai benchmark, salesforce benchmark guide, apex benchmark, lightning web component benchmark, salesforce ai evaluation, sf-bench overview
+keywords: salesforce ai benchmark, salesforce benchmark guide, apex benchmark, lightning web component benchmark, salesforce ai evaluation, sf-bench overview, salesforce coding benchmark
 ---
 
 # Salesforce AI Benchmark Guide

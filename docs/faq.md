@@ -5,6 +5,39 @@ description: Common questions and answers about SF-Bench, Salesforce AI benchmar
 keywords: sf-bench faq, salesforce benchmark questions, ai evaluation faq, salesforce ai benchmark help
 ---
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is SF-Bench?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "SF-Bench is a benchmark for evaluating AI models on real-world Salesforce development tasks. It tests whether models can generate working Apex, Flow, and Lightning Web Component code that meets functional business requirements."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is SF-Bench different from Salesforce's CRM benchmark?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "SF-Bench focuses on evaluating AI coding agents for Salesforce development (Apex, LWC, Flow), while Salesforce's CRM benchmark evaluates AI models for business use cases (sales, service). SF-Bench tests actual code generation and execution in scratch orgs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What do I need to run SF-Bench?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You need: 1) Salesforce DevHub with scratch org allocation, 2) Python 3.10+, 3) Salesforce CLI (sf command), 4) API key for an AI model (OpenRouter, Gemini, Claude, etc.). See the Quick Start Guide for setup instructions."
+      }
+    }
+  ]
+}
+</script>
+
 # Frequently Asked Questions (FAQ)
 
 Quick answers to common questions about SF-Bench.
