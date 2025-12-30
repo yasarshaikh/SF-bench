@@ -185,36 +185,36 @@ python scripts/evaluate.py --model anthropic/claude-3.5-sonnet
 - DevHub org (free)
 - AI model API key
 
-**[Full Quick Start Guide →](../quickstart.md)**
+**[Full Quick Start Guide →](../quickstart.html)**
 
 ---
 
 ## 📖 Learn More
 
 ### For Beginners
-- [What is Salesforce?](what-is-salesforce.md) - If you're new to Salesforce
-- [Quick Start Guide](../quickstart.md) - Get running in 5 minutes
-- [FAQ](../faq.md) - Common questions
+- [What is Salesforce?](what-is-salesforce.html) - If you're new to Salesforce
+- [Quick Start Guide](../quickstart.html) - Get running in 5 minutes
+- [FAQ](../faq.html) - Common questions
 
 ### For Companies
-- [For Companies](../personas/for-companies.md) - Business case and ROI
-- [Comparison with Competitors](../evaluation/comparison-with-swe-bench.md) - Benchmark comparison
+- [For Companies](../personas/for-companies.html) - Business case and ROI
+- [Comparison with Competitors](../evaluation/comparison-with-swe-bench.html) - Benchmark comparison
 
 ### For Developers
-- [Evaluation Guide](../guides/evaluation.md) - Complete guide
-- [Validation Methodology](../VALIDATION_METHODOLOGY.md) - How we validate
-- [Task Schema](../reference/task-schema.md) - Technical details
+- [Evaluation Guide](../guides/evaluation.html) - Complete guide
+- [Validation Methodology](../VALIDATION_METHODOLOGY.html) - How we validate
+- [Task Schema](../reference/task-schema.html) - Technical details
 
 ### For Researchers
-- [Methodology](../VALIDATION_METHODOLOGY.md) - Detailed methodology
-- [Benchmark Details](../BENCHMARK.md) - Technical specifications
-- [Result Schema](../reference/result-schema.md) - Result format
+- [Methodology](../VALIDATION_METHODOLOGY.html) - Detailed methodology
+- [Benchmark Details](../BENCHMARK.html) - Technical specifications
+- [Result Schema](../reference/result-schema.html) - Result format
 
 ---
 
 ## 🏆 Current Results
 
-See which models perform best: **[Leaderboard →](../LEADERBOARD.md)**
+See which models perform best: **[Leaderboard →](../LEADERBOARD.html)**
 
 ---
 
@@ -230,4 +230,4 @@ See which models perform best: **[Leaderboard →](../LEADERBOARD.md)**
 
 ---
 
-**Ready to start?** Check out our [Quick Start Guide](../quickstart.md)!
+**Ready to start?** Check out our [Quick Start Guide](../quickstart.html)!

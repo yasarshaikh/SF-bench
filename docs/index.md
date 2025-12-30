@@ -111,14 +111,14 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
 
 | 👤 I'm... | 🎯 I Want To... | ➡️ Go To... |
 |-----------|-----------------|------------|
-| **New to SF-Bench** | Understand what this is | [What is SF-Bench?](getting-started/what-is-sf-bench.md) |
-| **New to Salesforce** | Learn about Salesforce | [What is Salesforce?](getting-started/what-is-salesforce.md) |
-| **Company/Enterprise** | Evaluate AI tools for my team | [For Companies](personas/for-companies.md) |
-| **Salesforce Developer** | Test AI models on Salesforce | [Quick Start](quickstart.md) |
-| **Researcher** | Benchmark AI models | [Evaluation Guide](guides/evaluation.md) |
-| **SWE-bench User** | Compare with SWE-bench | [Comparison](evaluation/comparison-with-swe-bench.md) |
+| **New to SF-Bench** | Understand what this is | [What is SF-Bench?](getting-started/what-is-sf-bench.html) |
+| **New to Salesforce** | Learn about Salesforce | [What is Salesforce?](getting-started/what-is-salesforce.html) |
+| **Company/Enterprise** | Evaluate AI tools for my team | [For Companies](personas/for-companies.html) |
+| **Salesforce Developer** | Test AI models on Salesforce | [Quick Start](quickstart.html) |
+| **Researcher** | Benchmark AI models | [Evaluation Guide](guides/evaluation.html) |
+| **SWE-bench User** | Compare with SWE-bench | [Comparison](evaluation/comparison-with-swe-bench.html) |
 | **Open Source Enthusiast** | Contribute to SF-Bench | [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
-| **Need a Salesforce AI Benchmark?** | Share the story & methodology | [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.md) |
+| **Need a Salesforce AI Benchmark?** | Share the story & methodology | [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.html) |
 
 ---
 
@@ -126,11 +126,11 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
 
 | I want to... | Link |
 |--------------|------|
-| 🚀 Get started in 5 min | [Quick Start](quickstart.md) |
-| 📣 Understand the Salesforce AI Benchmark | [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.md) |
+| 🚀 Get started in 5 min | [Quick Start](quickstart.html) |
+| 📣 Understand the Salesforce AI Benchmark | [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.html) |
 | 🏆 See results | [Leaderboard](#-leaderboard) |
 | 🧪 Test my model | [Testing Your Model](#-testing-your-model) |
-| ❓ Get help | [FAQ](faq.md) \| [Troubleshooting](guides/troubleshooting.md) |
+| ❓ Get help | [FAQ](faq.html) \| [Troubleshooting](guides/troubleshooting.html) |
 | ➕ Add tasks | [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
 | 📊 Submit results | [Submit Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
 
@@ -138,12 +138,12 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
 
 ## 🔍 Salesforce AI Benchmark Overview
 
-The [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.md) provides a comprehensive overview of SF-Bench, including:
+The [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.html) provides a comprehensive overview of SF-Bench, including:
 
 - **Purpose and methodology**: Why SF-Bench exists and how it works
 - **Dataset structure**: How tasks are organized and validated
 - **Salesforce-specific validation**: How scoring differs from general coding benchmarks
-- **Technical details**: Links to [Evaluation Guide](guides/evaluation.md) and [Validation Methodology](VALIDATION_METHODOLOGY.md)
+- **Technical details**: Links to [Evaluation Guide](guides/evaluation.html) and [Validation Methodology](VALIDATION_METHODOLOGY.html)
 
 This guide serves as a central reference for understanding SF-Bench's approach to evaluating AI models on Salesforce development tasks.
 
@@ -174,9 +174,9 @@ SF-Bench **measures and reports**. We don't predict or claim expected outcomes.
 
 *\* Flow tasks failed due to scratch org creation issues (being fixed)*
 
-> **Note**: Functional Score (0-100) uses weighted validation. See [VALIDATION_METHODOLOGY.md](VALIDATION_METHODOLOGY.md) for details.
+> **Note**: Functional Score (0-100) uses weighted validation. See [VALIDATION_METHODOLOGY.md](VALIDATION_METHODOLOGY.html) for details.
 
-**[Full Leaderboard →](LEADERBOARD.md)**
+**[Full Leaderboard →](LEADERBOARD.html)**
 
 ---
 
@@ -269,24 +269,24 @@ SF-Bench includes **12 verified tasks** across Salesforce development domains:
 ## 📖 Documentation
 
 ### Getting Started
-- 🚀 [Quick Start Guide](quickstart.md) - Get running in 5 minutes
-- 📚 [What is SF-Bench?](getting-started/what-is-sf-bench.md) - Complete overview
-- 🏢 [What is Salesforce?](getting-started/what-is-salesforce.md) - For beginners
-- ❓ [FAQ](faq.md) - Common questions and answers
-- 🔧 [Troubleshooting](guides/troubleshooting.md) - Common issues and solutions
+- 🚀 [Quick Start Guide](quickstart.html) - Get running in 5 minutes
+- 📚 [What is SF-Bench?](getting-started/what-is-sf-bench.html) - Complete overview
+- 🏢 [What is Salesforce?](getting-started/what-is-salesforce.html) - For beginners
+- ❓ [FAQ](faq.html) - Common questions and answers
+- 🔧 [Troubleshooting](guides/troubleshooting.html) - Common issues and solutions
 
 ### For Different Audiences
-- 💼 [For Companies](personas/for-companies.md) - Business case & ROI
-- 👨‍💻 [For Salesforce Developers](guides/evaluation.md) - Evaluation guide
-- 🔬 [For Researchers](VALIDATION_METHODOLOGY.md) - Methodology details
-- 🔄 [SWE-bench Comparison](evaluation/comparison-with-swe-bench.md) - Benchmark comparison
+- 💼 [For Companies](personas/for-companies.html) - Business case & ROI
+- 👨‍💻 [For Salesforce Developers](guides/evaluation.html) - Evaluation guide
+- 🔬 [For Researchers](VALIDATION_METHODOLOGY.html) - Methodology details
+- 🔄 [SWE-bench Comparison](evaluation/comparison-with-swe-bench.html) - Benchmark comparison
 
 ### Reference
-- 📋 [Validation Methodology](VALIDATION_METHODOLOGY.md) - How we validate results
-- 📊 [Benchmark Details](BENCHMARK.md) - Technical specifications
-- 🏆 [Full Leaderboard](LEADERBOARD.md) - Complete model rankings
-- 📈 [Evaluation Guide](guides/evaluation.md) - Complete evaluation guide
-- 📄 [Result Schema](reference/result-schema.md) - Result format reference
+- 📋 [Validation Methodology](VALIDATION_METHODOLOGY.html) - How we validate results
+- 📊 [Benchmark Details](BENCHMARK.html) - Technical specifications
+- 🏆 [Full Leaderboard](LEADERBOARD.html) - Complete model rankings
+- 📈 [Evaluation Guide](guides/evaluation.html) - Complete evaluation guide
+- 📄 [Result Schema](reference/result-schema.html) - Result format reference
 
 ### Contributing
 - ➕ [Contributing Guide](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md)

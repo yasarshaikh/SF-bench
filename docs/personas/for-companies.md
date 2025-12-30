@@ -112,7 +112,7 @@ Companies investing in AI coding tools face uncertainty:
 ### Step 1: Review Leaderboard
 
 Check which models perform best:
-**[View Leaderboard →](../LEADERBOARD.md)**
+**[View Leaderboard →](../LEADERBOARD.html)**
 
 ### Step 2: Run Your Own Evaluation
 
@@ -232,10 +232,10 @@ python scripts/evaluate.py \
 
 ## 🔗 Resources
 
-- **[Leaderboard](../LEADERBOARD.md)** - See current results
-- **[Quick Start](../quickstart.md)** - Get running in 5 minutes
-- **[Evaluation Guide](../guides/evaluation.md)** - Complete guide
-- **[FAQ](../faq.md)** - Common questions
+- **[Leaderboard](../LEADERBOARD.html)** - See current results
+- **[Quick Start](../quickstart.html)** - Get running in 5 minutes
+- **[Evaluation Guide](../guides/evaluation.html)** - Complete guide
+- **[FAQ](../faq.html)** - Common questions
 
 ---
 
@@ -247,4 +247,4 @@ python scripts/evaluate.py \
 
 ---
 
-**Ready to evaluate AI tools for your company?** Start with our [Quick Start Guide](../quickstart.md)!
+**Ready to evaluate AI tools for your company?** Start with our [Quick Start Guide](../quickstart.html)!

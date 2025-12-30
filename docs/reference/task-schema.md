@@ -222,9 +222,9 @@ Agentforce script recipes.
 
 ## Related Documentation
 
-- [Evaluation Guide](../guides/evaluation.md)
-- [Result Schema](result-schema.md)
-- [Contributing Guide](../../CONTRIBUTING.md)
+- [Evaluation Guide](../guides/evaluation.html)
+- [Result Schema](result-schema.html)
+- [Contributing Guide](../../CONTRIBUTING.html)
 
 ---
 

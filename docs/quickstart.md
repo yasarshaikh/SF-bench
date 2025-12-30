@@ -216,9 +216,9 @@ export OPENROUTER_API_KEY="your-key"
 
 ## Next Steps
 
-- 📖 [Full Evaluation Guide](guides/evaluation.md)
-- 🔧 [Troubleshooting](guides/troubleshooting.md)
-- 📊 [Understanding Results](reference/result-schema.md)
+- 📖 [Full Evaluation Guide](guides/evaluation.html)
+- 🔧 [Troubleshooting](guides/troubleshooting.html)
+- 📊 [Understanding Results](reference/result-schema.html)
 - 🏆 [Submit Your Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md)
 
 ---
@@ -227,7 +227,7 @@ export OPENROUTER_API_KEY="your-key"
 
 - 🐛 [Report Issues](https://github.com/yasarshaikh/SF-bench/issues)
 - 💬 [Discussions](https://github.com/yasarshaikh/SF-bench/discussions)
-- 📚 [Full Documentation](../index.md)
+- 📚 [Full Documentation](../)
 
 ---
 

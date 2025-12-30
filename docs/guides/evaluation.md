@@ -304,14 +304,14 @@ python scripts/evaluate.py \
 **"Corrupt patch errors"**
 - Some models generate invalid patches
 - Try a different model or provider
-- See [Troubleshooting Guide](troubleshooting.md) for details
+- See [Troubleshooting Guide](troubleshooting.html) for details
 
 **"Scratch org creation timeout"**
 - Check network connectivity
 - Verify DevHub limits
 - Try with fewer workers
 
-See [Troubleshooting Guide](troubleshooting.md) for more solutions.
+See [Troubleshooting Guide](troubleshooting.html) for more solutions.
 
 ---
 
@@ -352,10 +352,10 @@ python -c "from sfbench.utils.inventory import ScratchOrgInventory; ScratchOrgIn
 
 ## Next Steps
 
-- 📖 [Understanding Results](reference/result-schema.md)
-- 🔧 [Troubleshooting](troubleshooting.md)
-- 📊 [Leaderboard](../LEADERBOARD.md)
-- ❓ [FAQ](../faq.md)
+- 📖 [Understanding Results](reference/result-schema.html)
+- 🔧 [Troubleshooting](troubleshooting.html)
+- 📊 [Leaderboard](../LEADERBOARD.html)
+- ❓ [FAQ](../faq.html)
 
 ---
 

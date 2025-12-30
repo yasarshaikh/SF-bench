@@ -469,9 +469,9 @@ If you're still stuck:
 
 ## 📚 Additional Resources
 
-- [Quick Start Guide](../quickstart.md)
-- [Full Evaluation Guide](evaluation.md)
-- [FAQ](../faq.md)
+- [Quick Start Guide](../quickstart.html)
+- [Full Evaluation Guide](evaluation.html)
+- [FAQ](../faq.html)
 - [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
 
 ---

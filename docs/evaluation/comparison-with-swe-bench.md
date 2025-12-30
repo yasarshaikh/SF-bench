@@ -261,8 +261,8 @@ keywords: sf-bench vs swe-bench, benchmark comparison, ai coding benchmark compa
 ## 📚 Further Reading
 
 - **[SWE-bench Paper](https://arxiv.org/abs/2310.06770)** - Original SWE-bench research
-- **[SF-Bench Methodology](../VALIDATION_METHODOLOGY.md)** - Our validation approach
-- **[Benchmark Details](../BENCHMARK.md)** - Technical specifications
+- **[SF-Bench Methodology](../VALIDATION_METHODOLOGY.html)** - Our validation approach
+- **[Benchmark Details](../BENCHMARK.html)** - Technical specifications
 
 ---
 
@@ -294,4 +294,4 @@ keywords: sf-bench vs swe-bench, benchmark comparison, ai coding benchmark compa
 
 ---
 
-**Ready to evaluate?** Check out our [Quick Start Guide](../quickstart.md)!
+**Ready to evaluate?** Check out our [Quick Start Guide](../quickstart.html)!
