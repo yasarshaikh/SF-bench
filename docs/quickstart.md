@@ -227,7 +227,7 @@ export OPENROUTER_API_KEY="your-key"
 
 - 🐛 [Report Issues](https://github.com/yasarshaikh/SF-bench/issues)
 - 💬 [Discussions](https://github.com/yasarshaikh/SF-bench/discussions)
-- 📚 [Full Documentation](../)
+- 📚 [Full Documentation](index.html)
 
 ---
 
