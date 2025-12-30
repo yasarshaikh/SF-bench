@@ -331,15 +331,17 @@ Yes! SF-Bench is open source and free to use for academic research.
 **Similarities:**
 - Real-world task focus
 - Functional validation (not just syntax)
-- Standardized result schema
+- Standardized result schema (v2, SWE-bench compatible)
+- Multi-strategy patch application for robust evaluation
+- Hierarchical log organization
 
 **Differences:**
 - **Domain:** Salesforce vs. Python open-source
 - **Validation:** Scratch orgs vs. Docker containers
-- **Tasks:** 50+ Salesforce scenarios vs. 2,000+ GitHub issues
+- **Tasks:** 12 verified Salesforce scenarios (expanding) vs. 2,000+ GitHub issues
 - **Focus:** Enterprise development vs. open-source contributions
 
-SF-Bench is **inspired by** SWE-bench but tailored for Salesforce.
+SF-Bench is **aligned with** SWE-bench standards and best practices, tailored for Salesforce.
 
 ---
 
@@ -396,4 +398,4 @@ If your question isn't answered here:
 
 ---
 
-*Last updated: January 2025*
+*Last updated: December 2025*

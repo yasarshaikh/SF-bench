@@ -186,33 +186,31 @@ python scripts/evaluate.py --max-workers 1  # Instead of 2-4
 
 ---
 
-### Issue: Model returns corrupt patches
+### Issue: Patch application errors (malformed patches)
 
 **Symptoms:**
 ```
-ERROR: Patch failed to apply
-ERROR: Corrupt patch detected
+ERROR: Failed to apply patch after trying 4 strategies
+ERROR: patch: **** malformed patch at line X
 ```
 
 **Solution:**
 
-This is a known issue with some models. The patch format may be invalid.
+SF-Bench uses multi-strategy patch application (4 fallback methods) to handle most patch formatting issues. If all strategies fail, the patch may be fundamentally invalid.
 
-**Affected models:**
-- GPT 5.2 (RouteLLM)
-- Grok 4.1 Fast
-- Claude Opus 4.5 (RouteLLM)
-- Claude Haiku 3 (OpenRouter)
+**What SF-Bench does automatically:**
+1. Strict git apply (whitespace fixes)
+2. Partial application with rejects
+3. 3-way merge for context mismatches
+4. Fuzzy matching (SWE-bench fallback)
 
-**Working models:**
-- Claude Sonnet 4.5 (OpenRouter) ✅
-- Gemini 2.5 Flash (AI Studio) ✅
+**If patches still fail:**
+- Some models generate patches that cannot be applied even with all strategies
+- This may indicate the model doesn't understand git diff format
+- Try a different model or provider
+- Check pre-flight checks - they validate patch format before evaluation
 
-**Workaround:**
-```bash
-# Use a different model or provider
-python scripts/evaluate.py --model "anthropic/claude-3.5-sonnet"
-```
+**Note:** Recent improvements (2025-12-30) enhanced patch cleaning to handle malformed lines (standalone `+`/`-`, empty lines). Most patch issues are now automatically handled.
 
 ---
 

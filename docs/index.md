@@ -39,7 +39,7 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
   ],
   "license": "https://github.com/yasarshaikh/SF-bench/blob/main/LICENSE",
   "datePublished": "2024-12-01",
-  "dateModified": "2025-12-29",
+  "dateModified": "2025-12-30",
   "inLanguage": "en-US"
 }
 </script>
@@ -83,7 +83,7 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
     }
   },
   "datePublished": "2024-12-01",
-  "dateModified": "2025-12-29",
+  "dateModified": "2025-12-30",
   "mainEntityOfPage": {
     "@type": "WebPage",
     "@id": "https://yasarshaikh.github.io/SF-bench/"
@@ -118,6 +118,7 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
 | **Researcher** | Benchmark AI models | [Evaluation Guide](guides/evaluation.md) |
 | **SWE-bench User** | Compare with SWE-bench | [Comparison](evaluation/comparison-with-swe-bench.md) |
 | **Open Source Enthusiast** | Contribute to SF-Bench | [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
+| **Need a Salesforce AI Benchmark?** | Share the story & methodology | [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.md) |
 
 ---
 
@@ -126,11 +127,24 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
 | I want to... | Link |
 |--------------|------|
 | 🚀 Get started in 5 min | [Quick Start](quickstart.md) |
+| 📣 Understand the Salesforce AI Benchmark | [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.md) |
 | 🏆 See results | [Leaderboard](#-leaderboard) |
 | 🧪 Test my model | [Testing Your Model](#-testing-your-model) |
 | ❓ Get help | [FAQ](faq.md) \| [Troubleshooting](guides/troubleshooting.md) |
 | ➕ Add tasks | [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
 | 📊 Submit results | [Submit Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
+
+---
+
+## 🔍 Salesforce AI Benchmark Overview
+
+Looking for a keyword-friendly overview you can share with leadership, partners, or the press? The new [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.md) explains why SF-Bench exists, how datasets are structured, and what makes Salesforce validation unique.
+
+- Learn how Salesforce-specific scoring differs from general coding benchmarks
+- Get a permalink (`/salesforce-ai-benchmark/`) built for search engines and social sharing
+- Jump to deeper docs like the [Evaluation Guide](guides/evaluation.md) or [Validation Methodology](VALIDATION_METHODOLOGY.md) from a single hub
+
+Use it as an entry point when people search for “Salesforce AI benchmark” or need a quick pitch deck substitute.
 
 ---
 
