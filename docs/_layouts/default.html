@@ -11,6 +11,9 @@
   <link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/favicon-32x32.png' | relative_url }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/favicon-16x16.png' | relative_url }}">
 
+  <!-- Canonical URL -->
+  <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.url | replace: 'index.html', '' }}">
+
   {% seo %}
   
   <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
@@ -112,6 +115,7 @@
       object-fit: contain;
       border-radius: 12px;
       display: block;
+      loading: lazy;
     }
     
     .header-text {
@@ -332,7 +336,7 @@
       <div class="header-content">
         {% if site.logo %}
         <div class="header-logo">
-          <img src="{{ site.logo | relative_url }}" alt="SF-Bench Logo">
+          <img src="{{ site.logo | relative_url }}" alt="SF-Bench Logo" loading="eager" width="90" height="90">
         </div>
         {% endif %}
         <div class="header-text">

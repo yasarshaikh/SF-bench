@@ -4,9 +4,9 @@
 
 <img src="docs/assets/logo.png" alt="SF-Bench Logo" width="180" height="180"/>
 
-**The Open Benchmark for Evaluating AI Coding Agents on Salesforce Development**
+**The Open Salesforce AI Benchmark for Evaluating AI Coding Agents on Salesforce Development**
 
-*Objective measurement. Real execution. Verified results.*
+*Objective measurement. Real execution. Verified results. The Salesforce AI benchmark for developers.*
 
 </div>
 

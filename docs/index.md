@@ -1,7 +1,8 @@
 ---
 layout: default
-title: SF-Bench - Salesforce AI Benchmark
-description: The open benchmark for evaluating AI coding agents on Salesforce development. Objective measurement, real execution, verified results.
+title: SF-Bench - Salesforce AI Benchmark | Evaluate AI Coding Agents
+description: The open Salesforce AI benchmark for evaluating AI coding agents on Salesforce development. Test Apex, LWC, Flow with real scratch org execution. Objective measurement, verified results.
+keywords: salesforce ai benchmark, sf benchmark, salesforce coding benchmark, apex ai benchmark, salesforce ai evaluation, ai coding agents salesforce
 ---
 
 <script type="application/ld+json">
@@ -49,8 +50,9 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "SF-Bench",
+  "alternateName": "Salesforce AI Benchmark",
   "url": "https://yasarshaikh.github.io/SF-bench/",
-  "description": "The open benchmark for evaluating AI coding agents on Salesforce development",
+  "description": "The open Salesforce AI benchmark for evaluating AI coding agents on Salesforce development",
   "potentialAction": {
     "@type": "SearchAction",
     "target": "https://yasarshaikh.github.io/SF-bench/?q={search_term_string}",
@@ -59,7 +61,15 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
   "publisher": {
     "@type": "Organization",
     "name": "SF-Bench",
-    "url": "https://yasarshaikh.github.io/SF-bench/"
+    "url": "https://yasarshaikh.github.io/SF-bench/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://yasarshaikh.github.io/SF-bench/assets/logo.png"
+    },
+    "sameAs": [
+      "https://github.com/yasarshaikh/SF-bench",
+      "https://www.linkedin.com/in/yasarshaikh/"
+    ]
   }
 }
 </script>
@@ -101,7 +111,9 @@ description: The open benchmark for evaluating AI coding agents on Salesforce de
 
 # SF-Bench: The Salesforce AI Benchmark
 
-**The open, objective benchmark for measuring AI coding agents on Salesforce development tasks.**
+**The open, objective Salesforce AI benchmark for measuring AI coding agents on Salesforce development tasks.**
+
+> **Note:** SF-Bench evaluates AI **coding agents** for Salesforce development (Apex, LWC, Flow), while Salesforce's CRM benchmark evaluates AI models for business use cases. SF-Bench is the complementary benchmark for developers.
 
 ---
 
