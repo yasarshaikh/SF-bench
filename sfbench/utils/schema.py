@@ -101,17 +101,26 @@ class ValidationBreakdown:
         """
         Check if task is resolved (meets minimum criteria).
         
-        Criteria for RESOLVED:
-        - Deployment: PASS
-        - Unit Tests: PASS
-        - Functional: PASS
-        - Score >= 80
+        CRITICAL: Binary Pass/Fail - Functional requirement MUST be met.
+        This follows SWE-bench methodology: if functional requirement isn't met,
+        the solution is FAILED, regardless of other checks.
+        
+        Criteria for RESOLVED (ALL must be true):
+        - Deployment: PASS (necessary but not sufficient)
+        - Unit Tests: PASS (code quality check)
+        - Functional: PASS (THE CORE REQUIREMENT - if this fails, task fails)
+        
+        Note: Score breakdown (0-100) is kept as diagnostic metadata only.
+        The top-level metric is binary: PASS or FAIL.
         """
+        # Functional test is the gatekeeper - if it fails, task fails
+        if self.functional_status != ComponentStatus.PASS:
+            return False
+        
+        # All other checks must also pass for a complete solution
         return (
             self.deployment_status == ComponentStatus.PASS and
-            self.unit_test_status == ComponentStatus.PASS and
-            self.functional_status == ComponentStatus.PASS and
-            self.total_score >= 80
+            self.unit_test_status == ComponentStatus.PASS
         )
 
 
@@ -185,20 +194,28 @@ class InstanceResult:
 @dataclass
 class EvaluationSummary:
     """
-    Summary statistics for an evaluation run.
+    Summary statistics for an evaluation run (SWE-bench compatible).
     """
     
-    # Overall metrics
+    # Overall metrics (SWE-bench terminology)
     total_instances: int = 0
+    instances_submitted: int = 0  # SWE-bench field
+    instances_completed: int = 0  # SWE-bench field
     resolved_instances: int = 0
+    instances_resolved: int = 0  # SWE-bench field (alias)
+    instances_unresolved: int = 0  # SWE-bench field
     failed_instances: int = 0
     error_instances: int = 0
+    instances_error: int = 0  # SWE-bench field (alias)
+    instances_empty_patch: int = 0  # SWE-bench field
     
     # Success rates
-    resolve_rate: float = 0.0  # resolved / total
+    resolve_rate: float = 0.0  # resolved / total (0.0-1.0)
+    resolution_rate: float = 0.0  # SWE-bench field (as percentage 0-100)
     
     # Scoring metrics
     avg_score: float = 0.0
+    avg_functional_score: float = 0.0  # SWE-bench field
     median_score: float = 0.0
     min_score: int = 0
     max_score: int = 0
@@ -250,17 +267,45 @@ class EvaluationReport:
     environment: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
+        """Convert to dictionary for JSON serialization (SWE-bench compatible format)."""
+        # Calculate ID lists (SWE-bench style)
+        resolved_ids = sorted([inst.instance_id for inst in self.instances if inst.resolved])
+        unresolved_ids = sorted([
+            inst.instance_id for inst in self.instances 
+            if not inst.resolved and inst.status == TaskStatus.FAIL
+        ])
+        error_ids = sorted([
+            inst.instance_id for inst in self.instances 
+            if inst.status == TaskStatus.ERROR
+        ])
+        empty_patch_ids = sorted([
+            inst.instance_id for inst in self.instances 
+            if not inst.solution_patch or len(inst.solution_patch.strip()) == 0
+        ])
+        completed_ids = sorted([
+            inst.instance_id for inst in self.instances 
+            if inst.status != TaskStatus.ERROR
+        ])
+        
         return {
             "schema_version": self.schema_version,
             "run_id": self.run_id,
-            "model_name": self.model_name,
+            "model_name_or_path": self.model_name,  # SWE-bench field name
+            "model_name": self.model_name,  # Keep for backward compatibility
             "dataset": self.dataset,
-            "config": self.config,
+            "created_at": self.start_time,  # SWE-bench field name
+            "start_time": self.start_time,  # Keep for backward compatibility
+            "end_time": self.end_time,
+            "evaluation_config": self.config,  # SWE-bench field name
+            "config": self.config,  # Keep for backward compatibility
             "instances": [inst.to_dict() for inst in self.instances],
             "summary": self.summary.to_dict(),
-            "start_time": self.start_time,
-            "end_time": self.end_time,
+            # SWE-bench style ID lists
+            "resolved_ids": resolved_ids,
+            "unresolved_ids": unresolved_ids,
+            "error_ids": error_ids,
+            "empty_patch_ids": empty_patch_ids,
+            "completed_ids": completed_ids,
             "environment": self.environment,
         }
     
@@ -269,27 +314,44 @@ class EvaluationReport:
         self.instances.append(instance)
     
     def calculate_summary(self):
-        """Calculate summary statistics from instances."""
+        """Calculate summary statistics from instances (SWE-bench compatible)."""
         if not self.instances:
             return
         
-        # Count statuses
+        # Count statuses (SWE-bench terminology)
         self.summary.total_instances = len(self.instances)
         self.summary.resolved_instances = sum(1 for i in self.instances if i.resolved)
         self.summary.failed_instances = sum(1 for i in self.instances if i.status == TaskStatus.FAIL)
         self.summary.error_instances = sum(1 for i in self.instances if i.status == TaskStatus.ERROR)
         
-        # Calculate rates
+        # SWE-bench style counts
+        instances_submitted = len(self.instances)
+        instances_completed = sum(1 for i in self.instances if i.status != TaskStatus.ERROR)
+        instances_unresolved = sum(1 for i in self.instances if not i.resolved and i.status == TaskStatus.FAIL)
+        instances_empty_patch = sum(1 for i in self.instances if not i.solution_patch or len(i.solution_patch.strip()) == 0)
+        
+        # Calculate rates (SWE-bench style)
         if self.summary.total_instances > 0:
             self.summary.resolve_rate = self.summary.resolved_instances / self.summary.total_instances
+            self.summary.resolution_rate = self.summary.resolve_rate * 100.0  # As percentage
+            # Set aliases for SWE-bench compatibility
+            self.summary.instances_resolved = self.summary.resolved_instances
+            self.summary.instances_error = self.summary.error_instances
+            self.summary.instances_submitted = instances_submitted
+            self.summary.instances_completed = instances_completed
+            self.summary.instances_unresolved = instances_unresolved
+            self.summary.instances_empty_patch = instances_empty_patch
         
         # Calculate score statistics
         scores = [i.validation.total_score for i in self.instances]
+        functional_scores = [i.validation.functional_points for i in self.instances if i.validation.functional_points > 0]
         if scores:
             self.summary.avg_score = sum(scores) / len(scores)
             self.summary.median_score = sorted(scores)[len(scores) // 2]
             self.summary.min_score = min(scores)
             self.summary.max_score = max(scores)
+        if functional_scores:
+            self.summary.avg_functional_score = sum(functional_scores) / len(functional_scores)
         
         # Calculate component pass rates
         total = self.summary.total_instances
