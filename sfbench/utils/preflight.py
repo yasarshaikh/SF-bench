@@ -201,12 +201,7 @@ class PreflightValidator:
                 if not has_diff_markers:
                     return False, "Model does not generate proper git diff format"
                 
-                return True, f"✅ Model '{model_name}' (mapped to '{actual_model}') available and generates valid diff format" = {
-                    "model": model_name,
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "You are an expert Salesforce developer. Generate solutions as unified diff patches.\n\nCRITICAL INSTRUCTIONS:\n1. Output ONLY the raw patch content, NO markdown code blocks\n2. Start directly with: diff --git a/path/to/file b/path/to/file\n3. Use proper unified diff format"
+                return True, f"✅ Model '{model_name}' (mapped to '{actual_model}') available and generates valid diff format"
                         },
                         {
                             "role": "user",
