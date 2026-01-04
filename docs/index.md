@@ -130,7 +130,7 @@ keywords: salesforce ai benchmark, sf benchmark, salesforce coding benchmark, ap
 | **Researcher** | Benchmark AI models | [Evaluation Guide](guides/evaluation.html) |
 | **SWE-bench User** | Compare with SWE-bench | [Comparison](evaluation/comparison-with-swe-bench.html) |
 | **Open Source Enthusiast** | Contribute to SF-Bench | [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
-| **Need a Salesforce AI Benchmark?** | Share the story & methodology | [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.html) |
+| **Need a Salesforce AI Benchmark?** | Share the story & methodology | [Salesforce AI Benchmark Guide](/salesforce-ai-benchmark/) |
 
 ---
 
@@ -139,7 +139,7 @@ keywords: salesforce ai benchmark, sf benchmark, salesforce coding benchmark, ap
 | I want to... | Link |
 |--------------|------|
 | 🚀 Get started in 5 min | [Quick Start](quickstart.html) |
-| 📣 Understand the Salesforce AI Benchmark | [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.html) |
+| 📣 Understand the Salesforce AI Benchmark | [Salesforce AI Benchmark Guide](/salesforce-ai-benchmark/) |
 | 🏆 See results | [Leaderboard](#-leaderboard) |
 | 🧪 Test my model | [Testing Your Model](#-testing-your-model) |
 | ❓ Get help | [FAQ](faq.html) \| [Troubleshooting](guides/troubleshooting.html) |
@@ -150,7 +150,7 @@ keywords: salesforce ai benchmark, sf benchmark, salesforce coding benchmark, ap
 
 ## 🔍 Salesforce AI Benchmark Overview
 
-The [Salesforce AI Benchmark Guide](getting-started/salesforce-ai-benchmark.html) provides a comprehensive overview of SF-Bench, including:
+The [Salesforce AI Benchmark Guide](/salesforce-ai-benchmark/) provides a comprehensive overview of SF-Bench, including:
 
 - **Purpose and methodology**: Why SF-Bench exists and how it works
 - **Dataset structure**: How tasks are organized and validated
