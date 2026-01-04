@@ -287,7 +287,7 @@ class EvaluationReport:
             if inst.status != TaskStatus.ERROR
         ])
         
-        return {
+        result_dict = {
             "schema_version": self.schema_version,
             "run_id": self.run_id,
             "model_name_or_path": self.model_name,  # SWE-bench field name
@@ -308,6 +308,16 @@ class EvaluationReport:
             "completed_ids": completed_ids,
             "environment": self.environment,
         }
+        
+        # Add result verification hash if available
+        eval_hash = getattr(self, 'evaluation_hash', None)
+        if eval_hash:
+            result_dict["evaluation_hash"] = eval_hash
+        model_cfg = getattr(self, 'model_config', None)
+        if model_cfg:
+            result_dict["model_config"] = model_cfg
+        
+        return result_dict
     
     def add_instance(self, instance: InstanceResult):
         """Add an instance result to the report."""

@@ -54,15 +54,20 @@ def apply_patch(repo_dir: Path, patch_diff: str, timeout: int = 60) -> None:
     """
     Apply a patch to a repository using multiple fallback strategies (inspired by SWE-bench).
     
-    This function tries multiple patch application methods in sequence, giving models a fair
-    chance even if their patches have minor formatting issues. Only fails if ALL strategies fail.
+    This function validates patches before applying and tries multiple patch application methods
+    in sequence, giving models a fair chance even if their patches have minor formatting issues.
+    Only fails if ALL strategies fail.
     
     Strategies (in order):
-    1. git apply --whitespace=fix --ignore-whitespace (strict)
-    2. git apply --whitespace=fix --ignore-whitespace --reject (allows partial)
-    3. git apply --3way --whitespace=fix (3-way merge for context mismatches)
-    4. patch --batch --fuzz=5 -p1 (fuzzy matching, SWE-bench fallback)
+    1. git apply --check (validation only)
+    2. git apply --whitespace=fix --ignore-whitespace (strict)
+    3. git apply --whitespace=fix --ignore-whitespace --reject (allows partial)
+    4. git apply --3way --whitespace=fix (3-way merge for context mismatches)
+    5. patch --batch --fuzz=5 -p1 (fuzzy matching, SWE-bench fallback)
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     # Validate patch is not empty
     if not patch_diff or not patch_diff.strip():
         raise GitError("Cannot apply empty patch")
@@ -81,6 +86,25 @@ def apply_patch(repo_dir: Path, patch_diff: str, timeout: int = 60) -> None:
     )
     if not has_diff_content:
         raise GitError("Patch does not contain valid diff content")
+    
+    # VALIDATION PIPELINE: Check patch validity before applying
+    try:
+        check_result = subprocess.run(
+            ['git', 'apply', '--check', '--whitespace=fix', '--ignore-whitespace'],
+            input=cleaned_patch,
+            cwd=str(repo_dir),
+            capture_output=True,
+            text=True,
+            timeout=timeout
+        )
+        if check_result.returncode == 0:
+            logger.debug("Patch validation passed: git apply --check succeeded")
+        else:
+            logger.warning(f"Patch validation warning (will try fallback strategies): {check_result.stderr[:200]}")
+    except subprocess.TimeoutExpired:
+        logger.warning("Patch validation timed out (will try fallback strategies)")
+    except Exception as e:
+        logger.warning(f"Patch validation error (will try fallback strategies): {str(e)}")
     
     # Multi-strategy patch application (inspired by SWE-bench)
     strategies = [
@@ -171,23 +195,49 @@ def _clean_patch(patch_diff: str) -> str:
     - Empty lines in diff context
     - Trailing whitespace
     - Incomplete patch lines
+    - Multiple diff headers (extract first complete diff)
+    - Embedded text/explanations in patches
+    - Truncated patches
     """
     lines = patch_diff.split('\n')
     cleaned_lines = []
     in_diff = False
     last_was_hunk_header = False
+    diff_count = 0
+    seen_first_diff = False
     
     for i, line in enumerate(lines):
         # Remove markdown code fences if present
         if line.strip().startswith('```'):
             continue
         
-        # Start collecting when we see diff header
-        if line.startswith('diff --git') or line.startswith('---') or line.startswith('+++'):
+        # Detect new diff header - if we've already seen one, skip subsequent ones
+        # (AI models sometimes include multiple diffs or explanations)
+        if line.startswith('diff --git'):
+            diff_count += 1
+            if diff_count > 1:
+                # Multiple diff headers detected - stop at first complete diff
+                # This handles cases where AI includes explanations or multiple patches
+                break
             in_diff = True
             last_was_hunk_header = False
+            seen_first_diff = True
+            cleaned_lines.append(line.rstrip())
+            continue
+        
+        # Start collecting when we see diff header components
+        if not seen_first_diff and (line.startswith('---') or line.startswith('+++')):
+            in_diff = True
+            last_was_hunk_header = False
+            seen_first_diff = True
         
         if in_diff:
+            # Handle file headers (--- and +++)
+            if line.startswith('---') or line.startswith('+++'):
+                cleaned_lines.append(line.rstrip())
+                last_was_hunk_header = False
+                continue
+            
             # Handle hunk headers (@@ ... @@)
             if line.startswith('@@'):
                 cleaned_lines.append(line.rstrip())
@@ -209,6 +259,15 @@ def _clean_patch(patch_diff: str) -> str:
                 if len(cleaned_line) == 1 and cleaned_line in ('+', '-'):
                     continue
                 
+                # Skip lines that look like instructions/explanations (not code)
+                # e.g., "+5. Deploy LWC bundle" - these are explanations, not code
+                if cleaned_line.startswith(('+', '-')) and len(cleaned_line) > 1:
+                    # Check if it looks like an instruction (starts with number, bullet, etc.)
+                    rest = cleaned_line[1:].strip()
+                    if rest and (rest[0].isdigit() or rest.startswith(('. ', '- ', '* '))):
+                        # Likely an instruction, not code - skip it
+                        continue
+                
                 if cleaned_line:  # Don't add empty lines
                     cleaned_lines.append(cleaned_line)
                 last_was_hunk_header = False
@@ -221,11 +280,23 @@ def _clean_patch(patch_diff: str) -> str:
                 # But skip empty lines right after hunk headers (common malformation)
                 if last_was_hunk_header and not line.strip():
                     continue
+                
+                # Skip lines that look like explanations or instructions (not diff content)
+                # These often appear in AI-generated patches
+                stripped = line.strip()
+                if stripped and not stripped.startswith(('index', 'new file', 'deleted file', 'similarity', 'rename')):
+                    # If it doesn't look like a valid diff metadata line, skip it
+                    # (unless we're in a valid diff context)
+                    if not (stripped.startswith('diff') or stripped.startswith('---') or stripped.startswith('+++')):
+                        continue
+                
                 cleaned_lines.append(line.rstrip())
                 last_was_hunk_header = False
         else:
-            # Before diff starts, keep original (might be instructions)
-            cleaned_lines.append(line)
+            # Before diff starts, skip instructions/explanations
+            # Only keep if it looks like it might be part of a diff
+            if line.startswith(('diff', '---', '+++', '@@', 'index')):
+                cleaned_lines.append(line)
     
     # Final pass: remove any remaining malformed lines
     final_lines = []

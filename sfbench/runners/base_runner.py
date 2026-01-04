@@ -62,7 +62,20 @@ class BenchmarkRunner(ABC):
         pass
     
     def inject_patch(self, patch_diff: str) -> None:
-        apply_patch(self.repo_dir, patch_diff, timeout=60)
+        """Inject patch with comprehensive logging and error handling."""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"Applying patch for task {self.task.instance_id}")
+        logger.debug(f"Patch preview: {patch_diff[:500]}...")
+        
+        try:
+            apply_patch(self.repo_dir, patch_diff, timeout=60)
+            logger.info(f"Patch applied successfully for {self.task.instance_id}")
+        except Exception as e:
+            logger.error(f"Patch application failed for {self.task.instance_id}: {str(e)}")
+            logger.debug(f"Failed patch content: {patch_diff[:1000]}")
+            raise
     
     @abstractmethod
     def evaluate(self) -> TestResult:

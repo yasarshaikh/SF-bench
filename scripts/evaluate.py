@@ -33,6 +33,8 @@ from sfbench.utils.schema import create_evaluation_report, EvaluationReport
 from sfbench.utils.reporting import make_run_report
 from sfbench.utils.result_converter import convert_test_result_to_instance
 from sfbench.utils.logging_utils import get_log_manager
+from sfbench.utils.checkpoint import CheckpointManager, generate_evaluation_hash
+import logging
 
 
 def run_evaluation(
@@ -69,6 +71,18 @@ def run_evaluation(
     Returns:
         Evaluation results dictionary
     """
+    # Setup logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(f"logs/evaluation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+        ]
+    )
+    logger = logging.getLogger(__name__)
+    logger.info(f"Starting evaluation for model: {model_name}")
+    
     # Setup
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_safe_name = model_name.replace("/", "-").replace(" ", "_")
@@ -79,6 +93,22 @@ def run_evaluation(
     
     workspace_dir = Path("workspace")
     workspace_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Setup checkpoint manager
+    checkpoint_dir = output_dir / "checkpoints"
+    checkpoint_mgr = CheckpointManager(checkpoint_dir)
+    evaluation_id = f"{model_safe_name}-{timestamp}"
+    
+    # Generate evaluation hash for verification
+    eval_config = {
+        "model_name": model_name,
+        "tasks_file": str(tasks_file),
+        "functional_validation": functional_validation,
+        "max_workers": max_workers,
+        "provider": provider
+    }
+    eval_hash = generate_evaluation_hash(model_name, tasks_file, eval_config)
+    logger.info(f"Evaluation hash: {eval_hash[:16]}...")
     
     # Pre-flight checks
     if not skip_preflight:
@@ -249,6 +279,7 @@ def run_evaluation(
             
             for task in engine.tasks:
                 print(f"   Generating solution for {task.instance_id}...")
+                logger.info(f"Generating solution for task: {task.instance_id}")
                 try:
                     solution = agent.generate_solution(
                         task_description=task.problem_description,
@@ -260,8 +291,14 @@ def run_evaluation(
                     )
                     solutions[task.instance_id] = solution
                     print(f"   ✅ Generated {len(solution)} chars")
+                    logger.info(f"Generated solution for {task.instance_id}: {len(solution)} chars")
+                    
+                    # Log patch validation attempt
+                    if solution:
+                        logger.debug(f"Solution preview for {task.instance_id}: {solution[:200]}...")
                 except Exception as e:
                     print(f"   ❌ Failed: {e}")
+                    logger.error(f"Failed to generate solution for {task.instance_id}: {str(e)}", exc_info=True)
                     solutions[task.instance_id] = None
             
             print(f"✅ Generated {len([s for s in solutions.values() if s])} solutions")
@@ -279,8 +316,51 @@ def run_evaluation(
     print(f"📂 Output directory: {output_dir}")
     print("-" * 60)
     
+    # Run evaluation with checkpoint support
+    logger.info("Starting task evaluation...")
+    completed_task_ids = []
+    results = []
+    
+    # Try to load checkpoint if exists
+    checkpoints = checkpoint_mgr.list_checkpoints()
+    if checkpoints:
+        latest_checkpoint = checkpoints[0]
+        logger.info(f"Found checkpoint: {latest_checkpoint['file']}")
+        checkpoint_data = checkpoint_mgr.load_checkpoint(latest_checkpoint['file'])
+        if checkpoint_data:
+            completed_task_ids = checkpoint_data.get("completed_tasks", [])
+            logger.info(f"Resuming from checkpoint: {len(completed_task_ids)} tasks already completed")
+    
+    # Filter out completed tasks
+    tasks_to_run = [t for t in engine.tasks if t.instance_id not in completed_task_ids]
+    logger.info(f"Running {len(tasks_to_run)} tasks (skipping {len(completed_task_ids)} completed)")
+    
     # Run evaluation
-    results = engine.run_all_tasks(solutions if solutions else None)
+    try:
+        results = engine.run_all_tasks(solutions if solutions else None)
+        
+        # Create checkpoint after evaluation
+        results_dict = {r.task_id: {"status": r.status.value, "duration": getattr(r, 'duration_seconds', getattr(r, 'duration', 0.0))} for r in results}
+        checkpoint_mgr.create_checkpoint(
+            evaluation_id=evaluation_id,
+            completed_tasks=[r.task_id for r in results],
+            results=results_dict,
+            metadata=eval_config
+        )
+        logger.info("Checkpoint created successfully")
+    except Exception as e:
+        logger.error(f"Evaluation failed: {str(e)}", exc_info=True)
+        # Create checkpoint with partial results
+        if results:
+            results_dict = {r.task_id: {"status": r.status.value, "duration": getattr(r, 'duration_seconds', getattr(r, 'duration', 0.0))} for r in results}
+            checkpoint_mgr.create_checkpoint(
+                evaluation_id=evaluation_id,
+                completed_tasks=[r.task_id for r in results],
+                results=results_dict,
+                metadata=eval_config
+            )
+            logger.info("Partial checkpoint created")
+        raise
     
     # Run functional validation BEFORE cleanup (org must still exist!)
     functional_results_dict = {}  # Map task_id -> FunctionalValidationResult
@@ -389,9 +469,12 @@ def run_evaluation(
         }
     )
     report.run_id = f"{model_safe_name}-{timestamp}"
+    report.evaluation_hash = eval_hash
+    report.model_config = eval_config
     
     # Set up log manager for this run
     log_manager = get_log_manager()
+    logger.info(f"Evaluation report created: run_id={report.run_id}, hash={eval_hash[:16]}...")
     
     # Convert TestResults to InstanceResults
     for result in results:

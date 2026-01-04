@@ -41,6 +41,7 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+**/.DS_Store
 
 # Salesforce CLI
 .sfdx/

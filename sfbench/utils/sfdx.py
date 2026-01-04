@@ -1,6 +1,8 @@
 import subprocess
 import signal
 import json
+import time
+import logging
 from typing import Dict, Any, Optional, Tuple
 from pathlib import Path
 
@@ -34,11 +36,20 @@ def run_sfdx(
     command: str,
     cwd: Optional[Path] = None,
     timeout: int = 300,
-    json_output: bool = True
+    json_output: bool = True,
+    log_command: bool = True
 ) -> Tuple[int, str, str]:
+    logger = logging.getLogger(__name__)
+    
     will_have_json = json_output and '--json' not in command
     if will_have_json:
         command = f"{command} --json"
+    
+    # AUDIT TRAIL: Log command with timestamp
+    if log_command:
+        import datetime
+        timestamp = datetime.datetime.now().isoformat()
+        logger.info(f"[AUDIT] [{timestamp}] Executing: {command} (cwd={cwd}, timeout={timeout}s)")
     
     try:
         process = subprocess.Popen(
@@ -330,78 +341,109 @@ def select_best_devhub() -> str:
 def create_scratch_org(
     alias: str,
     duration_days: int = 1,
-    definition_file: Optional[Path] = None
+    definition_file: Optional[Path] = None,
+    max_retries: int = 3,
+    initial_delay: float = 2.0,
+    cwd: Optional[Path] = None
 ) -> Dict[str, Any]:
     """
-    Create a scratch org for evaluation.
+    Create a scratch org for evaluation with exponential backoff retry logic.
     
     Args:
         alias: Alias for the scratch org
         duration_days: Duration in days (default: 1)
         definition_file: Optional scratch org definition file
+        max_retries: Maximum number of retry attempts (default: 3)
+        initial_delay: Initial delay in seconds before retry (default: 2.0)
         
     Returns:
         Dictionary with org details (username, orgId, etc.)
     """
-    try:
-        # Use default definition if not provided
-        if definition_file is None:
-            definition_file = Path(__file__).parent.parent.parent / "data" / "templates" / "project-scratch-def.json"
-        
-        if not definition_file.exists():
-            # Fallback: create org without definition file
-            cmd = f"sf org create scratch --alias {alias} --duration-days {duration_days} --set-default"
-        else:
-            # Convert Path to string explicitly and quote it (handles spaces in path)
-            def_file_str = str(definition_file.resolve())
-            # Quote the path to handle spaces
-            cmd = f'sf org create scratch --alias {alias} --duration-days {duration_days} --definition-file "{def_file_str}" --set-default'
-        
-        # For scratch org creation, catch the exception and check JSON from stdout
+    logger = logging.getLogger(__name__)
+    last_exception = None
+    
+    for attempt in range(max_retries):
         try:
-            exit_code, stdout, stderr = run_sfdx(cmd, timeout=600)
-        except OrgCreationError as e:
-            # Get stdout from exception (we added it to the exception)
-            stdout_from_exception = getattr(e, 'stdout', None)
-            if stdout_from_exception:
-                try:
-                    data = parse_json_output(stdout_from_exception)
-                    if 'result' in data or data.get('status') == 0:
-                        # JSON shows success - ignore the error
-                        return data.get('result', {})
-                except:
-                    pass
+            # Use default definition if not provided
+            if definition_file is None:
+                definition_file = Path(__file__).parent.parent.parent / "data" / "templates" / "project-scratch-def.json"
             
-            # Check if error is just a warning about CLI update
-            error_msg = str(e)
-            if "Warning: @salesforce/cli update available" in error_msg and len(error_msg) < 200:
-                # This is likely just a warning, try to parse stdout anyway
+            if not definition_file.exists():
+                # Fallback: create org without definition file
+                cmd = f"sf org create scratch --alias {alias} --duration-days {duration_days} --set-default"
+            else:
+                # Convert Path to string explicitly and quote it (handles spaces in path)
+                def_file_str = str(definition_file.resolve())
+                # Quote the path to handle spaces
+                cmd = f'sf org create scratch --alias {alias} --duration-days {duration_days} --definition-file "{def_file_str}" --set-default'
+            
+            # For scratch org creation, catch the exception and check JSON from stdout
+            # Use cwd if provided (to avoid sfdx-project.json conflicts)
+            try:
+                exit_code, stdout, stderr = run_sfdx(cmd, timeout=600, cwd=cwd)
+            except OrgCreationError as e:
+                # Get stdout from exception (we added it to the exception)
+                stdout_from_exception = getattr(e, 'stdout', None)
                 if stdout_from_exception:
                     try:
                         data = parse_json_output(stdout_from_exception)
-                        if 'result' in data:
+                        if 'result' in data or data.get('status') == 0:
+                            # JSON shows success - ignore the error
                             return data.get('result', {})
                     except:
                         pass
+                
+                # Check if error is just a warning about CLI update
+                error_msg = str(e)
+                if "Warning: @salesforce/cli update available" in error_msg and len(error_msg) < 200:
+                    # This is likely just a warning, try to parse stdout anyway
+                    if stdout_from_exception:
+                        try:
+                            data = parse_json_output(stdout_from_exception)
+                            if 'result' in data:
+                                return data.get('result', {})
+                        except:
+                            pass
 
-            # If JSON doesn't show success, re-raise
-            raise
-        
-        # Parse JSON and check result (normal path)
-        if stdout:
-            data = parse_json_output(stdout)
-            if 'result' in data:
-                return data['result']
-            else:
-                error_msg = data.get('message', 'Unknown error')
-                raise OrgCreationError(f"Failed to create scratch org: {error_msg}", data.get('status', 1), stderr or "", stdout)
-        else:
-            raise OrgCreationError("Failed to create scratch org: no output received", 1, "", "")
+                # If JSON doesn't show success, re-raise
+                raise
             
-    except Exception as e:
-        if isinstance(e, (OrgCreationError, TimeoutError)):
-            raise
-        raise OrgCreationError(f"Failed to create scratch org: {str(e)}", 1, str(e))
+            # Parse JSON and check result (normal path)
+            if stdout:
+                data = parse_json_output(stdout)
+                if 'result' in data:
+                    logger.info(f"Successfully created scratch org '{alias}' on attempt {attempt + 1}")
+                    return data['result']
+                else:
+                    error_msg = data.get('message', 'Unknown error')
+                    last_exception = OrgCreationError(f"Failed to create scratch org: {error_msg}", data.get('status', 1), stderr or "", stdout)
+            else:
+                last_exception = OrgCreationError("Failed to create scratch org: no output received", 1, "", "")
+                
+            # If we get here, the attempt failed - check if we should retry
+            if attempt < max_retries - 1:
+                # Exponential backoff: delay = initial_delay * (2 ^ attempt)
+                delay = initial_delay * (2 ** attempt)
+                logger.warning(f"Scratch org creation failed (attempt {attempt + 1}/{max_retries}): {str(last_exception)}. Retrying in {delay:.1f}s...")
+                time.sleep(delay)
+                continue
+            else:
+                # Last attempt failed - raise the exception
+                logger.error(f"Failed to create scratch org '{alias}' after {max_retries} attempts")
+                raise last_exception
+                
+        except Exception as e:
+            if isinstance(e, (OrgCreationError, TimeoutError)):
+                # For these exceptions, check if we should retry
+                if attempt < max_retries - 1:
+                    delay = initial_delay * (2 ** attempt)
+                    logger.warning(f"Scratch org creation error (attempt {attempt + 1}/{max_retries}): {str(e)}. Retrying in {delay:.1f}s...")
+                    time.sleep(delay)
+                    last_exception = e
+                    continue
+                raise
+            # Unexpected exception - don't retry
+            raise OrgCreationError(f"Failed to create scratch org: {str(e)}", 1, str(e))
 
 
 def delete_scratch_org(alias: str) -> bool:

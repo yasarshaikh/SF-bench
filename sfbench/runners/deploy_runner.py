@@ -30,10 +30,12 @@ class DeployRunner(BenchmarkRunner):
             alias = f"sfbench-{self.task.instance_id}-{int(time.time())}"
             
             # Use the utility function which handles errors properly
+            # Run from repo_dir to avoid sfdx-project.json conflicts
             org_result = create_scratch_org(
                 alias=alias,
                 duration_days=1,
-                definition_file=template_file
+                definition_file=template_file,
+                cwd=self.repo_dir  # Run from repo directory to use its sfdx-project.json
             )
             
             self.org_username = org_result.get('username')

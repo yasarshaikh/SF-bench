@@ -145,6 +145,69 @@ class FunctionalValidator:
         self.scratch_org = scratch_org_alias
         self.workspace_dir = workspace_dir
     
+    def _verify_no_manual_tweaks(self, repo_dir: Path) -> ValidationStep:
+        """
+        Explicitly verify that no manual tweaks were made after patch application.
+        
+        This checks git status to ensure:
+        1. No uncommitted changes (modified files)
+        2. No untracked files (except expected ones)
+        3. Working directory is clean
+        
+        Returns:
+            ValidationStep with status "passed" if no tweaks detected, "failed" otherwise
+        """
+        step = ValidationStep(
+            name="Verify No Manual Tweaks",
+            command="git status --porcelain",
+            success_criteria={"exit_code": 0, "stdout_empty": True},
+            timeout=30
+        )
+        
+        try:
+            result = subprocess.run(
+                ['git', 'status', '--porcelain'],
+                cwd=str(repo_dir),
+                capture_output=True,
+                text=True,
+                timeout=step.timeout
+            )
+            
+            step.duration = time.time() - (time.time() - step.timeout)  # Approximate
+            
+            # Check for uncommitted changes
+            if result.returncode == 0:
+                output = result.stdout.strip()
+                
+                # Allow certain expected files (e.g., .sfdx, .vscode, logs)
+                allowed_patterns = ['.sfdx', '.vscode', 'logs/', '.git/', '__pycache__']
+                lines = output.split('\n') if output else []
+                unexpected_changes = [
+                    line for line in lines
+                    if line.strip() and not any(pattern in line for pattern in allowed_patterns)
+                ]
+                
+                if unexpected_changes:
+                    step.status = "failed"
+                    step.error_message = f"Uncommitted changes detected: {', '.join(unexpected_changes[:3])}"
+                    logger.warning(f"No Manual Tweaks check failed: {step.error_message}")
+                else:
+                    step.status = "passed"
+                    step.actual_output = "Working directory clean - no manual tweaks detected"
+                    logger.info("No Manual Tweaks check passed: working directory is clean")
+            else:
+                step.status = "error"
+                step.error_message = f"git status failed: {result.stderr}"
+                
+        except subprocess.TimeoutExpired:
+            step.status = "error"
+            step.error_message = f"Command timed out after {step.timeout} seconds"
+        except Exception as e:
+            step.status = "error"
+            step.error_message = f"Unexpected error: {str(e)}"
+        
+        return step
+    
     def validate_apex(
         self,
         task_id: str,
@@ -246,11 +309,16 @@ class FunctionalValidator:
             result.bulk_tests_passed = True  # Assume pass if no bulk test defined
             result._sync_bulk_fields()
         
+        # Step 6: Explicitly verify "No Manual Tweaks"
+        # Check git status to ensure no uncommitted changes after patch application
+        no_tweaks_step = self._verify_no_manual_tweaks(repo_dir)
+        result.steps.append(no_tweaks_step)
+        result.no_manual_tweaks = no_tweaks_step.status == "passed"
+        
         # Determine overall status (BINARY: PASS or FAIL)
         # CRITICAL: Functional test is the gatekeeper - if it fails, task fails
         if result.functional_tests_passed and result.deployment_passed and result.unit_tests_passed:
             result.overall_status = "passed"
-            result.no_manual_tweaks = True
         else:
             # If functional test fails, task fails (regardless of other checks)
             result.overall_status = "failed"
