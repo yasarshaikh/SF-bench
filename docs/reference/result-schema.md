@@ -1,7 +1,8 @@
 ---
 layout: default
-title: Result Schema Reference
-description: Complete reference for SF-Bench result schema v2 (SWE-bench compatible)
+title: Result Schema Reference - SF-Bench Results Format
+description: Complete reference for SF-Bench result schema v2 (SWE-bench compatible). Understand evaluation results format, scoring breakdown, and how to interpret benchmark outcomes.
+keywords: sf-bench result schema, evaluation results format, salesforce benchmark results, swe-bench compatible results, ai benchmark scoring
 ---
 
 # Result Schema Reference

@@ -242,7 +242,7 @@ python scripts/evaluate.py \
 ## 📞 Get Support
 
 - 🐛 **Issues**: [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/yasarshaikh/SF-bench/discussions)
+- 💬 **Discussions**: [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
 - 📧 **Contact**: [Open an issue](https://github.com/yasarshaikh/SF-bench/issues/new)
 
 ---

@@ -282,7 +282,7 @@ sf-bench/
 | 📊 **Submit** results | [Submit Results](https://github.com/yasarshaikh/SF-bench/issues/new?template=submit-results.md) |
 | 🐛 **Report** bugs | [Issues](https://github.com/yasarshaikh/SF-bench/issues) |
 | ➕ **Add** tasks | [Contributing](CONTRIBUTING.md) |
-| 💬 **Discuss** | [Discussions](https://github.com/yasarshaikh/SF-bench/discussions) |
+| 💬 **Discuss** | [Issues](https://github.com/yasarshaikh/SF-bench/issues) |
 
 ---
 

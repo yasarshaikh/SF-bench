@@ -199,9 +199,13 @@ for model in "gemini-2.5-flash" "anthropic/claude-3.5-sonnet"; do
 done
 ```
 
-Or use the orchestrator (coming soon):
+For parallel evaluations, run multiple instances with different models:
 ```bash
-python scripts/orchestrator.py --models models.txt --tasks data/tasks/verified.json
+# Terminal 1
+python scripts/evaluate.py --model model1 --tasks data/tasks/verified.json
+
+# Terminal 2
+python scripts/evaluate.py --model model2 --tasks data/tasks/verified.json
 ```
 
 ---
@@ -392,7 +396,7 @@ SF-Bench is **aligned with** SWE-bench standards and best practices, tailored fo
 - Multi-org workflows
 - Community task contributions
 
-See [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues) and [Discussions](https://github.com/yasarshaikh/SF-bench/discussions) for roadmap discussions.
+See [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues) for roadmap discussions.
 
 ### Will there be a hosted version?
 
@@ -401,7 +405,7 @@ We're considering a hosted version where you can:
 - View real-time results
 - Compare models instantly
 
-Interested? [Vote here](https://github.com/yasarshaikh/SF-bench/discussions/1)
+Interested? [Open an issue](https://github.com/yasarshaikh/SF-bench/issues/new) to vote or discuss.
 
 ---
 
@@ -410,7 +414,7 @@ Interested? [Vote here](https://github.com/yasarshaikh/SF-bench/discussions/1)
 ### Where can I get help?
 
 - 🐛 **Bug reports:** [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
-- 💬 **Questions:** [GitHub Discussions](https://github.com/yasarshaikh/SF-bench/discussions)
+- 💬 **Questions:** [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
 - 📚 **Documentation:** [docs/](https://yasarshaikh.github.io/SF-bench/)
 
 ### How do I stay updated?
@@ -427,7 +431,7 @@ If your question isn't answered here:
 
 1. Check the [Troubleshooting Guide](guides/troubleshooting.html)
 2. Search [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
-3. Ask in [GitHub Discussions](https://github.com/yasarshaikh/SF-bench/discussions)
+3. Ask in [GitHub Issues](https://github.com/yasarshaikh/SF-bench/issues)
 
 ---
 

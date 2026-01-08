@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Task Schema Reference
-description: Complete reference for SF-Bench task JSON schema
-keywords: sf-bench task schema, task format, task json specification
+title: Task Schema Reference - SF-Bench Task Format
+description: Complete reference for SF-Bench task JSON schema. Learn how to create and validate tasks for Apex, LWC, Flow, and other Salesforce development scenarios.
+keywords: sf-bench task schema, task format, task json specification, salesforce benchmark task format, ai benchmark task definition
 ---
 
 # Task Schema Reference
@@ -224,7 +224,7 @@ Agentforce script recipes.
 
 - [Evaluation Guide](../guides/evaluation.html)
 - [Result Schema](result-schema.html)
-- [Contributing Guide](../../CONTRIBUTING.html)
+- [Contributing Guide](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md)
 
 ---
 

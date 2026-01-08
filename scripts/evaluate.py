@@ -15,12 +15,42 @@ Example:
 import argparse
 import json
 import sys
+import os
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Load environment variables from .env file if it exists
+# This allows users to use .env file instead of exporting variables
+env_file = Path(__file__).parent.parent / ".env"
+if env_file.exists():
+    try:
+        # Simple .env file parser (no external dependency required)
+        with open(env_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                # Skip empty lines and comments
+                if not line or line.startswith('#'):
+                    continue
+                # Parse KEY=VALUE format
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    # Remove quotes if present
+                    if value.startswith('"') and value.endswith('"'):
+                        value = value[1:-1]
+                    elif value.startswith("'") and value.endswith("'"):
+                        value = value[1:-1]
+                    # Only set if not already in environment (env vars take precedence)
+                    if key and value and key not in os.environ:
+                        os.environ[key] = value
+    except Exception as e:
+        # Silently fail if .env file can't be read (not critical)
+        pass
 
 from sfbench.engine import BenchmarkEngine
 from sfbench import Task, TaskType
@@ -49,7 +79,8 @@ def run_evaluation(
     provider: Optional[str] = None,
     interactive: bool = False,
     skip_preflight: bool = False,
-    skip_llm_check: bool = False
+    skip_llm_check: bool = False,
+    deterministic: bool = False
 ) -> Dict[str, Any]:
     """
     Run a complete evaluation for a model.
@@ -71,15 +102,28 @@ def run_evaluation(
     Returns:
         Evaluation results dictionary
     """
-    # Setup logging
+    # Setup logging with proper levels to avoid resource waste
+    log_level = logging.INFO  # Use INFO for normal operations, DEBUG only when needed
+    log_format = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    
+    # Create log directory if it doesn't exist
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+    
+    log_file = log_dir / f"evaluation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        level=log_level,
+        format=log_format,
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler(f"logs/evaluation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+            logging.FileHandler(log_file)
         ]
     )
+    
+    # Set specific logger levels to reduce noise
+    logging.getLogger('urllib3').setLevel(logging.WARNING)  # Reduce HTTP request noise
+    logging.getLogger('requests').setLevel(logging.WARNING)  # Reduce HTTP request noise
     logger = logging.getLogger(__name__)
     logger.info(f"Starting evaluation for model: {model_name}")
     
@@ -340,7 +384,7 @@ def run_evaluation(
         results = engine.run_all_tasks(solutions if solutions else None)
         
         # Create checkpoint after evaluation
-        results_dict = {r.task_id: {"status": r.status.value, "duration": getattr(r, 'duration_seconds', getattr(r, 'duration', 0.0))} for r in results}
+        results_dict = {r.task_id: {"status": r.status.value, "duration": getattr(r, 'duration', 0.0)} for r in results}
         checkpoint_mgr.create_checkpoint(
             evaluation_id=evaluation_id,
             completed_tasks=[r.task_id for r in results],
@@ -352,7 +396,7 @@ def run_evaluation(
         logger.error(f"Evaluation failed: {str(e)}", exc_info=True)
         # Create checkpoint with partial results
         if results:
-            results_dict = {r.task_id: {"status": r.status.value, "duration": getattr(r, 'duration_seconds', getattr(r, 'duration', 0.0))} for r in results}
+            results_dict = {r.task_id: {"status": r.status.value, "duration": getattr(r, 'duration', 0.0)} for r in results}
             checkpoint_mgr.create_checkpoint(
                 evaluation_id=evaluation_id,
                 completed_tasks=[r.task_id for r in results],
@@ -718,6 +762,12 @@ Examples:
         help='Scratch org alias for functional testing'
     )
     
+    parser.add_argument(
+        '--deterministic',
+        action='store_true',
+        help='Run evaluation in deterministic mode (sets seed, temperature=0, max_workers=1)'
+    )
+    
     args = parser.parse_args()
     
     # Validate inputs
@@ -745,7 +795,8 @@ Examples:
         provider=args.provider,
         interactive=args.interactive,
         skip_preflight=args.skip_preflight,
-        skip_llm_check=args.skip_llm_check
+        skip_llm_check=args.skip_llm_check,
+        deterministic=getattr(args, 'deterministic', False)
     )
 
 

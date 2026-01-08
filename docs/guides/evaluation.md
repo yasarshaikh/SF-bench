@@ -1,7 +1,8 @@
 ---
 layout: default
-title: Evaluation Guide
-description: Complete guide to running SF-Bench evaluations
+title: Evaluation Guide - How to Run SF-Bench Evaluations
+description: Complete step-by-step guide to running SF-Bench evaluations. Learn command-line options, validation modes, scratch org setup, and result interpretation for AI coding agent evaluation.
+keywords: sf-bench evaluation guide, how to run salesforce benchmark, ai evaluation tutorial, salesforce ai testing guide, sf-bench commands
 ---
 
 # Evaluation Guide

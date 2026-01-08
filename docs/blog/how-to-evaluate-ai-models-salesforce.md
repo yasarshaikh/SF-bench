@@ -212,4 +212,4 @@ Run evaluations on different models and compare:
 
 ---
 
-*Questions? [Open an issue](https://github.com/yasarshaikh/SF-bench/issues) or [start a discussion](https://github.com/yasarshaikh/SF-bench/discussions)*
+*Questions? [Open an issue](https://github.com/yasarshaikh/SF-bench/issues)*

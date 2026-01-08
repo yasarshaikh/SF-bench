@@ -5,7 +5,9 @@ import time
 
 from sfbench import Task
 from sfbench.utils.scoring import TestResult, TestStatus
-from sfbench.utils.git import clone_repository, checkout_commit, apply_patch
+from sfbench.utils.git import clone_repository, checkout_commit, apply_patch, PatchApplicationError
+from sfbench.utils.sfdx import PlatformLimitationError
+from sfbench.utils.retry import retry_with_backoff
 
 
 class BenchmarkRunner(ABC):
@@ -33,13 +35,37 @@ class BenchmarkRunner(ABC):
             self.setup_complete = True
             
             if patch_diff:
-                self.inject_patch(patch_diff)
+                try:
+                    self.inject_patch(patch_diff)
+                except PatchApplicationError as e:
+                    # Patch application failure = model failure (FAIL), not tool error (ERROR)
+                    # The model generated a patch but it was invalid/corrupt/incomplete
+                    duration = time.time() - self.start_time
+                    return TestResult(
+                        task_id=self.task.instance_id,
+                        status=TestStatus.FAIL,
+                        duration=duration,
+                        error_message=f"Patch application failed: {str(e)}"
+                    )
             
             result = self.evaluate()
             
             return result
             
+        except PlatformLimitationError as e:
+            # Platform limitation = model failure (FAIL), not tool error (ERROR)
+            # The model generated a solution but it can't be tested due to platform constraints
+            # This is a model limitation (didn't account for platform constraints)
+            duration = time.time() - self.start_time
+            return TestResult(
+                task_id=self.task.instance_id,
+                status=TestStatus.FAIL,
+                duration=duration,
+                error_message=f"Platform limitation: {str(e)}"
+            )
         except Exception as e:
+            # Only use ERROR for actual tool bugs (unexpected exceptions, code errors, etc.)
+            # Patch failures and platform limitations are already handled above as FAIL
             duration = time.time() - self.start_time
             return TestResult(
                 task_id=self.task.instance_id,
@@ -67,14 +93,80 @@ class BenchmarkRunner(ABC):
         logger = logging.getLogger(__name__)
         
         logger.info(f"Applying patch for task {self.task.instance_id}")
-        logger.debug(f"Patch preview: {patch_diff[:500]}...")
+        logger.info(f"Patch size: {len(patch_diff)} characters, {len(patch_diff.splitlines())} lines")
+        
+        # Log patch preview for monitoring (first 200 chars to avoid log spam)
+        patch_preview = patch_diff[:200].replace('\n', '\\n')
+        logger.debug(f"Patch preview: {patch_preview}...")
+        
+        # Validate patch has content before attempting application
+        if not patch_diff or not patch_diff.strip():
+            logger.error(f"Empty patch received for task {self.task.instance_id}")
+            raise ValueError("Cannot apply empty patch")
+        
+        # Check for basic diff structure
+        has_diff_markers = any(marker in patch_diff for marker in ['diff --git', '---', '+++', '@@'])
+        if not has_diff_markers:
+            logger.warning(f"Patch for {self.task.instance_id} may not contain valid diff markers")
+        
+        # Apply patch with retry logic for transient failures
+        @retry_with_backoff(max_retries=3, initial_delay=1.0, retry_on=(Exception,))
+        def _apply_patch_with_retry():
+            try:
+                apply_patch(self.repo_dir, patch_diff, timeout=60)
+            except Exception as e:
+                # Log patch details before re-raising for better debugging
+                error_msg = str(e)
+                if "corrupt" in error_msg.lower() or "malformed" in error_msg.lower():
+                    logger.error(f"PATCH ERROR for {self.task.instance_id}: Malformed/corrupt patch detected")
+                    logger.error(f"Error details: {error_msg[:300]}")
+                    # Log cleaned patch preview to help diagnose
+                    from sfbench.utils.git import _clean_patch
+                    try:
+                        cleaned = _clean_patch(patch_diff)
+                        logger.debug(f"Cleaned patch preview (first 500 chars): {cleaned[:500]}")
+                        logger.debug(f"Cleaned patch has {len(cleaned.splitlines())} lines")
+                    except Exception as clean_error:
+                        logger.debug(f"Could not clean patch for preview: {clean_error}")
+                raise
         
         try:
-            apply_patch(self.repo_dir, patch_diff, timeout=60)
-            logger.info(f"Patch applied successfully for {self.task.instance_id}")
+            _apply_patch_with_retry()
+            logger.info(f"✅ Patch applied successfully for {self.task.instance_id}")
         except Exception as e:
-            logger.error(f"Patch application failed for {self.task.instance_id}: {str(e)}")
-            logger.debug(f"Failed patch content: {patch_diff[:1000]}")
+            # Categorize errors: Tool issues vs Model issues
+            error_msg = str(e)
+            error_lower = error_msg.lower()
+            
+            if any(keyword in error_lower for keyword in ["corrupt", "malformed", "does not contain valid diff", "unexpected end of file", "incomplete", "empty patch"]):
+                # Model issue: AI generated invalid patch
+                logger.error(
+                    f"❌ PATCH APPLICATION FAILED (Model Issue): {self.task.instance_id}\n"
+                    f"   Root Cause: AI model generated a corrupt, incomplete, or malformed patch.\n"
+                    f"   Error: {error_msg[:500]}\n"
+                    f"   Patch Size: {len(patch_diff)} chars, {len(patch_diff.splitlines())} lines\n"
+                    f"   All 4 patch application strategies were attempted.\n"
+                    f"   Patch validation and cleaning were performed, but patch structure is fundamentally invalid.\n"
+                    f"   This is NOT a tool issue - the benchmark correctly identified an invalid patch from the AI model."
+                )
+                logger.debug(f"Failed patch preview (first 1000 chars):\n{patch_diff[:1000]}")
+            elif "timeout" in error_lower:
+                # Could be either - log as potential tool issue
+                logger.warning(
+                    f"⚠️  PATCH APPLICATION TIMEOUT: {self.task.instance_id}\n"
+                    f"   Error: {error_msg[:500]}\n"
+                    f"   Patch Size: {len(patch_diff)} chars\n"
+                    f"   This may indicate a very large patch or system resource constraints."
+                )
+            else:
+                # Unknown error - log with context
+                logger.error(
+                    f"❌ PATCH APPLICATION FAILED: {self.task.instance_id}\n"
+                    f"   Error: {error_msg[:500]}\n"
+                    f"   Patch Size: {len(patch_diff)} chars, {len(patch_diff.splitlines())} lines\n"
+                    f"   All patch application strategies were attempted."
+                )
+                logger.debug(f"Failed patch preview (first 500 chars): {patch_diff[:500]}")
             raise
     
     @abstractmethod

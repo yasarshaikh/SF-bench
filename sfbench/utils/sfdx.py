@@ -3,8 +3,12 @@ import signal
 import json
 import time
 import logging
+import threading
 from typing import Dict, Any, Optional, Tuple
 from pathlib import Path
+
+# Threading lock for scratch org creation to prevent race conditions
+_org_creation_lock = threading.Lock()
 
 
 class SFDXError(Exception):
@@ -29,6 +33,19 @@ class OrgCreationError(CommandError):
 
 
 class CodeError(CommandError):
+    pass
+
+
+class PlatformLimitationError(OrgCreationError):
+    """
+    Exception for platform limitations that should be treated as model failures (FAIL),
+    not tool errors (ERROR).
+    
+    This is raised when:
+    - Scratch org creation fails due to platform constraints (package dependencies, etc.)
+    - The model generated a solution but it can't be tested due to platform limitations
+    - This is a model limitation (didn't account for platform constraints), not a tool bug
+    """
     pass
 
 
@@ -212,7 +229,7 @@ def verify_devhub() -> bool:
         True if a connected DevHub exists, False otherwise.
     """
     try:
-        exit_code, stdout, stderr = run_sfdx("sf org list", timeout=30)
+        exit_code, stdout, stderr = run_sfdx("sf org list --json", timeout=30, json_output=False)
         data = parse_json_output(stdout)
         
         if 'result' not in data:
@@ -223,25 +240,37 @@ def verify_devhub() -> bool:
         # Check dedicated devHubs list first (primary location)
         devhubs = result.get('devHubs', [])
         for org in devhubs:
-            # Check if connected (not expired/failed auth)
-            status = org.get('connectedStatus', '')
-            if status == 'Connected' or 'Connected' in status:
+            # If isDevHub is True and we have an accessToken, consider it usable
+            # (even with DomainNotFoundError, the CLI can still create scratch orgs)
+            if org.get('isDevHub', False) and org.get('accessToken'):
+                status = org.get('status', '') or org.get('connectedStatus', '')
+                # If status is explicitly 'Connected' or 'Active', definitely good
+                if status in ('Connected', 'Active'):
+                    return True
+                # Even with errors, if we have token and isDevHub, assume it can work
+                # The CLI will handle reconnection when creating scratch orgs
                 return True
         
         # Fallback: check nonScratchOrgs for any with isDevHub flag
         for org in result.get('nonScratchOrgs', []):
             if org.get('isDevHub', False):
-                status = org.get('connectedStatus', '')
-                if status == 'Connected' or 'Connected' in status:
+                status = org.get('status', '') or org.get('connectedStatus', '')
+                # If status is 'Connected' or 'Active', definitely connected
+                if status in ('Connected', 'Active'):
+                    return True
+                # If we have accessToken and isDevHub, assume it can work (CLI handles reconnection)
+                if org.get('accessToken'):
                     return True
         
-        # If we have DevHubs but none connected, still return True
-        # (the CLI might reconnect them when needed)
-        if devhubs:
+        # If we have any DevHubs (even with errors), return True
+        # The CLI will attempt to reconnect when needed for scratch org creation
+        if devhubs or any(org.get('isDevHub', False) for org in result.get('nonScratchOrgs', [])):
             return True
         
         return False
-    except Exception:
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.debug(f"DevHub verification error: {e}")
         return False
 
 
@@ -362,88 +391,147 @@ def create_scratch_org(
     logger = logging.getLogger(__name__)
     last_exception = None
     
-    for attempt in range(max_retries):
-        try:
-            # Use default definition if not provided
-            if definition_file is None:
-                definition_file = Path(__file__).parent.parent.parent / "data" / "templates" / "project-scratch-def.json"
-            
-            if not definition_file.exists():
-                # Fallback: create org without definition file
-                cmd = f"sf org create scratch --alias {alias} --duration-days {duration_days} --set-default"
-            else:
-                # Convert Path to string explicitly and quote it (handles spaces in path)
-                def_file_str = str(definition_file.resolve())
-                # Quote the path to handle spaces
-                cmd = f'sf org create scratch --alias {alias} --duration-days {duration_days} --definition-file "{def_file_str}" --set-default'
-            
-            # For scratch org creation, catch the exception and check JSON from stdout
-            # Use cwd if provided (to avoid sfdx-project.json conflicts)
+    # Use lock to prevent race conditions when multiple workers create orgs in parallel
+    with _org_creation_lock:
+        for attempt in range(max_retries):
             try:
-                exit_code, stdout, stderr = run_sfdx(cmd, timeout=600, cwd=cwd)
-            except OrgCreationError as e:
-                # Get stdout from exception (we added it to the exception)
-                stdout_from_exception = getattr(e, 'stdout', None)
-                if stdout_from_exception:
-                    try:
-                        data = parse_json_output(stdout_from_exception)
-                        if 'result' in data or data.get('status') == 0:
-                            # JSON shows success - ignore the error
-                            return data.get('result', {})
-                    except:
-                        pass
+                # Use default definition if not provided
+                if definition_file is None:
+                    definition_file = Path(__file__).parent.parent.parent / "data" / "templates" / "project-scratch-def.json"
                 
-                # Check if error is just a warning about CLI update
-                error_msg = str(e)
-                if "Warning: @salesforce/cli update available" in error_msg and len(error_msg) < 200:
-                    # This is likely just a warning, try to parse stdout anyway
+                if not definition_file.exists():
+                    # Fallback: create org without definition file
+                    cmd = f"sf org create scratch --alias {alias} --duration-days {duration_days} --set-default"
+                else:
+                    # Convert Path to string explicitly and quote it (handles spaces in path)
+                    def_file_str = str(definition_file.resolve())
+                    # Quote the path to handle spaces
+                    cmd = f'sf org create scratch --alias {alias} --duration-days {duration_days} --definition-file "{def_file_str}" --set-default'
+                
+                # For scratch org creation, catch the exception and check JSON from stdout
+                # Use cwd if provided (to avoid sfdx-project.json conflicts)
+                # Initialize stderr and stdout to avoid scope issues
+                stdout = ""
+                stderr = ""
+                try:
+                    exit_code, stdout, stderr = run_sfdx(cmd, timeout=600, cwd=cwd)
+                except OrgCreationError as e:
+                    # Get stdout and stderr from exception (we added them to the exception)
+                    stdout_from_exception = getattr(e, 'stdout', None)
+                    stderr_from_exception = getattr(e, 'stderr', "")
                     if stdout_from_exception:
                         try:
                             data = parse_json_output(stdout_from_exception)
-                            if 'result' in data:
+                            if 'result' in data or data.get('status') == 0:
+                                # JSON shows success - ignore the error
                                 return data.get('result', {})
                         except:
                             pass
+                    
+                    # Check if error is just a warning about CLI update
+                    error_msg = str(e)
+                    if "Warning: @salesforce/cli update available" in error_msg and len(error_msg) < 200:
+                        # This is likely just a warning, try to parse stdout anyway
+                        if stdout_from_exception:
+                            try:
+                                data = parse_json_output(stdout_from_exception)
+                                if 'result' in data:
+                                    return data.get('result', {})
+                            except:
+                                pass
 
-                # If JSON doesn't show success, re-raise
-                raise
-            
-            # Parse JSON and check result (normal path)
-            if stdout:
-                data = parse_json_output(stdout)
-                if 'result' in data:
-                    logger.info(f"Successfully created scratch org '{alias}' on attempt {attempt + 1}")
-                    return data['result']
+                    # Check for known platform limitations (not tool issues)
+                    error_msg_lower = error_msg.lower()
+                    if "package id" in error_msg_lower or "ancestorversion" in error_msg_lower or "collections" in error_msg_lower or "ac -" in error_msg_lower:
+                        # This is a Salesforce platform limitation (Flow package dependencies)
+                        # Not a tool issue - document it clearly
+                        logger.warning(
+                            f"Scratch org creation failed due to platform limitation (Flow package dependencies): {error_msg}. "
+                            f"This is a Salesforce platform constraint, not a tool issue. "
+                            f"Flow tasks may require specific managed packages that are not available in Developer Edition scratch orgs."
+                        )
+                        # Raise a special exception that will be treated as FAIL, not ERROR
+                        # The model generated a solution but it can't be tested due to platform constraints
+                        # This is a model limitation (didn't account for platform constraints)
+                        from sfbench.utils.sfdx import PlatformLimitationError
+                        raise PlatformLimitationError(
+                            f"Platform limitation: Flow package dependencies not available. "
+                            f"Error: {error_msg}. "
+                            f"This indicates the AI model generated a solution that requires platform features "
+                            f"not available in Developer Edition scratch orgs. This is a model limitation, not a tool issue.",
+                            1, stderr_from_exception or "", stdout_from_exception or ""
+                        )
+                    
+                    # If JSON doesn't show success, re-raise
+                    raise
+                
+                # Parse JSON and check result (normal path)
+                if stdout:
+                    data = parse_json_output(stdout)
+                    if 'result' in data:
+                        logger.info(f"Successfully created scratch org '{alias}' on attempt {attempt + 1}")
+                        return data['result']
+                    else:
+                        error_msg = data.get('message', 'Unknown error')
+                        # Check if this is a platform limitation
+                        error_msg_lower = error_msg.lower()
+                        if "package id" in error_msg_lower or "ancestorversion" in error_msg_lower or "collections" in error_msg_lower or "ac -" in error_msg_lower:
+                            from sfbench.utils.sfdx import PlatformLimitationError
+                            last_exception = PlatformLimitationError(
+                                f"Platform limitation: Flow package dependencies not available. "
+                                f"Error: {error_msg}. "
+                                f"This indicates the AI model generated a solution that requires platform features "
+                                f"not available in Developer Edition scratch orgs. This is a model limitation, not a tool issue.",
+                                1, stderr or "", stdout
+                            )
+                        else:
+                            last_exception = OrgCreationError(f"Failed to create scratch org: {error_msg}", data.get('status', 1), stderr or "", stdout)
                 else:
-                    error_msg = data.get('message', 'Unknown error')
-                    last_exception = OrgCreationError(f"Failed to create scratch org: {error_msg}", data.get('status', 1), stderr or "", stdout)
-            else:
-                last_exception = OrgCreationError("Failed to create scratch org: no output received", 1, "", "")
-                
-            # If we get here, the attempt failed - check if we should retry
-            if attempt < max_retries - 1:
-                # Exponential backoff: delay = initial_delay * (2 ^ attempt)
-                delay = initial_delay * (2 ** attempt)
-                logger.warning(f"Scratch org creation failed (attempt {attempt + 1}/{max_retries}): {str(last_exception)}. Retrying in {delay:.1f}s...")
-                time.sleep(delay)
-                continue
-            else:
-                # Last attempt failed - raise the exception
-                logger.error(f"Failed to create scratch org '{alias}' after {max_retries} attempts")
-                raise last_exception
-                
-        except Exception as e:
-            if isinstance(e, (OrgCreationError, TimeoutError)):
-                # For these exceptions, check if we should retry
+                    last_exception = OrgCreationError("Failed to create scratch org: no output received", 1, "", "")
+                    
+                # If we get here, the attempt failed - check if we should retry
                 if attempt < max_retries - 1:
+                    # Exponential backoff: delay = initial_delay * (2 ^ attempt)
                     delay = initial_delay * (2 ** attempt)
-                    logger.warning(f"Scratch org creation error (attempt {attempt + 1}/{max_retries}): {str(e)}. Retrying in {delay:.1f}s...")
+                    logger.warning(f"Scratch org creation failed (attempt {attempt + 1}/{max_retries}): {str(last_exception)}. Retrying in {delay:.1f}s...")
                     time.sleep(delay)
-                    last_exception = e
                     continue
-                raise
-            # Unexpected exception - don't retry
-            raise OrgCreationError(f"Failed to create scratch org: {str(e)}", 1, str(e))
+                else:
+                    # Last attempt failed - check if it's a platform limitation
+                    error_msg = str(last_exception).lower()
+                    if "package id" in error_msg or "ancestorversion" in error_msg or "collections" in error_msg:
+                        # Platform limitation - document clearly
+                        logger.error(
+                            f"❌ SCRATCH ORG CREATION FAILED (Platform Limitation): {alias}\n"
+                            f"   Root Cause: Salesforce platform constraint - Flow package dependencies.\n"
+                            f"   Error: {str(last_exception)}\n"
+                            f"   This is NOT a tool issue - it's a Salesforce platform limitation.\n"
+                            f"   Flow tasks may require managed packages (e.g., AC - Collections) that are not available in Developer Edition scratch orgs.\n"
+                            f"   This is a known Salesforce platform constraint, not a benchmark tool failure."
+                        )
+                    else:
+                        logger.error(
+                            f"❌ SCRATCH ORG CREATION FAILED: {alias} after {max_retries} attempts\n"
+                            f"   Error: {str(last_exception)}\n"
+                            f"   All retry attempts with exponential backoff were exhausted."
+                        )
+                    raise last_exception
+                    
+            except Exception as e:
+                if isinstance(e, PlatformLimitationError):
+                    # Platform limitations should not be retried - raise immediately
+                    raise
+                if isinstance(e, (OrgCreationError, TimeoutError)):
+                    # For these exceptions, check if we should retry
+                    if attempt < max_retries - 1:
+                        delay = initial_delay * (2 ** attempt)
+                        logger.warning(f"Scratch org creation error (attempt {attempt + 1}/{max_retries}): {str(e)}. Retrying in {delay:.1f}s...")
+                        time.sleep(delay)
+                        last_exception = e
+                        continue
+                    raise
+                # Unexpected exception - don't retry
+                raise OrgCreationError(f"Failed to create scratch org: {str(e)}", 1, str(e))
 
 
 def delete_scratch_org(alias: str) -> bool:

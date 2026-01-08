@@ -174,10 +174,193 @@
       font-weight: 600;
     }
     
-    .main-content {
-      max-width: 1200px;
+    /* Sidebar Navigation */
+    .page-container {
+      display: flex;
+      max-width: 1400px;
       margin: 0 auto;
+      gap: 2rem;
       padding: 2rem 1rem;
+    }
+    
+    .sidebar {
+      width: 250px;
+      flex-shrink: 0;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 1.5rem;
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .sidebar h3 {
+      margin-top: 0;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--sf-dark);
+      border-bottom: 2px solid var(--sf-primary);
+      padding-bottom: 0.5rem;
+    }
+    
+    .sidebar nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .sidebar nav ul li {
+      margin: 0.5rem 0;
+    }
+    
+    .sidebar nav ul li a {
+      color: var(--text-primary);
+      padding: 0.5rem 0.75rem;
+      display: block;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    
+    .sidebar nav ul li a:hover {
+      background: var(--bg-accent);
+      color: var(--sf-primary);
+      padding-left: 1rem;
+    }
+    
+    .sidebar nav ul li a.active {
+      background: var(--sf-primary);
+      color: var(--text-inverse);
+      font-weight: 600;
+    }
+    
+    .sidebar nav ul ul {
+      margin-left: 1rem;
+      margin-top: 0.25rem;
+    }
+    
+    .sidebar nav ul ul li a {
+      font-size: 0.9rem;
+      padding: 0.375rem 0.5rem;
+    }
+    
+    /* Breadcrumbs */
+    .breadcrumbs {
+      background: var(--bg-secondary);
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .breadcrumbs a {
+      color: var(--sf-primary);
+      text-decoration: none;
+    }
+    
+    .breadcrumbs a:hover {
+      text-decoration: underline;
+    }
+    
+    .breadcrumbs span {
+      color: var(--text-secondary);
+      margin: 0 0.5rem;
+    }
+    
+    /* Collapsible Sections */
+    .collapsible {
+      margin: 1rem 0;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .collapsible-header {
+      background: var(--bg-accent);
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: var(--sf-dark);
+      transition: background 0.2s ease;
+    }
+    
+    .collapsible-header:hover {
+      background: var(--sf-primary);
+      color: var(--text-inverse);
+    }
+    
+    .collapsible-header::after {
+      content: '▼';
+      transition: transform 0.3s ease;
+      font-size: 0.8rem;
+    }
+    
+    .collapsible-header.collapsed::after {
+      transform: rotate(-90deg);
+    }
+    
+    .collapsible-content {
+      padding: 1.5rem;
+      display: block;
+    }
+    
+    .collapsible-content.collapsed {
+      display: none;
+    }
+    
+    /* Architecture Diagram */
+    .architecture-diagram {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 2rem;
+      margin: 2rem 0;
+      overflow-x: auto;
+    }
+    
+    .architecture-diagram svg {
+      width: 100%;
+      height: auto;
+    }
+    
+    .main-content {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    /* Hide sidebar on mobile */
+    @media (max-width: 1024px) {
+      .page-container {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        position: static;
+        order: -1;
+      }
+      
+      .sidebar nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      
+      .sidebar nav ul li {
+        margin: 0;
+      }
+      
+      .sidebar nav ul li a {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+      }
     }
     
     .badge {
@@ -346,9 +529,71 @@
       </div>
     </header>
 
-    <section class="main-content">
-      {{ content }}
-    </section>
+    <div class="page-container">
+      <aside class="sidebar">
+        <h3>Navigation</h3>
+        <nav>
+          <ul>
+            <li><a href="{{ '/' | relative_url }}" {% if page.url == '/' or page.url == '/index.html' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="{{ '/quickstart.html' | relative_url }}" {% if page.url contains 'quickstart' %}class="active"{% endif %}>Quick Start</a></li>
+            <li><a href="{{ '/LEADERBOARD.html' | relative_url }}" {% if page.url contains 'LEADERBOARD' %}class="active"{% endif %}>Leaderboard</a></li>
+            <li>
+              <a href="{{ '/getting-started/' | relative_url }}" {% if page.url contains 'getting-started' %}class="active"{% endif %}>Getting Started</a>
+              <ul>
+                <li><a href="{{ '/getting-started/what-is-salesforce.html' | relative_url }}">What is Salesforce?</a></li>
+                <li><a href="{{ '/getting-started/what-is-sf-bench.html' | relative_url }}">What is SF-Bench?</a></li>
+                <li><a href="{{ '/getting-started/salesforce-ai-benchmark.html' | relative_url }}">Salesforce AI Benchmark</a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="{{ '/guides/' | relative_url }}" {% if page.url contains 'guides' %}class="active"{% endif %}>Guides</a>
+              <ul>
+                <li><a href="{{ '/guides/evaluation.html' | relative_url }}">Evaluation Guide</a></li>
+                <li><a href="{{ '/guides/troubleshooting.html' | relative_url }}">Troubleshooting</a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="{{ '/reference/' | relative_url }}" {% if page.url contains 'reference' %}class="active"{% endif %}>Reference</a>
+              <ul>
+                <li><a href="{{ '/reference/task-schema.html' | relative_url }}">Task Schema</a></li>
+                <li><a href="{{ '/reference/result-schema.html' | relative_url }}">Result Schema</a></li>
+              </ul>
+            </li>
+            <li><a href="{{ '/faq.html' | relative_url }}" {% if page.url contains 'faq' %}class="active"{% endif %}>FAQ</a></li>
+            <li>
+              <a href="{{ '/personas/' | relative_url }}" {% if page.url contains 'personas' %}class="active"{% endif %}>For...</a>
+              <ul>
+                <li><a href="{{ '/personas/for-companies.html' | relative_url }}">For Companies</a></li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+      
+      <section class="main-content">
+        {% if page.url != '/' and page.url != '/index.html' %}
+        <nav class="breadcrumbs">
+          <a href="{{ '/' | relative_url }}">Home</a>
+          {% assign url_parts = page.url | split: '/' %}
+          {% assign current_path = '' %}
+          {% for part in url_parts %}
+            {% if part != '' and part != 'index.html' %}
+              {% assign current_path = current_path | append: '/' | append: part %}
+              {% if forloop.last %}
+                <span>/</span>
+                <span>{{ page.title }}</span>
+              {% else %}
+                <span>/</span>
+                <a href="{{ current_path | relative_url }}">{{ part | capitalize | replace: '-', ' ' }}</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </nav>
+        {% endif %}
+        
+        {{ content }}
+      </section>
+    </div>
 
     <footer class="footer">
       <p>
@@ -364,5 +609,25 @@
   </div>
 
   <script src="{{ '/assets/js/scale.fix.js' | relative_url }}"></script>
+  <script>
+    // Collapsible sections
+    document.addEventListener('DOMContentLoaded', function() {
+      const collapsibles = document.querySelectorAll('.collapsible-header');
+      collapsibles.forEach(header => {
+        header.addEventListener('click', function() {
+          const content = this.nextElementSibling;
+          const isCollapsed = this.classList.contains('collapsed');
+          
+          if (isCollapsed) {
+            this.classList.remove('collapsed');
+            content.classList.remove('collapsed');
+          } else {
+            this.classList.add('collapsed');
+            content.classList.add('collapsed');
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

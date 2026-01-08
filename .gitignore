@@ -70,3 +70,16 @@ node_modules/
 
 # Generated files
 leaderboard.json
+
+# Environment variables (contains secrets)
+.env
+
+# Removed files (keep in gitignore to prevent accidental re-addition)
+PUBLIC_REPO_READY.md
+VERIFICATION.md
+scripts/check_links.sh
+scripts/run_grok4_robust.sh
+scripts/orchestrator.py
+scripts/run_parallel_eval.py
+scripts/test_atomic.py
+scripts/monitor_evaluations.sh

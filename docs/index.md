@@ -130,7 +130,7 @@ keywords: salesforce ai benchmark, sf benchmark, salesforce coding benchmark, ap
 | **Researcher** | Benchmark AI models | [Evaluation Guide](guides/evaluation.html) |
 | **SWE-bench User** | Compare with SWE-bench | [Comparison](evaluation/comparison-with-swe-bench.html) |
 | **Open Source Enthusiast** | Contribute to SF-Bench | [Contributing](https://github.com/yasarshaikh/SF-bench/blob/main/CONTRIBUTING.md) |
-| **Need a Salesforce AI Benchmark?** | Share the story & methodology | [Salesforce AI Benchmark Guide](/salesforce-ai-benchmark/) |
+| **Need a Salesforce AI Benchmark?** | Share the story & methodology | [Salesforce AI Benchmark Guide](/SF-bench/salesforce-ai-benchmark/) |
 
 ---
 
@@ -139,7 +139,7 @@ keywords: salesforce ai benchmark, sf benchmark, salesforce coding benchmark, ap
 | I want to... | Link |
 |--------------|------|
 | 🚀 Get started in 5 min | [Quick Start](quickstart.html) |
-| 📣 Understand the Salesforce AI Benchmark | [Salesforce AI Benchmark Guide](/salesforce-ai-benchmark/) |
+| 📣 Understand the Salesforce AI Benchmark | [Salesforce AI Benchmark Guide](/SF-bench/salesforce-ai-benchmark/) |
 | 🏆 See results | [Leaderboard](#-leaderboard) |
 | 🧪 Test my model | [Testing Your Model](#-testing-your-model) |
 | ❓ Get help | [FAQ](faq.html) \| [Troubleshooting](guides/troubleshooting.html) |
@@ -150,7 +150,7 @@ keywords: salesforce ai benchmark, sf benchmark, salesforce coding benchmark, ap
 
 ## 🔍 Salesforce AI Benchmark Overview
 
-The [Salesforce AI Benchmark Guide](/salesforce-ai-benchmark/) provides a comprehensive overview of SF-Bench, including:
+The [Salesforce AI Benchmark Guide](/SF-bench/salesforce-ai-benchmark/) provides a comprehensive overview of SF-Bench, including:
 
 - **Purpose and methodology**: Why SF-Bench exists and how it works
 - **Dataset structure**: How tasks are organized and validated
@@ -225,6 +225,93 @@ python scripts/evaluate.py --model codellama --provider ollama
 ```
 
 ---
+
+## 🏗️ SF-Bench Architecture
+
+<div class="collapsible">
+  <div class="collapsible-header">View System Architecture</div>
+  <div class="collapsible-content">
+    <div class="architecture-diagram">
+      <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background -->
+        <rect width="800" height="500" fill="#F3F2F2" rx="8"/>
+        
+        <!-- Title -->
+        <text x="400" y="30" text-anchor="middle" font-size="20" font-weight="600" fill="#16325C">SF-Bench Evaluation Flow</text>
+        
+        <!-- Task Definition -->
+        <rect x="50" y="70" width="120" height="60" rx="4" fill="#00A1E0" stroke="#1798C1" stroke-width="2"/>
+        <text x="110" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="white">Task Definition</text>
+        <text x="110" y="110" text-anchor="middle" font-size="10" fill="white">JSON Schema</text>
+        
+        <!-- AI Agent -->
+        <rect x="250" y="70" width="120" height="60" rx="4" fill="#FF6D00" stroke="#E55A00" stroke-width="2"/>
+        <text x="310" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="white">AI Agent</text>
+        <text x="310" y="110" text-anchor="middle" font-size="10" fill="white">Generate Solution</text>
+        
+        <!-- Patch Application -->
+        <rect x="450" y="70" width="120" height="60" rx="4" fill="#4BC076" stroke="#3A9B5F" stroke-width="2"/>
+        <text x="510" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="white">Patch Application</text>
+        <text x="510" y="110" text-anchor="middle" font-size="10" fill="white">Multi-Strategy</text>
+        
+        <!-- Scratch Org -->
+        <rect x="50" y="200" width="120" height="60" rx="4" fill="#16325C" stroke="#0F2442" stroke-width="2"/>
+        <text x="110" y="225" text-anchor="middle" font-size="12" font-weight="600" fill="white">Scratch Org</text>
+        <text x="110" y="240" text-anchor="middle" font-size="10" fill="white">Salesforce Env</text>
+        
+        <!-- Deployment -->
+        <rect x="250" y="200" width="120" height="60" rx="4" fill="#00A1E0" stroke="#1798C1" stroke-width="2"/>
+        <text x="310" y="225" text-anchor="middle" font-size="12" font-weight="600" fill="white">Deployment</text>
+        <text x="310" y="240" text-anchor="middle" font-size="10" fill="white">sf project deploy</text>
+        
+        <!-- Unit Tests -->
+        <rect x="450" y="200" width="120" height="60" rx="4" fill="#FFB75D" stroke="#E5A04D" stroke-width="2"/>
+        <text x="510" y="225" text-anchor="middle" font-size="12" font-weight="600" fill="white">Unit Tests</text>
+        <text x="510" y="240" text-anchor="middle" font-size="10" fill="white">Coverage ≥80%</text>
+        
+        <!-- Functional Validation -->
+        <rect x="250" y="330" width="200" height="60" rx="4" fill="#4BC076" stroke="#3A9B5F" stroke-width="2"/>
+        <text x="350" y="355" text-anchor="middle" font-size="12" font-weight="600" fill="white">Functional Validation</text>
+        <text x="350" y="370" text-anchor="middle" font-size="10" fill="white">Business Outcome Verification</text>
+        
+        <!-- Results -->
+        <rect x="550" y="330" width="120" height="60" rx="4" fill="#C23934" stroke="#9B2D28" stroke-width="2"/>
+        <text x="610" y="355" text-anchor="middle" font-size="12" font-weight="600" fill="white">Results</text>
+        <text x="610" y="370" text-anchor="middle" font-size="10" fill="white">Schema v2</text>
+        
+        <!-- Arrows -->
+        <path d="M 170 100 L 240 100" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <path d="M 370 100 L 440 100" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <path d="M 510 130 L 510 190" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <path d="M 110 230 L 110 190" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <path d="M 170 230 L 240 230" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <path d="M 370 230 L 440 230" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <path d="M 510 260 L 350 320" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <path d="M 310 260 L 310 320" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <path d="M 450 360 L 540 360" stroke="#706E6B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        
+        <!-- Arrow marker -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <polygon points="0 0, 10 3, 0 6" fill="#706E6B"/>
+          </marker>
+        </defs>
+        
+        <!-- Legend -->
+        <rect x="600" y="70" width="150" height="120" rx="4" fill="white" stroke="#DDDBDA" stroke-width="1"/>
+        <text x="675" y="90" text-anchor="middle" font-size="12" font-weight="600" fill="#16325C">Components</text>
+        <circle cx="615" cy="110" r="6" fill="#00A1E0"/>
+        <text x="630" y="115" font-size="10" fill="#16325C">Setup/Deploy</text>
+        <circle cx="615" cy="130" r="6" fill="#FF6D00"/>
+        <text x="630" y="135" font-size="10" fill="#16325C">AI Generation</text>
+        <circle cx="615" cy="150" r="6" fill="#4BC076"/>
+        <text x="630" y="155" font-size="10" fill="#16325C">Validation</text>
+        <circle cx="615" cy="170" r="6" fill="#C23934"/>
+        <text x="630" y="175" font-size="10" fill="#16325C">Results</text>
+      </svg>
+    </div>
+  </div>
+</div>
 
 ## 🔧 How Validation Works
 

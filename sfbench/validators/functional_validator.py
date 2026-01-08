@@ -4,12 +4,15 @@ Functional Validator - Verifies that solutions actually WORK, not just deploy.
 This is the core of SF-Bench's credibility. A 100% score must mean 100% works in production.
 """
 import json
+import logging
 import subprocess
 import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
+
+logger = logging.getLogger(__name__)
 
 
 class ValidationLevel(Enum):

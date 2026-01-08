@@ -10,9 +10,16 @@ Supports multiple AI providers including:
 """
 import json
 import os
-from typing import Optional, Dict, Any, List
+import time
+from typing import Optional, Dict, Any, List, Callable, TypeVar
 from pathlib import Path
+from functools import wraps
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from sfbench.config import get_config
+
+T = TypeVar('T')
 
 
 class AIAgentError(Exception):
@@ -64,6 +71,28 @@ class AIAgent:
         else:
             self.api_key = os.getenv(f"{provider.upper()}_API_KEY")
         
+        # Create session with connection pooling for HTTP-based providers
+        # This improves performance by reusing connections across multiple API calls
+        if self.provider in ["openrouter", "routellm", "openai", "anthropic"]:
+            self.session = requests.Session()
+            # Configure retry strategy
+            retry_strategy = Retry(
+                total=3,
+                backoff_factor=1,
+                status_forcelist=[429, 500, 502, 503, 504],
+                allowed_methods=["POST"]
+            )
+            # Configure HTTP adapter with connection pooling
+            adapter = HTTPAdapter(
+                pool_connections=10,
+                pool_maxsize=20,
+                max_retries=retry_strategy
+            )
+            self.session.mount('https://', adapter)
+            self.session.mount('http://', adapter)
+        else:
+            self.session = None
+        
     def generate_solution(
         self,
         task_description: str,
@@ -73,6 +102,8 @@ class AIAgent:
         """
         Generate a solution (patch/diff) for a given task.
         
+        Rate limited to prevent API quota exhaustion (default: 60 calls/minute).
+        
         Args:
             task_description: Description of the task/problem
             context: Additional context (task type, repo info, etc.)
@@ -81,6 +112,23 @@ class AIAgent:
         Returns:
             Unified diff string (patch format)
         """
+        # Rate limiting: ensure minimum interval between calls
+        if not hasattr(self, '_last_call_time'):
+            self._last_call_time = 0.0
+        
+        # Get rate limit from config or use default (60 calls/minute = 1 second interval)
+        config = get_config()
+        calls_per_minute = 60  # Default
+        min_interval = 60.0 / calls_per_minute
+        
+        elapsed = time.time() - self._last_call_time
+        if elapsed < min_interval:
+            sleep_time = min_interval - elapsed
+            time.sleep(sleep_time)
+        
+        self._last_call_time = time.time()
+        
+        # Perform actual generation
         generators = {
             "openai": self._generate_openai,
             "anthropic": self._generate_anthropic,
@@ -217,13 +265,18 @@ class AIAgent:
                 "X-Title": "SF-Bench"
             }
             
+            # Get temperature from context if provided (for deterministic mode)
+            temperature = 0.1  # Default
+            if context and "temperature" in context:
+                temperature = context["temperature"]
+            
             data = {
                 "model": self.model,
                 "messages": [
                     {"role": "system", "content": self._get_system_prompt()},
                     {"role": "user", "content": prompt}
                 ],
-                "temperature": 0.1,
+                "temperature": temperature,
                 "max_tokens": 6000  # Reduced for free tier compatibility
             }
             
@@ -269,13 +322,18 @@ class AIAgent:
                 "Content-Type": "application/json"
             }
             
+            # Get temperature from context if provided (for deterministic mode)
+            temperature = 0.1  # Default
+            if context and "temperature" in context:
+                temperature = context["temperature"]
+            
             data = {
                 "model": self.model,
                 "messages": [
                     {"role": "system", "content": self._get_system_prompt()},
                     {"role": "user", "content": prompt}
                 ],
-                "temperature": 0.1,
+                "temperature": temperature,
                 "max_tokens": 8192,
                 "stream": False
             }
@@ -491,6 +549,40 @@ CRITICAL INSTRUCTIONS:
             result = "\n".join(lines[diff_start:])
         
         return result.strip()
+    
+    def __del__(self):
+        """Cleanup session on object destruction."""
+        if hasattr(self, 'session') and self.session:
+            try:
+                self.session.close()
+            except Exception:
+                pass  # Ignore errors during cleanup
+
+
+def rate_limit(calls_per_minute: int = 60):
+    """
+    Decorator for rate limiting API calls.
+    
+    Args:
+        calls_per_minute: Maximum number of calls allowed per minute (default: 60)
+    
+    Returns:
+        Decorator function
+    """
+    min_interval = 60.0 / calls_per_minute
+    last_called = [0.0]
+    
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            elapsed = time.time() - last_called[0]
+            if elapsed < min_interval:
+                sleep_time = min_interval - elapsed
+                time.sleep(sleep_time)
+            last_called[0] = time.time()
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 # Convenience functions for common providers

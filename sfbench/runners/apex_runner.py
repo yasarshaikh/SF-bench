@@ -6,7 +6,7 @@ import shutil
 from sfbench import Task
 from sfbench.runners.base_runner import BenchmarkRunner
 from sfbench.utils.scoring import TestResult, TestStatus
-from sfbench.utils.sfdx import run_sfdx, parse_json_output, OrgCreationError, TimeoutError as SFDXTimeoutError
+from sfbench.utils.sfdx import run_sfdx, parse_json_output, OrgCreationError, PlatformLimitationError, TimeoutError as SFDXTimeoutError
 
 
 class ApexRunner(BenchmarkRunner):
@@ -73,6 +73,9 @@ class ApexRunner(BenchmarkRunner):
             if not self.org_username:
                 raise OrgCreationError("Failed to get org username", 1, "No username in response")
                 
+        except PlatformLimitationError:
+            # Re-raise platform limitations (will be treated as FAIL)
+            raise
         except OrgCreationError:
             raise
         except Exception as e:

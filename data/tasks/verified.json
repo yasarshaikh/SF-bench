@@ -340,6 +340,424 @@
       "verified_repo": true,
       "repo_stars": 53
     }
+  },
+  {
+    "instance_id": "apex-batch-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Create a Batch Apex class that processes Account records and makes HTTP callouts to an external API. The batch must: 1) Process accounts in batches of 200, 2) Implement retry logic with exponential backoff for callout failures (HTTP 5xx errors), 3) Handle timeout scenarios gracefully, 4) Log all failures to a custom Log__c object, 5) Support Database.Stateful for maintaining state across batches, 6) Include comprehensive unit tests with minimum 85% coverage. The solution must handle governor limits properly and avoid hitting callout limits.",
+    "validation": {
+      "command": "sf apex run test --class-names BatchCalloutProcessorTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "batch_implements_database_batchable",
+        "retry_logic_implemented",
+        "timeout_handling",
+        "logging_implemented",
+        "stateful_support",
+        "governor_limit_aware",
+        "test_coverage_85"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 600
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "apex",
+      "subcategory": "batch-apex",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Batch Recipes/"
+    }
+  },
+  {
+    "instance_id": "apex-governor-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "The ContactTriggerHandler class has a governor limit issue. When processing bulk updates (200+ records), it performs SOQL queries inside a loop, causing 'Too many SOQL queries: 101' errors. Refactor the trigger handler to: 1) Move all SOQL queries outside loops, 2) Use collections and maps for efficient data retrieval, 3) Implement bulkification patterns, 4) Add governor limit monitoring and early exit if limits are approaching, 5) Maintain all existing functionality and test coverage. The solution must handle 200+ records in a single transaction without hitting limits.",
+    "validation": {
+      "command": "sf apex run test --class-names ContactTriggerHandlerTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "no_soql_in_loops",
+        "bulkification_implemented",
+        "governor_limit_monitoring",
+        "collections_used_efficiently",
+        "handles_200_plus_records",
+        "maintains_functionality"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "apex",
+      "subcategory": "governor-limits",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Trigger Recipes/ContactTriggerHandler.cls"
+    }
+  },
+  {
+    "instance_id": "apex-platform-events-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Implement a Platform Event publisher/subscriber pattern for order processing. Create: 1) A Platform Event object 'Order_Status_Changed__e' with fields (OrderId__c, Status__c, Timestamp__c), 2) A publisher class that publishes events when order status changes, 3) A trigger handler that subscribes to events and processes them asynchronously, 4) Error handling and retry logic for failed event processing, 5) Unit tests covering both publisher and subscriber logic with minimum 80% coverage. The solution must handle high-volume event publishing (100+ events per transaction) and ensure reliable delivery.",
+    "validation": {
+      "command": "sf apex run test --class-names OrderEventPublisherTests,OrderEventSubscriberTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "platform_event_created",
+        "publisher_implemented",
+        "subscriber_implemented",
+        "error_handling",
+        "retry_logic",
+        "high_volume_support",
+        "test_coverage_80"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 600
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "apex",
+      "subcategory": "platform-events",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Platform Event Recipes/"
+    }
+  },
+  {
+    "instance_id": "apex-scheduled-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Create a Scheduled Apex class that runs daily to process expired opportunities. The scheduler must: 1) Query all opportunities where CloseDate < TODAY and Stage != 'Closed Won' or 'Closed Lost', 2) Update Stage to 'Closed Lost' and add a reason, 3) Create follow-up tasks for the opportunity owners, 4) Send email notifications using templates, 5) Handle exceptions gracefully and log errors, 6) Support chaining with another scheduled job if processing takes too long, 7) Include comprehensive unit tests with minimum 85% coverage. The solution must be bulkified and handle 10,000+ records efficiently.",
+    "validation": {
+      "command": "sf apex run test --class-names OpportunityExpirationSchedulerTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "implements_schedulable",
+        "bulk_processing",
+        "task_creation",
+        "email_notifications",
+        "error_handling",
+        "job_chaining_support",
+        "handles_10000_plus_records",
+        "test_coverage_85"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 600
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "apex",
+      "subcategory": "scheduled-apex",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Scheduled Recipes/"
+    }
+  },
+  {
+    "instance_id": "apex-integration-oauth-001",
+    "task_type": "APEX",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Implement OAuth 2.0 authentication for a REST API integration. Create: 1) A Named Credential configuration class that handles OAuth 2.0 token management, 2) A REST client class that uses the Named Credential for authenticated API calls, 3) Token refresh logic for expired tokens, 4) Error handling for authentication failures, 5) Secure storage of credentials using Custom Metadata Types, 6) Unit tests with mock HTTP callouts covering all authentication scenarios. The solution must follow Salesforce security best practices and never expose credentials in code.",
+    "validation": {
+      "command": "sf apex run test --class-names OAuthClientTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "oauth2_implementation",
+        "named_credential_usage",
+        "token_refresh_logic",
+        "error_handling",
+        "secure_credential_storage",
+        "no_hardcoded_credentials",
+        "mock_callout_tests"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "apex",
+      "subcategory": "oauth-integration",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Integration Recipes/OAuth/"
+    }
+  },
+  {
+    "instance_id": "lwc-lms-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "Implement Lightning Message Service (LMS) for cross-component communication. Create: 1) A message channel definition for order updates, 2) A publisher component that publishes messages when order status changes, 3) A subscriber component that listens for messages and updates its UI reactively, 4) Proper cleanup in disconnectedCallback to prevent memory leaks, 5) Error handling for message channel failures, 6) Jest tests covering message publishing and subscription. The solution must support multiple subscribers and handle message channel unavailability gracefully.",
+    "validation": {
+      "command": "npm run test:unit -- --testPathPattern=lms",
+      "expected_outcome": "0",
+      "code_checks": [
+        "message_channel_defined",
+        "publisher_implemented",
+        "subscriber_implemented",
+        "cleanup_in_disconnectedCallback",
+        "error_handling",
+        "multiple_subscribers_support",
+        "jest_tests_pass"
+      ]
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 180
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "lwc",
+      "subcategory": "lightning-message-service",
+      "verified_repo": true,
+      "repo_stars": 2805,
+      "file_path": "force-app/main/default/lwc/"
+    }
+  },
+  {
+    "instance_id": "lwc-wire-adapter-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "Create a custom wire adapter for fetching account data with caching and error handling. Implement: 1) A wire adapter class that extends LightningDataService, 2) Caching mechanism to avoid redundant server calls, 3) Error handling and retry logic for failed requests, 4) Support for reactive parameters (when input changes, adapter refetches), 5) A sample LWC component that uses the wire adapter, 6) Jest tests for the adapter and component. The adapter must handle governor limits and provide meaningful error messages.",
+    "validation": {
+      "command": "npm run test:unit -- --testPathPattern=wireAdapter",
+      "expected_outcome": "0",
+      "code_checks": [
+        "wire_adapter_created",
+        "caching_implemented",
+        "error_handling",
+        "retry_logic",
+        "reactive_parameters",
+        "governor_limit_aware",
+        "jest_tests_pass"
+      ]
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 180
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "lwc",
+      "subcategory": "wire-adapters",
+      "verified_repo": true,
+      "repo_stars": 2805,
+      "file_path": "force-app/main/default/lwc/"
+    }
+  },
+  {
+    "instance_id": "lwc-composition-001",
+    "task_type": "LWC",
+    "repo_url": "https://github.com/trailheadapps/lwc-recipes",
+    "base_commit": "main",
+    "problem_description": "Build a complex component composition using slots and event communication. Create: 1) A parent container component with named slots (header, body, footer), 2) Child components that populate each slot, 3) Event-based communication between parent and children, 4) Dynamic slot content based on user interactions, 5) Proper lifecycle management and cleanup, 6) Accessibility support (ARIA labels, keyboard navigation), 7) Jest tests covering composition and event flow. The solution must demonstrate advanced LWC patterns and best practices.",
+    "validation": {
+      "command": "npm run test:unit -- --testPathPattern=composition",
+      "expected_outcome": "0",
+      "code_checks": [
+        "named_slots_implemented",
+        "event_communication",
+        "dynamic_slot_content",
+        "lifecycle_management",
+        "accessibility_support",
+        "advanced_patterns",
+        "jest_tests_pass"
+      ]
+    },
+    "timeouts": {
+      "setup": 300,
+      "run": 180
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "lwc",
+      "subcategory": "component-composition",
+      "verified_repo": true,
+      "repo_stars": 2805,
+      "file_path": "force-app/main/default/lwc/"
+    }
+  },
+  {
+    "instance_id": "flow-screen-input-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Create a multi-step Screen Flow for account onboarding with conditional visibility. The flow must: 1) Have 3 screens (Account Info, Contact Details, Review), 2) Show/hide fields based on Account Type selection, 3) Implement field-level validation with custom error messages, 4) Support navigation between screens with back/next buttons, 5) Display progress indicator, 6) Handle save and resume functionality, 7) Include accessibility features. The flow must deploy successfully and handle all edge cases.",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flows --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "multi_step_screens",
+        "conditional_visibility",
+        "field_validation",
+        "navigation_buttons",
+        "progress_indicator",
+        "save_resume_support",
+        "accessibility_features"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "medium",
+      "category": "flow",
+      "subcategory": "screen-flows",
+      "verified_repo": true,
+      "repo_stars": 384,
+      "file_path": "force-app/main/default/flows/"
+    }
+  },
+  {
+    "instance_id": "flow-subflow-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Design a Flow orchestration system using subflows. Create: 1) A parent autolaunched flow that calls multiple subflows, 2) Subflow for account validation, 3) Subflow for contact creation, 4) Subflow for opportunity generation, 5) Error handling with fault paths that rollback on any subflow failure, 6) Input/output variable mapping between flows, 7) Proper transaction control. The solution must demonstrate reusable flow patterns and handle bulk processing (200+ records).",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flows --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "parent_flow_created",
+        "subflows_created",
+        "error_handling",
+        "fault_paths",
+        "variable_mapping",
+        "transaction_control",
+        "bulk_processing_support"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "flow",
+      "subcategory": "subflow-orchestration",
+      "verified_repo": true,
+      "repo_stars": 384,
+      "file_path": "force-app/main/default/flows/"
+    }
+  },
+  {
+    "instance_id": "flow-autolaunched-001",
+    "task_type": "FLOW",
+    "repo_url": "https://github.com/trailheadapps/automation-components",
+    "base_commit": "main",
+    "problem_description": "Create a record-triggered autolaunched flow that processes Opportunity records with bulk handling. The flow must: 1) Trigger on Opportunity creation and update, 2) Process 200+ records in a single transaction, 3) Create related tasks for high-value opportunities (>$100k), 4) Update related Account fields, 5) Send email notifications using templates, 6) Handle errors gracefully with fault paths, 7) Optimize for governor limits. The flow must be bulkified and handle edge cases (null values, missing relationships).",
+    "validation": {
+      "command": "sf project deploy start --source-dir force-app/main/default/flows --dry-run --json",
+      "expected_outcome": "Succeeded",
+      "code_checks": [
+        "record_triggered",
+        "bulk_processing",
+        "task_creation",
+        "account_updates",
+        "email_notifications",
+        "fault_handling",
+        "governor_limit_optimized"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "flow",
+      "subcategory": "autolaunched-flows",
+      "verified_repo": true,
+      "repo_stars": 384,
+      "file_path": "force-app/main/default/flows/"
+    }
+  },
+  {
+    "instance_id": "integration-rest-001",
+    "task_type": "INTEGRATION",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Implement a comprehensive REST API integration with external service. Create: 1) A REST client class with GET, POST, PUT, DELETE methods, 2) Request/response wrapper classes with proper serialization, 3) Retry logic with exponential backoff for transient failures, 4) Rate limiting to respect API quotas, 5) Comprehensive error handling for HTTP status codes, 6) Logging framework for debugging, 7) Unit tests with mock HTTP callouts covering all scenarios. The solution must handle authentication, pagination, and large payloads efficiently.",
+    "validation": {
+      "command": "sf apex run test --class-names RestApiClientTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "rest_methods_implemented",
+        "retry_logic",
+        "rate_limiting",
+        "error_handling",
+        "logging_framework",
+        "authentication_support",
+        "pagination_support",
+        "mock_callout_tests"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "category": "integration",
+      "subcategory": "rest-api",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Integration Recipes/REST/"
+    }
+  },
+  {
+    "instance_id": "integration-soap-001",
+    "task_type": "INTEGRATION",
+    "repo_url": "https://github.com/trailheadapps/apex-recipes",
+    "base_commit": "main",
+    "problem_description": "Create a SOAP API integration with WSDL parsing and callout handling. Implement: 1) WSDL2Apex generation and customization, 2) SOAP request builder with proper envelope structure, 3) Response parser that handles complex nested structures, 4) Error handling for SOAP faults, 5) Authentication using WS-Security headers, 6) Unit tests with mock SOAP responses, 7) Documentation for the integration. The solution must handle namespaces, complex types, and arrays correctly.",
+    "validation": {
+      "command": "sf apex run test --class-names SoapApiClientTests --result-format json",
+      "expected_outcome": "Passed",
+      "code_checks": [
+        "wsdl_parsing",
+        "soap_request_builder",
+        "response_parser",
+        "fault_handling",
+        "ws_security_headers",
+        "namespace_handling",
+        "mock_soap_tests",
+        "documentation_provided"
+      ]
+    },
+    "timeouts": {
+      "setup": 600,
+      "run": 300
+    },
+    "metadata": {
+      "difficulty": "expert",
+      "category": "integration",
+      "subcategory": "soap-api",
+      "verified_repo": true,
+      "repo_stars": 1059,
+      "file_path": "force-app/main/default/classes/Integration Recipes/SOAP/"
+    }
   }
 ]
 
