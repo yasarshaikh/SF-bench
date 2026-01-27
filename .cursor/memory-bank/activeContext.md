@@ -2,30 +2,33 @@
 
 ## Current Work Focus
 
-AI-native infrastructure operational. Ready for development.
+Running GPT-5 evaluation on lite tasks via RouteLLM.
 
 ## Recent Changes
 
-- [2026-01-27] Removed conversational analogies from AGENTS.md (Sheldon Cooper, kernel references)
-- [2026-01-27] AGENTS.md now purely professional and technical
-- [2026-01-27] Pre-commit hooks installed and tested
-- [2026-01-27] Verification hook refined (fixed false positive profanity detection)
-- [2026-01-27] Secrets baseline created for documentation false positives
+- [2026-01-27] Pushed AI-native infrastructure to main (commit 121f303)
+- [2026-01-27] Cleaned up ~3.5MB of generated/temporary files
+- [2026-01-27] Fixed patch format issue: improved system prompt with concrete example
+- [2026-01-27] Added _normalize_patch_headers() to ai_agent.py
+- [2026-01-27] Added _pre_normalize_patch() to git.py
+- [2026-01-27] Tested Grok (malformed patches) vs GPT-5 (correct format)
+- [2026-01-27] GPT-5 evaluation running on lite.json tasks
 
 ## Next Steps
 
-1. Address flake8 lint issues in codebase (existing code quality debt)
-2. Continue standard development with verification protocols active
+1. Review GPT-5 evaluation results
+2. Commit patch format improvements
+3. Run more comprehensive evaluations
 
 ## Active Decisions
 
-- AGENTS.md uses 🔒/📖 markers for behavioral vs reference content
-- Verification hook runs on session stop
-- Pre-commit hooks active for formatting and security
+- Using subagents for parallel work
+- GPT-5 produces better formatted patches than Grok-4.1-fast
+- Patch normalization added as safety net
 
 ## Blockers
 
-- None
+- Grok model produces malformed patches (model limitation, not tool issue)
 
 ---
 

@@ -465,12 +465,33 @@ class AIAgent:
         """Get the system prompt for AI models."""
         return """You are an expert Salesforce developer. Generate solutions as unified diff patches.
 
-CRITICAL INSTRUCTIONS:
-1. Output ONLY the raw patch content, NO markdown code blocks (no ```diff or ```)
-2. Start directly with: diff --git a/path/to/file b/path/to/file
-3. Include COMPLETE file changes - do not truncate
-4. Use proper unified diff format with context lines
-5. The patch must apply cleanly with 'git apply'"""
+OUTPUT FORMAT - Follow this EXACT structure:
+
+diff --git a/force-app/main/default/classes/Example.cls b/force-app/main/default/classes/Example.cls
+--- a/force-app/main/default/classes/Example.cls
++++ b/force-app/main/default/classes/Example.cls
+@@ -1,6 +1,8 @@
+ public class Example {
+     public void existingMethod() {
+         System.debug('existing');
+     }
++
++    public void newMethod() {
++        System.debug('new code');
++    }
+ }
+
+CRITICAL RULES:
+1. Output ONLY the raw patch - NO markdown fences, NO explanations
+2. First line MUST be: diff --git a/path b/path
+3. Then: --- a/path (original file)
+4. Then: +++ b/path (modified file)
+5. Then: @@ -startline,count +startline,count @@ (hunk header)
+6. Context lines (unchanged) start with a SPACE character
+7. Added lines start with + (no space after +)
+8. Removed lines start with - (no space after -)
+9. Include 3 lines of context before and after changes
+10. The patch MUST apply cleanly with 'git apply'"""
     
     def _build_prompt(self, task_description: str, context: Optional[Dict], files: Optional[Dict]) -> str:
         """Build the prompt for AI generation."""
@@ -501,10 +522,10 @@ CRITICAL INSTRUCTIONS:
         return "\n".join(prompt_parts)
 
     def _clean_response(self, response: str) -> str:
-        """Clean the AI response, extracting diff content from markdown blocks and fixing common issues."""
+        """Clean the AI response, extracting diff content and normalizing format."""
         result = response.strip()
         
-        # Extract diff content from markdown code blocks
+        # Step 1: Extract diff content from markdown code blocks
         if "```" in result:
             lines = result.split("\n")
             cleaned_lines = []
@@ -513,42 +534,81 @@ CRITICAL INSTRUCTIONS:
             for line in lines:
                 stripped = line.strip()
                 
-                # Detect start of diff/patch code block
                 if stripped.startswith("```"):
                     if any(x in stripped.lower() for x in ["diff", "patch", "apex", "cls", "js", "html", "xml"]):
                         in_diff_block = True
-                        continue  # Skip the opening ```diff line
+                        continue
                     elif stripped == "```" and in_diff_block:
                         in_diff_block = False
-                        continue  # Skip the closing ``` line
+                        continue
                     elif stripped == "```":
-                        # Could be start of unmarked code block
                         in_diff_block = True
                         continue
                     else:
-                        # Other code block type, skip it
                         continue
                 
-                # Keep lines inside diff blocks
                 if in_diff_block:
                     cleaned_lines.append(line)
             
-            # If we extracted diff content, use it; otherwise fall back to original
             if cleaned_lines:
                 result = "\n".join(cleaned_lines)
         
-        # Remove any leading/trailing non-diff content
+        # Step 2: Find diff start (handle multiple patterns)
         lines = result.split("\n")
         diff_start = -1
         for i, line in enumerate(lines):
-            if line.startswith("diff --git") or line.startswith("---") or line.startswith("@@"):
+            if line.startswith("diff --git"):
+                diff_start = i
+                break
+            elif line.startswith("--- a/") or line.startswith("--- "):
+                if i + 1 < len(lines) and lines[i + 1].startswith("+++"):
+                    diff_start = i
+                    break
+            elif line.startswith("@@") and " @@" in line:
                 diff_start = i
                 break
         
         if diff_start > 0:
             result = "\n".join(lines[diff_start:])
         
+        # Step 3: Normalize - add missing diff --git header if we have --- and +++
+        result = self._normalize_patch_headers(result)
+        
         return result.strip()
+
+    def _normalize_patch_headers(self, patch: str) -> str:
+        """Add missing diff --git header if patch has file headers but no diff line."""
+        lines = patch.split('\n')
+        
+        has_diff_git = any(l.startswith('diff --git') for l in lines)
+        
+        if has_diff_git:
+            return patch
+        
+        for i, line in enumerate(lines):
+            if line.startswith('--- a/'):
+                filepath = line[6:].strip()
+                if '\t' in filepath:
+                    filepath = filepath.split('\t')[0]
+                diff_header = f"diff --git a/{filepath} b/{filepath}"
+                lines.insert(i, diff_header)
+                return '\n'.join(lines)
+            elif line.startswith('--- ') and not line.startswith('--- a/'):
+                filepath = line[4:].strip()
+                if '\t' in filepath:
+                    filepath = filepath.split('\t')[0]
+                lines[i] = f"--- a/{filepath}"
+                if i + 1 < len(lines) and lines[i + 1].startswith('+++ '):
+                    plus_path = lines[i + 1][4:].strip()
+                    if '\t' in plus_path:
+                        plus_path = plus_path.split('\t')[0]
+                    if not plus_path.startswith('b/'):
+                        lines[i + 1] = f"+++ b/{plus_path}"
+                diff_header = f"diff --git a/{filepath} b/{filepath}"
+                lines.insert(i, diff_header)
+                return '\n'.join(lines)
+        
+        return patch
     
     def __del__(self):
         """Cleanup session on object destruction."""

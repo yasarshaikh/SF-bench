@@ -289,6 +289,55 @@ def apply_patch(repo_dir: Path, patch_diff: str, timeout: Optional[int] = None) 
     raise PatchApplicationError(error_msg)
 
 
+def _pre_normalize_patch(patch: str) -> str:
+    """
+    Pre-normalize patch to fix structural issues before main cleaning.
+    
+    Handles:
+    - Missing diff --git header when --- and +++ are present
+    - Incorrect file path prefixes (missing a/ and b/)
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    lines = patch.split('\n')
+    has_diff_git = any(l.strip().startswith('diff --git') for l in lines)
+    
+    if has_diff_git:
+        return patch
+    
+    normalized_lines = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        
+        if line.startswith('--- ') and not line.startswith('--- a/'):
+            filepath = line[4:].strip()
+            if '\t' in filepath:
+                filepath = filepath.split('\t')[0]
+            
+            if i + 1 < len(lines) and lines[i + 1].startswith('+++'):
+                logger.debug(f"Synthesizing missing diff --git header for {filepath}")
+                normalized_lines.append(f"diff --git a/{filepath} b/{filepath}")
+                normalized_lines.append(f"--- a/{filepath}")
+                i += 1
+                plus_line = lines[i]
+                plus_path = plus_line[4:].strip()
+                if '\t' in plus_path:
+                    plus_path = plus_path.split('\t')[0]
+                if not plus_path.startswith('b/'):
+                    normalized_lines.append(f"+++ b/{plus_path}")
+                else:
+                    normalized_lines.append(plus_line)
+                i += 1
+                continue
+        
+        normalized_lines.append(line)
+        i += 1
+    
+    return '\n'.join(normalized_lines)
+
+
 def _clean_patch(patch_diff: str) -> str:
     """
     Clean patch content to handle common formatting issues from AI models.
@@ -305,6 +354,9 @@ def _clean_patch(patch_diff: str) -> str:
     """
     import logging
     logger = logging.getLogger(__name__)
+    
+    # Pre-normalize to fix structural issues
+    patch_diff = _pre_normalize_patch(patch_diff)
     
     lines = patch_diff.split('\n')
     cleaned_lines = []
