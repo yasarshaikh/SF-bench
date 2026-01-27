@@ -1,0 +1,60 @@
+# SF-Bench Cursor Ignore Configuration
+# Files in this list are excluded from AI context and indexing
+
+# ===== SECRETS & CREDENTIALS =====
+.env
+.env.*
+*.pem
+*.key
+*.crt
+credentials.json
+secrets.json
+
+# ===== RESULTS & OUTPUTS =====
+# Evaluation results (large, generated)
+results/
+logs/
+workspace/
+
+# ===== BUILD ARTIFACTS =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# ===== VIRTUAL ENVIRONMENTS =====
+venv/
+.venv/
+env/
+
+# ===== IDE & EDITOR =====
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== OS FILES =====
+.DS_Store
+Thumbs.db
+
+# ===== INTERNAL DOCS =====
+# Internal documentation (not public)
+_internal/
+
+# ===== LARGE DATA =====
+# Large binary or data files
+*.zip
+*.tar.gz
+*.log
+
+# ===== SESSION FILES =====
+# Cursor session checkpoints (managed separately)
+.cursor/checkpoints/
+logs/cursor_sessions/

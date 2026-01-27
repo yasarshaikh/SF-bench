@@ -1,0 +1,229 @@
+---
+description: Documentation standards for markdown files with structure, formatting, and reference patterns
+globs: ['**/*.md', '**/*.mdx', 'docs/**/*']
+alwaysApply: true
+---
+
+# Documentation Standards
+
+Standards for markdown documentation files in the SF-Bench project, ensuring consistent structure, formatting, and objective codebase-focused content.
+
+## Structure and Organization
+
+### Document Structure
+- Begin with a clear title that describes the document's purpose
+- Use hierarchical headings (H1 for title, H2 for major sections, H3 for subsections)
+- Maintain logical flow: overview → details → reference → examples
+- Include table of contents for documents exceeding 500 lines
+
+### Section Organization
+- **Overview**: Brief description of the document's scope and purpose
+- **Core Content**: Main technical information organized by topic
+- **Reference**: Code references, API details, configuration options
+- **Examples**: Code examples demonstrating usage (when applicable)
+
+### Heading Conventions
+- Use descriptive headings that clearly indicate content
+- Avoid question-based headings ("How do I...?" → "Implementation Process")
+- Use noun phrases: "Task Execution", "Validation Pipeline", "Configuration Options"
+- Maintain consistent heading levels throughout the document
+
+## Code References and Citations
+
+### Code Block Formatting
+- Use language tags for syntax highlighting: ` ```python`, ` ```bash`, ` ```json`
+- Include complete, executable code examples
+- Ensure code examples reflect current codebase implementation
+- Add brief explanatory text before code blocks when context is needed
+
+### File and Path References
+- Reference files using relative paths from project root
+- Use backticks for file names: `sfbench/engine.py`
+- Use backticks for directory names: `sfbench/runners/`
+- Include line numbers when referencing specific code sections: `engine.py:49-56`
+
+### Component References
+- Reference classes using full module path: `sfbench.engine.BenchmarkEngine`
+- Reference functions with module: `sfbench.utils.sfdx.run_sfdx()`
+- Use backticks for all code references
+- Maintain consistency in reference format throughout document
+
+### Cross-References
+- Use relative links for internal documentation: `[Validation Guide](VALIDATION_METHODOLOGY.md)`
+- Use absolute paths for external references when necessary
+- Verify all internal links resolve correctly
+- Include descriptive link text, not "click here" or "this link"
+
+## Content Formatting
+
+### Lists and Tables
+- Use tables for structured data comparisons
+- Use bullet lists for unordered information
+- Use numbered lists for sequential processes
+- Maintain consistent formatting within lists
+
+### Emphasis
+- Use **bold** for important terms on first use
+- Use *italic* for emphasis sparingly
+- Use `code formatting` for technical terms, file names, and code elements
+- Avoid excessive emphasis that reduces readability
+
+### Technical Terminology
+- Define technical terms on first use
+- Use consistent terminology throughout document
+- Prefer standard technical terms over colloquial alternatives
+- Maintain glossary of project-specific terms when necessary
+
+## Code Examples
+
+### Example Requirements
+- All code examples must be executable and current
+- Examples must reflect actual codebase implementation
+- Include necessary context (imports, setup) for standalone examples
+- Verify examples compile and execute correctly
+
+### Example Format
+```markdown
+The following example demonstrates task execution:
+
+```python
+from sfbench.engine import BenchmarkEngine
+
+engine = BenchmarkEngine(workspace_dir=Path("/workspace"))
+results = engine.evaluate_tasks(tasks)
+```
+```
+
+### Example Documentation
+- Provide brief context before code examples
+- Explain what the example demonstrates
+- Reference related documentation when applicable
+- Avoid redundant explanations within examples
+
+## Writing Standards
+
+### Objective Language
+- Describe functionality: "The system executes..." not "The system will execute..."
+- State facts: "The module implements..." not "The module should implement..."
+- Use present tense for current functionality
+- Avoid future tense except when describing planned features explicitly
+
+### Technical Precision
+- Use exact technical terms: "deployment" not "deploying stuff"
+- Specify versions, paths, and configurations precisely
+- Include exact command syntax when documenting CLI usage
+- Reference actual code structures, not approximations
+
+### Clarity and Conciseness
+- Write clear, direct sentences
+- Eliminate unnecessary words
+- Use active voice: "The validator checks..." not "Checks are performed by..."
+- Break complex concepts into smaller, focused sections
+
+## Prohibited in Documentation
+
+### Conversational Elements
+- Emojis and visual decorations
+- Casual greetings or sign-offs
+- Personal pronouns (I, we, you)
+- Conversational phrases ("Let's", "You can", "Here's how")
+
+### Subjective Content
+- Value judgments without technical justification
+- Predictions about future behavior
+- Opinions about code quality or design
+- Recommendations without technical basis
+
+### Contextual Discussions - STRICTLY PROHIBITED
+- **NEVER include**: Development history or decision-making process
+- **NEVER include**: References to conversations or discussions
+- **NEVER include**: Explanations of why code was written (focus ONLY on what it does)
+- **NEVER include**: Personal anecdotes or experiences
+- **NEVER include**: Project evolution or planning context
+- **ONLY describe**: Current codebase structure, functionality, and behavior
+
+## Examples
+
+### Good: Objective and Structured
+```markdown
+# Task Execution Pipeline
+
+The BenchmarkEngine orchestrates task evaluation through a sequential
+pipeline. The pipeline consists of three stages: deployment, validation,
+and scoring.
+
+## Deployment Stage
+
+The deployment stage applies generated solutions to the target repository.
+The RunnerFactory instantiates task-specific runners based on task type.
+Each runner handles deployment to a Salesforce scratch org.
+
+## Validation Stage
+
+The validation stage verifies functional correctness. Validators execute
+unit tests and verify business outcomes match expected results.
+```
+
+### Bad: Conversational and Unstructured
+```markdown
+# How to Run Tasks
+
+Let's talk about how the benchmark engine works! You can use it to
+run tasks, and it's really easy. Here's what happens:
+
+- First, we deploy stuff
+- Then we check if it works
+- Finally, we give it a score
+
+Pretty simple, right? 🚀
+```
+
+### Bad: Includes Context (DO NOT WRITE LIKE THIS)
+```markdown
+# Task Execution Pipeline
+
+We designed the BenchmarkEngine after discussing the requirements with
+the team. We decided to use a pipeline approach because it made the
+code more maintainable. The deployment stage was added after we
+realized we needed better error handling.
+```
+
+### Good: Precise Code Reference
+```markdown
+The `BenchmarkEngine.evaluate_tasks()` method processes tasks
+sequentially. The method signature is defined in `sfbench/engine.py`
+at lines 89-95.
+```
+
+### Bad: Vague Reference
+```markdown
+The evaluate_tasks function does the evaluation. You can find it
+somewhere in the engine file.
+```
+
+## Metadata and Frontmatter
+
+### Jekyll Frontmatter (for docs/)
+- Include required frontmatter for GitHub Pages
+- Maintain consistent metadata format
+- Include accurate descriptions and keywords
+- Verify layout references are correct
+
+### Document Metadata
+- Title: Clear, descriptive document title
+- Description: Objective summary of document content
+- Keywords: Relevant technical terms for searchability
+
+## Maintenance
+
+### Keeping Documentation Current
+- Update documentation when code changes
+- Verify code examples remain executable
+- Check that all links resolve correctly
+- Review documentation for accuracy during code reviews
+
+### Documentation Review
+- Verify adherence to these standards
+- Check for objective, codebase-focused content
+- Ensure formal, academic tone throughout
+- Validate technical accuracy of all statements

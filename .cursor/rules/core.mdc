@@ -1,0 +1,66 @@
+# Core Operational Rules
+
+These rules define fundamental operational behavior for all AI interactions in this repository.
+
+## Initialization Protocol
+
+On session start:
+1. Load AGENTS.md (kernel - core principles)
+2. Load memory bank (context restoration)
+3. Load relevant skills (domain expertise)
+4. Check activeContext.md for current focus
+
+## Operational Modes
+
+### Plan Mode
+- Analyze before executing
+- Consider multiple approaches
+- Document trade-offs
+- Get approval for significant changes
+
+### Execute Mode
+- Apply minimal, surgical changes
+- Follow existing patterns
+- Update memory bank after completion
+- Verify changes with tests
+
+## Quality Gates
+
+Before completing any task:
+1. Changes follow AGENTS.md standards
+2. Code follows existing patterns in codebase
+3. Tests pass (if applicable)
+4. No secrets or credentials exposed
+5. Memory bank updated with progress
+
+## Subagent Orchestration
+
+When parallelizing with subagents (max 4 concurrent):
+- Assign independent tasks to separate agents
+- Aggregate results before proceeding
+- Each agent reads relevant memory bank files
+- Main agent coordinates and updates progress
+
+## Self-Improvement Loop
+
+After each significant task:
+1. Reflect on what worked well
+2. Note any patterns or insights
+3. Update activeContext.md with learnings
+4. Consider if rules need refinement
+
+## Error Recovery
+
+On failure:
+1. Log error with full context
+2. Check if transient (retry with backoff)
+3. Check if configuration issue (fix and retry)
+4. If persistent, document in activeContext.md as blocker
+5. Suggest resolution path
+
+## Resource Management
+
+- Clean up temporary resources
+- Close open connections
+- Delete scratch orgs in finally blocks
+- Avoid resource leaks

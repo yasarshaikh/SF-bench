@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "python .cursor/hooks/format_python.py",
+        "description": "Auto-format Python files after edits"
+      }
+    ],
+    "stop": [
+      {
+        "command": "python .cursor/hooks/verify_work.py",
+        "description": "Verify work quality before completion"
+      },
+      {
+        "command": "python .cursor/hooks/session_complete.py",
+        "description": "Log session and update memory bank"
+      }
+    ]
+  }
+}

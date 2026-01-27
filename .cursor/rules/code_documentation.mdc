@@ -1,0 +1,319 @@
+---
+description: Code documentation standards for docstrings and comments in formal academic style
+globs: ['**/*.py', '**/*.js', '**/*.ts', '**/*.apex']
+alwaysApply: true
+---
+
+# Code Documentation Standards
+
+Standards for docstrings, inline comments, and code documentation in the SF-Bench codebase, ensuring objective, codebase-focused technical writing in formal academic style.
+
+## Docstring Format
+
+### Google Style with Formal Language
+- Use Google-style docstring format
+- Maintain formal, academic tone throughout
+- Focus on what the code does, not why it was written
+- Use third person, present tense for functionality descriptions
+
+### Module Docstrings
+```python
+"""
+Module description focusing on functionality and structure.
+
+The module implements [specific functionality]. It provides [components]
+that [perform specific operations]. The module exports [public interfaces].
+"""
+```
+
+### Class Docstrings
+```python
+class BenchmarkEngine:
+    """
+    Orchestrates task evaluation through deployment, validation, and scoring.
+
+    The BenchmarkEngine class manages the complete evaluation pipeline. It
+    instantiates task-specific runners, coordinates execution, and aggregates
+    results. The engine supports parallel execution through configurable
+    worker pools.
+
+    Attributes:
+        workspace_dir: Directory path for workspace operations
+        max_workers: Maximum number of concurrent workers
+        results: Aggregated evaluation results
+    """
+```
+
+### Function/Method Docstrings
+```python
+def evaluate_tasks(self, tasks: List[Task]) -> List[TestResult]:
+    """
+    Executes evaluation pipeline for a list of tasks.
+
+    The method processes tasks sequentially or in parallel based on
+    max_workers configuration. Each task undergoes deployment, validation,
+    and scoring operations. Results are aggregated and returned.
+
+    Args:
+        tasks: List of Task objects to evaluate
+
+    Returns:
+        List of TestResult objects containing evaluation outcomes
+
+    Raises:
+        ValueError: If tasks list is empty
+        RuntimeError: If scratch org creation fails
+    """
+```
+
+## Docstring Content Standards
+
+### Required Sections
+- **Summary**: One-line description of functionality (required)
+- **Description**: Detailed explanation of behavior (when needed)
+- **Args/Parameters**: All parameters with types and descriptions
+- **Returns**: Return value type and description
+- **Raises**: Exceptions that may be raised (when applicable)
+- **Attributes**: Class attributes with types and descriptions (for classes)
+
+### Language Requirements
+- **Third person only**: "The function returns..." not "This function returns..." or "Returns..."
+- **Present tense**: "The method executes..." not "The method will execute..."
+- **Active voice**: "The class manages..." not "Management is performed by..."
+- **Objective focus**: Describe functionality, not purpose or rationale
+
+### Prohibited in Docstrings
+- First-person references ("I", "we")
+- Second-person references ("you")
+- Conversational language ("Let's", "Here's", "You can")
+- **NEVER include**: Explanations of why code was written
+- **NEVER include**: Development context or history
+- **NEVER include**: References to conversations or decisions
+- **NEVER include**: Rationale for implementation choices
+- Value judgments without technical basis
+- Emojis or visual elements
+- **ONLY describe**: What the code does, how it works, its structure and behavior
+
+## Inline Comments
+
+### Comment Purpose
+- Explain complex algorithms or logic
+- Clarify non-obvious implementation details
+- Document assumptions or constraints
+- Reference related code or documentation
+
+### Comment Style
+- Use complete sentences with proper capitalization
+- End sentences with periods
+- Write in third person, present tense
+- **CRITICAL**: Focus on what the code does, NEVER on why it was written
+- **NEVER include**: Context, conversations, or development rationale
+- **ONLY describe**: Implementation details, algorithms, and code behavior
+
+### Good Comment Examples
+```python
+# The retry mechanism uses exponential backoff with initial delay of 2 seconds.
+# Each retry doubles the delay: 2s, 4s, 8s, up to maximum of 8 seconds.
+for attempt in range(max_retries):
+    delay = initial_delay * (2 ** attempt)
+    # ...
+
+# The validator checks code coverage against the minimum threshold of 80%.
+# Coverage below threshold results in validation failure regardless of test results.
+if coverage < MIN_COVERAGE_THRESHOLD:
+    # ...
+```
+
+### Bad Comment Examples
+```python
+# We retry with exponential backoff to handle transient failures
+# This makes the code more robust
+for attempt in range(max_retries):
+    # ...
+
+# Check if coverage is good enough
+if coverage < MIN_COVERAGE_THRESHOLD:
+    # ...
+```
+
+## Type Hints Documentation
+
+### Type Hint Standards
+- Include type hints for all function parameters and return values
+- Use precise types from typing module when needed
+- Document complex types in docstrings
+- Maintain consistency with codebase type conventions
+
+### Complex Type Documentation
+```python
+def process_results(
+    results: Dict[str, TestResult],
+    filters: Optional[List[Callable[[TestResult], bool]]] = None
+) -> List[TestResult]:
+    """
+    Filters and processes test results based on provided filter functions.
+
+    Args:
+        results: Dictionary mapping task IDs to TestResult objects
+        filters: Optional list of filter functions. Each function takes
+            a TestResult and returns a boolean indicating whether the
+            result should be included.
+
+    Returns:
+        Filtered list of TestResult objects
+    """
+```
+
+## API Documentation
+
+### Public API Documentation
+- Document all public classes, functions, and methods
+- Include usage examples for complex APIs
+- Document parameter constraints and valid ranges
+- Specify return value structure and possible values
+
+### Private Implementation Documentation
+- Document complex private methods when logic is non-obvious
+- Explain implementation choices that affect behavior
+- Reference related code when helpful
+- Maintain formal tone even for internal documentation
+
+## Examples
+
+### Good: Formal and Objective
+```python
+class ApexRunner(BenchmarkRunner):
+    """
+    Executes Apex task evaluation through deployment and test execution.
+
+    The ApexRunner handles Apex-specific task evaluation. It deploys
+    Apex classes and triggers to a scratch org, executes unit tests,
+    and verifies code coverage meets minimum requirements. The runner
+    validates functional correctness through test execution and outcome
+    verification.
+
+    Attributes:
+        task: Task object containing task definition and requirements
+        workspace_dir: Path to workspace directory for repository operations
+        scratch_org_alias: Alias for the Salesforce scratch org
+    """
+
+    def deploy(self) -> bool:
+        """
+        Deploys Apex code to the scratch org.
+
+        The method packages Apex classes and triggers, deploys to the
+        target scratch org, and verifies deployment success. Deployment
+        failures raise exceptions with detailed error information.
+
+        Returns:
+            True if deployment succeeds, False otherwise
+
+        Raises:
+            DeploymentError: If deployment fails due to compilation errors
+                or missing dependencies
+        """
+```
+
+### Bad: Conversational and Contextual
+```python
+class ApexRunner(BenchmarkRunner):
+    """
+    This runner handles Apex tasks. We created it to test Apex code
+    by deploying to scratch orgs and running tests. It's pretty useful!
+
+    You can use this to run Apex evaluations easily.
+    """
+
+    def deploy(self) -> bool:
+        """
+        Deploys the code. This will deploy to a scratch org and check
+        if everything works. We made it return True on success.
+        """
+```
+
+### Good: Objective Inline Comments
+```python
+# The patch application uses four fallback strategies: strict, reject,
+# 3-way merge, and fuzzy matching. Each strategy is attempted in sequence
+# until one succeeds or all strategies are exhausted.
+for strategy in PATCH_STRATEGIES:
+    try:
+        result = apply_patch(patch, strategy)
+        break
+    except PatchError:
+        continue
+```
+
+### Bad: Conversational Comments
+```python
+# Try different strategies to apply the patch. We do this because
+# sometimes patches don't apply cleanly, so we need fallbacks.
+for strategy in PATCH_STRATEGIES:
+    # Try this strategy and see if it works
+    try:
+        result = apply_patch(patch, strategy)
+        break
+    except PatchError:
+        # This one didn't work, try the next one
+        continue
+```
+
+## Special Cases
+
+### Exception Documentation
+```python
+class DeploymentError(Exception):
+    """
+    Raised when deployment operations fail.
+
+    The exception includes deployment error details from Salesforce CLI
+    output. Error messages contain specific failure reasons and affected
+    components.
+    """
+```
+
+### Property Documentation
+```python
+@property
+def task_count(self) -> int:
+    """
+    Returns the total number of tasks in the evaluation.
+
+    The count includes all tasks regardless of status. Tasks are counted
+    when added to the engine, not when execution begins.
+    """
+    return len(self.tasks)
+```
+
+### Abstract Method Documentation
+```python
+@abstractmethod
+def validate(self) -> bool:
+    """
+    Validates task completion according to task-specific criteria.
+
+    Subclasses must implement validation logic appropriate for their
+    task type. The method must return True only when all validation
+    criteria are met.
+
+    Returns:
+        True if validation passes, False otherwise
+    """
+    pass
+```
+
+## Maintenance
+
+### Keeping Documentation Current
+- Update docstrings when function signatures change
+- Verify examples remain accurate after code changes
+- Ensure type hints match actual parameter and return types
+- Review documentation during code reviews
+
+### Documentation Review Checklist
+- Verify third-person perspective throughout
+- Check for objective, codebase-focused content
+- Ensure formal, academic tone
+- Validate technical accuracy of all statements
+- Confirm all parameters and return values are documented

@@ -1,0 +1,133 @@
+# Public Repository Safety
+
+This repository is public. Every commit is permanent and visible globally.
+
+## Reputation Protection
+
+### Before Every Commit
+
+```
+SECURITY SCAN:
+□ No API keys, tokens, or secrets
+□ No passwords or credentials
+□ No internal URLs or IPs
+□ No private email addresses
+□ No PII (names, phone numbers, etc.)
+
+PROFESSIONALISM SCAN:
+□ No profanity or vulgar language
+□ No disparaging comments
+□ No controversial opinions
+□ No personal grievances
+□ No unprofessional humor
+
+QUALITY SCAN:
+□ No debug artifacts
+□ No placeholder code
+□ No "temporary" hacks
+□ No embarrassing code
+```
+
+### Sensitive Patterns to Block
+
+```regex
+# API Keys
+(?:api[_-]?key|apikey)\s*[:=]\s*['\"][a-zA-Z0-9]{16,}
+
+# AWS Credentials
+AKIA[0-9A-Z]{16}
+(?:aws[_-]?)?(?:secret[_-]?)?access[_-]?key
+
+# Private Keys
+-----BEGIN (?:RSA|DSA|EC|OPENSSH) PRIVATE KEY-----
+
+# Tokens
+(?:bearer|token|auth)\s*[:=]\s*['\"][a-zA-Z0-9]{20,}
+
+# Internal URLs
+(?:internal|staging|dev)\.[a-z]+\.(com|io|net)
+192\.168\.\d+\.\d+
+10\.\d+\.\d+\.\d+
+
+# Email addresses (non-example)
+[a-zA-Z0-9._%+-]+@(?!example\.)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
+```
+
+### Environment Variables Only
+
+Secrets must ONLY be in:
+- `.env` files (git-ignored)
+- Environment variables
+- CI/CD secrets management
+
+Never in:
+- Source code
+- Configuration files
+- Documentation examples
+- Comments
+
+### Example Values
+
+When examples need credentials:
+```python
+# ✅ GOOD
+api_key = os.environ.get("API_KEY")
+# Example: export API_KEY="your-key-here"
+
+# ❌ BAD
+api_key = "sk-1234567890abcdef"  # Real-looking key
+```
+
+### Commit Message Standards
+
+```
+✅ GOOD:
+- "Fix null check in validation pipeline"
+- "Add retry logic for scratch org creation"
+- "Update documentation for evaluation workflow"
+
+❌ BAD:
+- "Fix stupid bug" (unprofessional)
+- "WIP" (incomplete work)
+- "asdf" (meaningless)
+- "Finally working!!!" (unprofessional)
+```
+
+### Comment Standards
+
+```python
+# ✅ GOOD: Technical explanation
+# Retry with exponential backoff to handle transient API failures.
+# Initial delay: 2s, max delay: 8s, max attempts: 3.
+
+# ❌ BAD: Emotional/unprofessional
+# This API is garbage and keeps failing randomly
+# TODO: Fix this mess later
+# I hate this code but it works
+```
+
+## Pre-Push Checklist
+
+Before pushing ANY code:
+
+```
+1. Run: git diff --staged | grep -i "key\|secret\|password\|token"
+2. Run: git diff --staged | grep -E "[a-z]+@[a-z]+\.[a-z]+"
+3. Review commit messages for professionalism
+4. Check for debug prints: grep -r "print(" --include="*.py"
+5. Verify no .env files staged: git status
+```
+
+## Incident Response
+
+If sensitive data is accidentally committed:
+
+1. **DO NOT** push to remote
+2. Rewrite history: `git reset --soft HEAD~1`
+3. Remove sensitive data
+4. Recommit
+5. If already pushed: Rotate the exposed credential immediately
+
+## Remember
+
+> Every line of code you write in this repository is a public statement about the quality standards of its maintainers.

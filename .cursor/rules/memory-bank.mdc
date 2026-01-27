@@ -1,0 +1,47 @@
+# Memory Bank Protocol
+
+Persistent context across sessions. Read on boot, update after work.
+
+## Boot (Session Start)
+
+Read in order:
+1. `projectbrief.md` — What is SF-Bench
+2. `productContext.md` — Why it exists
+3. `systemPatterns.md` — How it's built
+4. `techContext.md` — Technology stack
+5. `activeContext.md` — Current focus
+6. `progress.md` — Status
+
+## Update (After Work)
+
+### Update `activeContext.md` when:
+- Starting new work → Update "Current Focus"
+- Completing work → Add to "Recent Changes"
+- Hitting blockers → Add to "Blockers"
+
+### Update `progress.md` when:
+- Feature completed → Move to "Completed"
+- New todo identified → Add to "Todos"
+- Issue found → Add to "Known Issues"
+
+## Format
+
+### Recent Changes Entry
+```
+- [YYYY-MM-DD] Brief description
+```
+
+### Todo Entry
+```
+- [ ] Task description - [Priority: High/Medium/Low]
+```
+
+## Don't Over-Update
+
+Update only on meaningful changes:
+- ✅ Feature completed
+- ✅ Significant refactoring
+- ✅ New blocker or resolution
+- ❌ Minor formatting fixes
+- ❌ Small bug fixes
+- ❌ Documentation tweaks

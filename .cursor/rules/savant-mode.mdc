@@ -1,0 +1,74 @@
+# Precision Mode
+
+Enforce meticulous, zero-junk code quality.
+
+## Organization
+
+```
+Files:
+  - Production code → sfbench/
+  - Tests → tests/
+  - Scripts → scripts/
+  - Documentation → docs/
+
+Imports:
+  - Standard library first
+  - Third-party second
+  - Local third
+  - Alphabetical within groups
+```
+
+## Prohibited
+
+```
+❌ print() statements (use logger)
+❌ Commented-out code
+❌ TODO without issue link
+❌ Placeholder implementations
+❌ Unused imports/variables
+❌ Magic numbers without constants
+```
+
+## Before Adding Code
+
+```
+□ Does this already exist?
+□ Can I modify existing code instead?
+□ Is every line necessary?
+□ Can this be simpler?
+```
+
+## Anti-Patterns
+
+### Over-Engineering
+```python
+# ❌ Complex for simple case
+class TaskRunnerFactory:
+    def create(self, type):
+        return builders[type].with_opts().build()
+
+# ✅ Direct
+def get_runner(type):
+    return {"apex": ApexRunner}[type]()
+```
+
+### Scope Creep
+```python
+# ❌ Task: fix null check; Did: also refactored
+def fix():
+    if val is None: return default
+    # + renamed vars, added docstrings, reorganized...
+
+# ✅ Only the fix
+def fix():
+    if val is None: return default
+```
+
+## Verification
+
+After every change:
+1. Read the code written
+2. Question each line
+3. Run tests
+4. Check diff size
+5. Verify it works

@@ -1,0 +1,81 @@
+# Quality Gates
+
+Mandatory verification checkpoints before any work is considered complete.
+
+## Pre-Change Gate
+
+Before touching code:
+
+```
+□ I understand the existing code fully
+□ I have identified the minimal change needed
+□ I have checked for existing patterns to follow
+□ The change scope is appropriate (not over-engineering)
+```
+
+## Post-Change Gate
+
+After making changes:
+
+```
+CRITICAL (Must Pass):
+□ No secrets or credentials in code
+□ No PII (personal information) exposed
+□ No profanity or inappropriate language
+□ Code parses without syntax errors
+
+IMPORTANT (Should Pass):
+□ Tests still pass (run pytest)
+□ No new linting errors introduced
+□ No debug prints or console.logs left
+□ No commented-out code blocks
+
+QUALITY (Best Practice):
+□ Change is minimal and surgical
+□ Follows existing codebase patterns
+□ Documentation updated if needed
+□ Type hints present on new functions
+```
+
+## Final Gate (Before Declaring Done)
+
+```
+1. Re-read the original task/request
+2. Verify the solution addresses it completely
+3. Run verification: python .cursor/hooks/verify_work.py
+4. Self-review the diff as a code reviewer would
+5. Confirm: "Would I approve this PR?"
+```
+
+## Blocking Conditions
+
+The following MUST block completion:
+
+1. **Secrets detected** — Never commit, full stop
+2. **Tests failing** — Fix before proceeding
+3. **Critical lint errors** — Syntax/import errors
+4. **Inappropriate content** — Remove immediately
+
+## Non-Blocking Warnings
+
+These should be fixed but don't block:
+
+1. **Style lint warnings** — Fix if time permits
+2. **Missing docstrings** — Add for public APIs
+3. **Long functions** — Refactor if straightforward
+
+## Verification Command
+
+Run full verification:
+```bash
+echo '{"edited_files": ["path/to/file.py"]}' | python .cursor/hooks/verify_work.py
+```
+
+## When to Skip Gates
+
+Gates may be skipped ONLY when:
+1. User explicitly requests (and understands risks)
+2. Emergency hotfix (document the skip)
+3. Non-code changes (pure documentation)
+
+Document any gate skip in the commit message.

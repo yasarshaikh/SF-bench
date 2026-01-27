@@ -1,0 +1,193 @@
+---
+description: Enforce objective, codebase-focused technical writing in formal academic style
+globs: ['**/*']
+alwaysApply: true
+---
+
+# Technical Writing Standards
+
+All writing in the SF-Bench codebase must adhere to objective, codebase-focused technical writing standards in a formal, academic style.
+
+## Core Requirement
+
+**WRITING MUST BE OBJECTIVELY FOCUSED ON THE CODEBASE - NOT ON CONTEXT OR CONVERSATIONS**
+
+**REQUIRED:**
+- Describe what the code does, how it works, its structure and behavior
+- Use formal, academic, third-person language
+- Present facts about the current codebase
+
+**PROHIBITED:**
+- Include context about why code was written, development discussions, decision-making, or conversations
+- Use conversational language, personal pronouns, or casual expressions
+- Include development history, rationale, or planning context
+
+## Core Principles
+
+### Objective Focus - Codebase Only
+- **CRITICAL**: All documentation must focus solely on the codebase: its structure, functionality, behavior, and implementation
+- **NEVER include**: Context about why code was written, development discussions, decision-making processes, or conversations
+- **ALWAYS focus on**: What the code does, how it works, its structure, and its behavior
+- Describe what the code does, not why it was written or contextual discussions about development
+- Present facts about the codebase, not opinions, predictions, or claims about future behavior
+- Eliminate ALL references to:
+  - Conversations or discussions
+  - Development context or history
+  - Decision-making processes
+  - Rationale for implementation choices
+  - Personal experiences or anecdotes
+
+### Formal Academic Tone
+- Use formal language appropriate for technical documentation
+- Maintain professional, scholarly tone throughout
+- Avoid casual language, colloquialisms, and informal expressions
+- Use precise technical terminology consistently
+
+### Codebase-Centric Writing
+- Focus on code structure, components, and their relationships
+- Describe implementation details and how components work
+- Document functionality, interfaces, and behavior
+- Avoid discussions about problems solved or development rationale
+
+## Writing Style Requirements
+
+### Voice and Person
+- **Third person only**: Eliminate all first-person ("I", "we") and second-person ("you") references
+- **Active voice preferred**: "The system executes..." not "The system is executed..."
+- **Present tense for functionality**: "The function returns..." not "The function will return..."
+- **Past tense only for historical facts**: "The module was implemented..." (use sparingly, only when describing actual historical events)
+
+### Language Precision
+- Use precise technical terminology consistently
+- Define terms on first use when necessary
+- Avoid ambiguous language or vague descriptions
+- Prefer specific technical terms over generic descriptions
+
+### Content Structure
+- **What, not why**: Describe what the code does, not why decisions were made
+- **Structure over context**: Focus on code structure, not development context
+- **Facts over opinions**: State what exists, not what should exist or what is preferred
+- **Implementation details**: Describe how components work, not the problem they solve
+
+## Prohibited Elements
+
+### Conversational Elements
+- Emojis and visual elements (🚀, ✅, ❌, etc.)
+- Conversational phrases ("Let's", "You can", "We'll", "Here's how")
+- Personal pronouns (I, we, you, us, our)
+- Casual greetings or sign-offs ("Thanks!", "Happy coding!")
+
+### Subjective Language
+- Casual qualifiers ("quick", "easy", "simple" without technical justification)
+- Subjective assessments ("good", "better", "best" without technical justification)
+- Value judgments ("should", "ought to", "recommended" without technical basis)
+- Predictions or claims about future behavior
+
+### Contextual Discussions - STRICTLY PROHIBITED
+- **NEVER include**: References to development process or decision-making
+- **NEVER include**: Discussions about why code was written a certain way
+- **NEVER include**: Historical context about implementation choices
+- **NEVER include**: References to conversations or discussions
+- **NEVER include**: Explanations of development rationale or context
+- **NEVER include**: References to planning, design decisions, or project history
+- **ONLY describe**: What the code does, how it works, its current structure and behavior
+
+## Examples
+
+### Good: Objective and Codebase-Focused
+```
+The BenchmarkEngine class orchestrates task evaluation by instantiating
+task-specific runners through the RunnerFactory. Each runner executes
+deployment, validation, and scoring operations in sequence.
+```
+
+### Bad: Conversational and Contextual
+```
+We created the BenchmarkEngine to handle task evaluation. You can use
+it to run evaluations, and it makes things easy by automatically
+creating the right runner for each task type.
+```
+
+### Good: SF-Bench Specific Example
+```
+The ApexRunner class deploys Apex code to Salesforce scratch orgs. The
+runner uses the Salesforce CLI to execute deployment commands. The
+deployment process validates code syntax and dependencies before
+deploying to the target org.
+```
+
+### Bad: SF-Bench with Context (DO NOT WRITE LIKE THIS)
+```
+We built the ApexRunner because we needed a way to test Apex code. After
+discussing with the team, we decided to use scratch orgs. The runner
+makes it easy to deploy and test code, which was our main goal.
+```
+
+### Good: Formal and Precise
+```
+The ApexRunner class validates Apex code by deploying to a scratch org
+and executing unit tests. The runner verifies code coverage meets the
+minimum threshold of 80% before reporting success.
+```
+
+### Bad: Casual and Subjective
+```
+The ApexRunner is great for testing Apex code. It deploys to scratch
+orgs and runs tests. We made sure it checks for good code coverage
+too!
+```
+
+### Good: Third Person, Present Tense
+```
+The validation pipeline processes tasks sequentially. Each task
+undergoes syntax validation, deployment validation, and functional
+validation before scoring.
+```
+
+### Bad: First Person, Future Tense
+```
+We'll process tasks sequentially. You'll see each task go through
+validation, and then we'll score it. This will make sure everything
+works correctly.
+```
+
+## Application Scope
+
+These standards apply to:
+- All markdown documentation files
+- Code docstrings and comments
+- README files
+- API documentation
+- Technical specifications
+- Any written content in the codebase
+
+## Enforcement
+
+When generating or editing any written content:
+1. Verify third-person perspective (no "I", "we", "you")
+2. Check for conversational elements and remove them
+3. **CRITICAL**: Ensure focus is on codebase facts ONLY, not context, conversations, or opinions
+4. Use formal, academic language throughout
+5. Present facts about what exists, not what should exist
+6. **Remove ALL references to**: development process, decision-making, conversations, context, rationale
+7. **Focus ONLY on**: code structure, functionality, behavior, implementation details
+
+## What "Context or Conversations" Means
+
+**DO NOT write about:**
+- Why code was written a certain way
+- Development discussions or decisions
+- Project history or evolution
+- Rationale for implementation choices
+- Planning or design processes
+- Personal experiences or anecdotes
+- References to conversations or meetings
+
+**ONLY write about:**
+- What the code does
+- How the code works
+- Code structure and components
+- Functionality and behavior
+- Implementation details
+- Interfaces and APIs
+- Current state of the codebase

@@ -1,0 +1,31 @@
+# SF-Bench Cursor Indexing Ignore
+# Files excluded from Cursor's codebase indexing (for performance)
+
+# Large generated outputs
+results/
+logs/
+workspace/
+
+# Build artifacts
+__pycache__/
+*.pyc
+dist/
+build/
+*.egg-info/
+
+# Test caches
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Session files
+.cursor/checkpoints/
+logs/cursor_sessions/
+
+# Internal docs (separate index)
+_internal/

@@ -83,3 +83,4 @@ scripts/orchestrator.py
 scripts/run_parallel_eval.py
 scripts/test_atomic.py
 scripts/monitor_evaluations.sh
+.cursor/verification-reports/
